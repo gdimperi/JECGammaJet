@@ -12,8 +12,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        #'file:patTuple_PF2PAT.root'
-        "/store/user/sbrochet/Photon/JetMet_PF2PAT_Fall11/1b06aac9796da83f55c87e1db62c27cd/patTuple_PF2PAT_94_3_QuD.root"
+        'file:patTuple_PF2PAT.root'
+        #"/store/user/sbrochet/Photon/JetMet_PF2PAT_Fall11/1b06aac9796da83f55c87e1db62c27cd/patTuple_PF2PAT_94_3_QuD.root"
     )
 )
 
@@ -36,7 +36,8 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     firstJetPtCut = cms.untracked.bool(False),
 
     json = cms.string(os.path.join(fullPath, "lumiSummary.json")),
-    csv = cms.string(os.path.join(fullPath, "lumibyls.csv"))
+    csv = cms.string(os.path.join(fullPath, "lumibyls.csv")),
+    filterData = cms.untracked.bool(False)
     )
 
 process.p = cms.Path(process.gammaJet)

@@ -17,7 +17,7 @@ process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
 # Configure PAT to use PF2PAT instead of AOD sources
 # this function will modify the PAT sequences.
 from PhysicsTools.PatAlgos.tools.pfTools import *
-from PhysicsTools.PatAlgos.tools.metTools import *
+#from PhysicsTools.PatAlgos.tools.metTools import *
 
 def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
@@ -30,8 +30,9 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
     jetCorrections = ("%sPF" % algo, ['L1FastJet', 'L2Relative', 'L3Absolute'])
 
   p = postfix
+
   usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC, postfix=p, jetCorrections=jetCorrections, typeIMetCorrections = useTypeIMET)
-  getattr(process, "pfPileUp" + p).Enable = cms.bool(usePFNoPU)
+  #getattr(process, "pfPileUp" + p).Enable = cms.bool(usePFNoPU)
   if usePFNoPU:
     getattr(process, "pfPileUp" + p).Vertices = 'goodOfflinePrimaryVertices'
     getattr(process, "pfPileUp" + p).checkClosestZVertex = cms.bool(False)
@@ -40,7 +41,7 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   getattr(process, "pfJets" + p).doRhoFastjet = False
 
   # top projections in PF2PAT:
-  getattr(process,"pfNoPileUp" + p).enable = usePFNoPU
+  getattr(process,"pfNoPileUp" + p).enable = True
   getattr(process,"pfNoMuon" + p).enable = True
   getattr(process,"pfNoElectron" + p).enable = True
   getattr(process,"pfNoTau" + p).enable = False
@@ -72,53 +73,54 @@ print "PF jets with PF2PAT"
 print "Using Type I met" if correctMETWithT1 else "NOT using Type I met"
 print "##########################"
 
-postfixes = {'AK5PFlow': 'AK5', 'AK7PFlow': 'AK7'}
+#postfixes = {'PFlowAK5': 'AK5', 'PFlowAK7': 'AK7'}
+postfixes = {'PFlowAK5': 'AK5'}
 
 path = cms.Sequence()
 for p, algo in postfixes.items():
-
   path += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=False, useTypeIMET=correctMETWithT1)
   #path += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=True, useTypeIMET=correctMETWithT1)
 
-
-# Clean patDefaultSequence from MC matching before cloning MET, Jets, etc.
-if not runOnMC:
-  # Remove MC Matching
-  removeMCMatching(process, names = ["All"])
+processCaloJets = False
 
 print "##########################"
-print "Calo jets"
+print "Calo jets" if processCaloJets else "No processing of calo jets"
 print "##########################"
 
-# No L2L3 Residual on purpose
-jetCorrections = ('AK5Calo', ['L1Offset', 'L2Relative', 'L3Absolute'])
+if processCaloJets:
 
-addJetCollection(process, cms.InputTag('ak7CaloJets'),
-    'AK7',
-    'Calo',
-    doJTA            = True,
-    doBTagging       = True,
-    jetCorrLabel     = jetCorrections,
-    doType1MET       = correctMETWithT1,
-    doL1Cleaning     = False,                 
-    doL1Counters     = False,
-    genJetCollection = cms.InputTag("ak7GenJets"),
-    doJetID          = True,
-    jetIdLabel       = "ak7"
-    )
+  # No L2L3 Residual on purpose
+  jetCorrections = ('AK5Calo', ['L1Offset', 'L2Relative', 'L3Absolute'])
 
-switchJetCollection(process, cms.InputTag('ak5CaloJets'),
-    doJTA            = True,
-    doBTagging       = True,
-    jetCorrLabel     = jetCorrections,
-    doType1MET       = correctMETWithT1,
-    genJetCollection = cms.InputTag("ak5GenJets"),
-    doJetID          = True,
-    jetIdLabel       = "ak5"
-    )
+  addJetCollection(process, cms.InputTag('ak7CaloJets'),
+      'AK7',
+      'Calo',
+      doJTA            = True,
+      doBTagging       = True,
+      jetCorrLabel     = jetCorrections,
+      doType1MET       = correctMETWithT1,
+      doL1Cleaning     = False,
+      doL1Counters     = False,
+      genJetCollection = cms.InputTag("ak7GenJets"),
+      doJetID          = True,
+      jetIdLabel       = "ak7"
+      )
 
-process.selectedPatJets.cut = "pt > 2"
-process.selectedPatJetsAK7Calo.cut = "pt > 2"
+  switchJetCollection(process, cms.InputTag('ak5CaloJets'),
+      doJTA            = True,
+      doBTagging       = True,
+      jetCorrLabel     = jetCorrections,
+      doType1MET       = correctMETWithT1,
+      genJetCollection = cms.InputTag("ak5GenJets"),
+      doJetID          = True,
+      jetIdLabel       = "ak5"
+      )
+
+  process.selectedPatJets.cut = "pt > 2"
+  process.selectedPatJetsAK7Calo.cut = "pt > 2"
+
+else:
+  removeSpecificPATObjects(process, names = ['Jets', 'METs'])
 
 if not runOnMC:
   # Remove MC Matching
@@ -156,17 +158,17 @@ process.nEventsFiltered = cms.EDProducer("EventCountProducer")
 
 # Let it run
 process.p = cms.Path(
-    process.nEventsTotal *
-    process.scrapingVeto *
-    process.goodOfflinePrimaryVertices *
-    process.HBHENoiseFilter *
-    path *
+    process.nEventsTotal +
+    process.scrapingVeto +
+    process.goodOfflinePrimaryVertices +
+    process.HBHENoiseFilter +
+    path +
     process.nEventsFiltered
     )
 
 # Add PF2PAT output to the created file
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
-process.load("CommonTools.ParticleFlow.PF2PAT_EventContent_cff")
+#process.load("CommonTools.ParticleFlow.PF2PAT_EventContent_cff")
 process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_photonCore_*_*',
     'keep double_kt6*Jets*_rho_*',
@@ -175,8 +177,8 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     # Content of *patEventContentNoCleaning
     'keep *_selectedPatPhotons*_*_*', 'keep *_selectedPatElectrons*_*_*', 'keep *_selectedPatMuons*_*_*', 'keep *_selectedPatTaus*_*_*', 'keep *_selectedPatJets*_*_*', 'drop *_selectedPatJets_pfCandidates_*', 'drop *_*PF_caloTowers_*', 'drop *_*JPT_pfCandidates_*', 'drop *_*Calo_pfCandidates_*', 'keep *_patMETs*_*_*', 'keep *_selectedPatPFParticles*_*_*', 'keep *_selectedPatTrackCands*_*_*',
     'drop *_*PFlow_caloTowers_*',
-    'keep *_addPileupInfo_*_*',
     'keep *recoTracks_generalTracks_*_*',
+    'keep *_addPileupInfo_*_*',
     'keep *_generator_*_*'
     )
 
@@ -184,6 +186,7 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
 # from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
 # switchOnTrigger( process )
 
+## ------------------------------------------------------
 #  In addition you usually want to change the following
 #  parameters:
 ## ------------------------------------------------------
@@ -192,7 +195,7 @@ process.GlobalTag.globaltag = cms.string("START44_V13::All") ##  (according to h
 #                                         ##
 process.source.fileNames =  cms.untracked.vstring('file:input_mc.root')  ##  (e.g. 'file:AOD.root')
 #                                         ##
-process.maxEvents.input = 500
+process.maxEvents.input = 100
 #                                         ##
 #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
 #                                         ##
