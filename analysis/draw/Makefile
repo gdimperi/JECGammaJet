@@ -5,7 +5,7 @@ DllSuf        = so
 OutPutOpt     = -o
 HeadSuf       = h
 
-include $(CMSSW_RELEASE_BASE)/.SCRAM/slc5_amd64_gcc434/MakeData/Tools/boost_header.mk
+include $(CMSSW_RELEASE_BASE)/.SCRAM/$(SCRAM_ARCH)/MakeData/Tools/boost_header.mk
 
 ROOFIT_INCLUDE := $(shell cd $(CMSSW_BASE); scram tool info roofitcore | grep INCLUDE= | sed 's|INCLUDE=||')
 
@@ -19,7 +19,7 @@ ROOTCFLAGS = $(shell root-config --cflags)
 ROOTLIBS   = $(shell root-config --libs) -lMinuit -lRooFitCore -lRooFit
 
 CXX           = g++ -g
-CXXFLAGS	    = -Wall -Werror -fPIC
+CXXFLAGS	    = -std=c++0x -Wall -Werror -fPIC
 LD			      = g++
 LDFLAGS		    = $(shell root-config --ldflags) -Wl,--as-needed
 SOFLAGS		    = 

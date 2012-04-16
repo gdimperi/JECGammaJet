@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "drawExtrap.h"
 #include "fitTools.h"
 
