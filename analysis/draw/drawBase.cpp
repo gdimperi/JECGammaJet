@@ -2211,9 +2211,9 @@ void drawBase::drawStack(const std::string& varY, const std::string& varX, const
   label_sqrt->SetTextFont(42);
   std::string label_sqrt_text;
   if (isData) {
-    label_sqrt_text = "#sqrt{s} = 7 TeV, DATA";
+    label_sqrt_text = "#sqrt{s} = 8 TeV, DATA";
   } else {
-    label_sqrt_text = "#sqrt{s} = 7 TeV, MC";
+    label_sqrt_text = "#sqrt{s} = 8 TeV, MC";
   }
   label_sqrt->AddText(label_sqrt_text.c_str());
 
@@ -2960,12 +2960,12 @@ std::string drawBase::get_sqrtText() const {
 
   char label_sqrt_text[150];
   if (isCMSArticle_) {
-    sprintf(label_sqrt_text, "#sqrt{s} = 7 TeV");
+    sprintf(label_sqrt_text, "#sqrt{s} = 8 TeV");
   } else {
     if (lumi_ == 0.) {
-      sprintf(label_sqrt_text, "#sqrt{s} = 7 TeV");
+      sprintf(label_sqrt_text, "#sqrt{s} = 8 TeV");
     } else {
-      sprintf(label_sqrt_text, "#sqrt{s} = 7 TeV, L = %s", lumiText.c_str());
+      sprintf(label_sqrt_text, "#sqrt{s} = 8 TeV, L = %s", lumiText.c_str());
     }
   }
 
@@ -3037,15 +3037,15 @@ TPaveText* drawBase::get_labelCMStop(bool wide) const {
 
   label_cmstop->SetTextAlign(31); // align right
   //latex->DrawLatex(wide ? 0.98 : 0.95, 0.96, "#sqrt{s} = 7 TeV");
-  label_cmstop->AddText("#sqrt{s} = 7 TeV");
+  label_cmstop->AddText("#sqrt{s} = 8 TeV");
   std::string leftText;
   if (dataFiles_.size() == 0) {
-    leftText = "CMS Simulation 2011";
+    leftText = "CMS Simulation 2012";
   } else {
     if (isCMSArticle_) {
-      leftText = "CMS 2011";
+      leftText = "CMS 2012";
     } else {
-      leftText = "CMS Preliminary 2011";
+      leftText = "CMS Preliminary 2012";
     }
   }
 
@@ -3114,12 +3114,12 @@ TPaveText* drawBase::get_labelCMS(int legendQuadrant) const {
   } else {
     std::string leftText;
     if (dataFiles_.size() == 0) {
-      leftText = "CMS Simulation 2011";
+      leftText = "CMS Simulation 2012";
     } else {
       if (isCMSArticle_) {
-        leftText = "CMS 2011";
+        leftText = "CMS 2012";
       } else {
-        leftText = "CMS Preliminary 2011";
+        leftText = "CMS Preliminary 2012";
       }
     }
     if (lumi_ > 0.) {
@@ -3180,7 +3180,7 @@ TPaveText* drawBase::get_labelSqrt(int legendQuadrant) const {
     label_sqrt->AddText(label_sqrt_text.c_str());
   } else {
     label_sqrt->SetTextAlign(31); // align right
-    label_sqrt->AddText("#sqrt{s} = 7 TeV");
+    label_sqrt->AddText("#sqrt{s} = 8 TeV");
   }
 
   return label_sqrt;
@@ -3239,13 +3239,13 @@ std::string drawBase::get_CMSText() const {
   std::string returnString;
 
   if (dataFiles_.size() == 0) {
-    returnString = "CMS Simulation 2011";
+    returnString = "CMS Simulation 2012";
   } else {
     if (isCMSArticle_) {
       std::string lumiText = this->get_lumiText();
-      returnString = "CMS 2011, " + lumiText;
+      returnString = "CMS 2012, " + lumiText;
     } else {
-      returnString = "CMS Preliminary 2011";
+      returnString = "CMS Preliminary 2012";
     }
   }
 
