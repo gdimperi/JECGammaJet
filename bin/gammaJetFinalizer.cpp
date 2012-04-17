@@ -58,7 +58,7 @@ std::string GammaJetFinalizer::buildPostfix() {
   std::string algo = mJetAlgo == AK5 ? "AK5" : "AK7";
   std::string type = mJetType == PF ? "PFlow" : "Calo";
 
-  return algo + type;
+  return type + algo;
 }
 
 void GammaJetFinalizer::loadFiles(TChain& chain) {
