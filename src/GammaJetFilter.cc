@@ -365,17 +365,12 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle<pat::JetCollection> jetsHandle;
 
-<<<<<<< HEAD
-  iEvent.getByLabel(mJetsAK5PFlowIT, jets);
-  eventHasJets |= processJets(photon, jets, AK5, mJetTrees["PFlowAK5"]);
-=======
   iEvent.getByLabel(mJetsAK5PFlowIT, jetsHandle);
   pat::JetCollection jets = *jetsHandle;
   if (mDoJEC) {
     correctJets(jets, iEvent, iSetup);
   }
-  eventHasJets |= processJets(photon, jets, AK5, mJetTrees["AK5PFlow"]);
->>>>>>> 3738fed... added: ability to re-rerun JEC from step 2.
+  eventHasJets |= processJets(photon, jets, AK5, mJetTrees["PFlowAK5"]);
 
   /*iEvent.getByLabel(mJetsAK7PFlowIT, jets);
     eventHasJets |= processJets(photon, jets, AK7, mJetTrees["AK7PFlow"]);
