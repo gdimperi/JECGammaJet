@@ -20,6 +20,9 @@ class AnalysisTree {
     TTree          *fChain;   //!pointer to the analyzed TTree or TChain
 
     // Declaration of leaf types
+    UInt_t          run;
+    UInt_t          lumi_block;
+    UInt_t          event;
     Float_t         ntrue_interactions;
     UInt_t          nvertex;
     Int_t           pu_nvertex;
@@ -70,6 +73,9 @@ void AnalysisTree::Init(TTree *tree)
   fChain = tree;
   fChain->SetMakeClass(1);
 
+  fChain->SetBranchAddress("run", &run, NULL);
+  fChain->SetBranchAddress("lumi_block", &lumi_block, NULL);
+  fChain->SetBranchAddress("event", &event, NULL);
   fChain->SetBranchAddress("ntrue_interactions", &ntrue_interactions, &b_ntrue_interactions);
   fChain->SetBranchAddress("nvertex", &nvertex, &b_nvertex);
   fChain->SetBranchAddress("pu_nvertex", &pu_nvertex, &b_nvertex);
