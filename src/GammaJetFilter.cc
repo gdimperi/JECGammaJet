@@ -157,10 +157,10 @@ class GammaJetFilter : public edm::EDFilter {
       std::map<std::string, TTree*>               mMiscTrees;
 
       // TParameters for storing current config (JEC, correctorLabel, Treshold, etc...
-      TParameter<int>*              mJECRedone;
-      TParameter<int>*              mJECFromRawParameter;
+      TParameter<bool>*             mJECRedone;
+      TParameter<bool>*             mJECFromRawParameter;
       TNamed*                       mJECCorrectorLabel;
-      TParameter<int>*              mFirstJetPtCutParameter;
+      TParameter<bool>*             mFirstJetPtCutParameter;
       TParameter<double>*           mFirstJetThresholdParameter;
 
       // DEBUG
@@ -255,10 +255,10 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
    mProcessedEvents = fs->make<TParameter<long long> >("total_events", 0);
    mSelectedEvents = fs->make<TParameter<long long> >("passed_events", 0);
 
-   mJECRedone = fs->make<TParameter<int> >("jec_redone", mDoJEC);
-   mFirstJetPtCutParameter = fs->make<TParameter<int> >("cut_on_first_jet_pt", mFirstJetPtCut);
+   mJECRedone = fs->make<TParameter<bool> >("jec_redone", mDoJEC, '*');
+   mFirstJetPtCutParameter = fs->make<TParameter<bool> >("cut_on_first_jet_pt", mFirstJetPtCut, '*');
    if (mDoJEC) {
-     mJECFromRawParameter = fs->make<TParameter<int> >("jec_from_raw_jet", mJECFromRaw);
+     mJECFromRawParameter = fs->make<TParameter<bool> >("jec_from_raw_jet", mJECFromRaw, '*');
      mJECCorrectorLabel = fs->make<TNamed>("jec_corrector_label", mCorrectorLabel);
    }
 
