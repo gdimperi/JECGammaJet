@@ -1020,8 +1020,7 @@ void drawBase::drawHisto(const std::string& name, const std::string& axisName, c
   }
 
   if (mcHistos.size() == 0) {
-    std::cerr << "Histo " << name << " not found in MC" << std::endl;
-    return;
+    std::cout << "Histo " << name << " not found in MC. Drawing only datas" << std::endl;
   }
 
   std::vector<TH1*> mcHistos_superimp;
@@ -1700,7 +1699,9 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     delete lastHistos_mcHistoSum_;
   }
 
-  lastHistos_mcHistoSum_ = new TH1D(*mcHisto_sum);
+  if (! noMC) {
+    lastHistos_mcHistoSum_ = new TH1D(*mcHisto_sum);
+  }
 
 
   lastHistos_data_.clear();

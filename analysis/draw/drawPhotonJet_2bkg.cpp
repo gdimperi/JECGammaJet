@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
   jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
-  std::string postFix = jetAlgo + recoType;
+  std::string postFix = recoType + jetAlgo;
 
 
   //Float_t etamax = 3.;
@@ -84,7 +84,9 @@ int main(int argc, char* argv[]) {
   TFile* mcPhotonJetFile = TFile::Open(mc1FileName);
   std::cout << "Opened mc file '" << mc1FileName << "'." << std::endl;
 
-  db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma+jet MC", 46);
+  if (mcPhotonJetFile) {
+    db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma+jet MC", 46);
+  }
 
   TString mc2FileName;
   if (flags.length() > 0) {
@@ -95,7 +97,7 @@ int main(int argc, char* argv[]) {
   TFile* mcQCDFile = TFile::Open(mc2FileName);
   std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
 
-  if (mc_QCD != mc_photonjet) {
+  if (mcQCDFile && mc_QCD != mc_photonjet) {
     db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", 38);
   }
 
@@ -113,7 +115,10 @@ int main(int argc, char* argv[]) {
   bool log = true;
   gErrorIgnoreLevel = kWarning;
 
+  db->set_rebin(5);
+
   // Data / MC comparison
+  db->drawHisto("ptPhoton", "Photon Transverse Momentum", "GeV", "Events", log);
   db->drawHisto("ptPhoton_passedID", "Photon Transverse Momentum", "GeV", "Events", log);
   db->drawHisto("ptFirstJet_passedID", "Jet Transverse Momentum", "GeV", "Events", log);
   db->drawHisto("ptSecondJet_passedID", "2nd Jet Transverse Momentum", "GeV", "Events", log);
