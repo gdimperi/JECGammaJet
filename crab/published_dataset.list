@@ -32,3 +32,6 @@ MC QCD:
 Data:
 Run2011
 /Photon/sbrochet-JetMet_PF2PAT_Fall11-1b06aac9796da83f55c87e1db62c27cd/USER
+
+Run2012
+/Photon/sbrochet-JetMet_PF2PAT_PromptReco-b2d655a149602216b2a6b64338738e73/USER
