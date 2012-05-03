@@ -8,7 +8,7 @@ isCastor = os.system("uname -n | grep cern &> /dev/null") == 0
 
 parser = OptionParser()
 parser.add_option("-p", "--path", dest="path", type="string", help="where to store crab folders")
-parser.add_option("--mc", dest="mc", type="choice", choices=['Summer11', 'Fall11'], help="The MC type (Summer11 or Fall11)", default="Fall11")
+parser.add_option("--mc", dest="mc", type="choice", choices=['Summer12', 'Fall11'], help="The MC type (Summer12 or Fall11)", default="Summer12")
 
 (options, args) = parser.parse_args()
 
