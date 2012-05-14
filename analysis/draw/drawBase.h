@@ -33,6 +33,7 @@ struct InputFile {
   int fillColor;
   int fillStyle;
   int markerStyle;
+  int markerSize;
   int lineColor;
   int lineWidth;
 };

@@ -5,6 +5,7 @@
 #include "RooDataHist.h"
 #include "RooPlot.h"
 
+#include "TColor.h"
 #include "TRegexp.h"
 #include <iostream>
 #include <algorithm>
@@ -264,66 +265,8 @@ void drawBase::set_shapeNormalization() {
 
 }
 
-/*
-void drawBase::set_sameEventNormalization() {
-
-  if( dataFiles_.file==0 || mcFiles_.size()==0 ) {
-    std::cout << "Data/MC files not properly initialized. Cannot compute scale factor. Exiting." << std::endl;
-    exit(133);
-  }
-
-  TH1F* h1_nJets_data = (TH1F*)dataFile_.file->Get("nJets");
-
-  TH1F* h1_nJets_mc = (TH1F*)mcFiles_[0].file->Get("nJets");
-  if( mcFiles_.size()>1 ) {
-    for( unsigned i=1; i<mcFiles_.size(); ++i ) {
-      TH1F* h1_nJets_mc2 = (TH1F*)mcFiles_[i].file->Get("nJets");
-      h1_nJets_mc->Add( h1_nJets_mc2 );
-    }
-  }
-
-  scaleFactor_ =  h1_nJets_data->Integral()/h1_nJets_mc->Integral();
-
-}
-
-void drawBase::set_sameInstanceNormalization() {
-
-  if( dataFile_.file==0 || mcFiles_.size()==0 ) {
-    std::cout << "Data/MC files not properly initialized. Cannot compute scale factor. Exiting." << std::endl;
-    exit(133);
-  }
-
-  TH1F* h1_phi_data;
-  TH1F* h1_phi_mc;
-  std::string hname;
-  if( analysisType_=="MinBias" ) {
-    hname = "phiJet";
-  } else if( analysisType_=="PhotonJet" ) {
-    hname = "phiPhot";
-  } else {
-    std::cout << "Analysis type '" << analysisType_ << "' not implemented yet. Exiting." << std::endl;
-    exit(765);
-  }
-
-  h1_phi_data = (TH1F*)dataFile_.file->Get(hname.c_str());
-  h1_phi_mc = (TH1F*)mcFiles_[0].file->Get(hname.c_str());
-  if( mcFiles_.size()>1 ) {
-    for( unsigned i=1; i<mcFiles_.size(); ++i ) {
-      TH1F* h1_phi_mc2 = (TH1F*)mcFiles_[i].file->Get(hname.c_str());
-      h1_phi_mc->Add( h1_phi_mc2 );
-    }
-  }
-  scaleFactor_ =  h1_phi_data->Integral()/h1_phi_mc->Integral();
-  std::cout << "ScaleFactor: " << scaleFactor_ << std::endl;
-
-}
-*/
-
-
 void drawBase::set_isCMSArticle(bool set) {
-
   isCMSArticle_ = set;
-
 }
 
 
@@ -987,23 +930,6 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
 
 }
 
-
-
-
-
-
-
-// ------------------------------------------------------------------------
-//
-//
-//      YO MAMA METHOD: drawHisto
-//
-//
-// ------------------------------------------------------------------------
-
-
-
-
 void drawBase::drawHisto(const std::string& name, const std::string& axisName, const std::string& units, const std::string& instanceName, bool log_aussi, int legendQuadrant, const std::string& labelText, bool add_jetAlgoText) {
 
   std::vector<TH1*> dataHistos;
@@ -1144,11 +1070,8 @@ void drawBase::drawHisto_fromTree(const std::string& treeName, const std::string
 
 void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH1*> mcHistos, std::vector<TH1*> mcHistos_superimp, const std::string& name, const std::string& axisName, const std::string& units, const std::string& instanceName, bool log_aussi, int legendQuadrant, const std::string& flags, const std::string& labelText, bool add_jetAlgoText) {
 
-
-
   bool noDATA = false;
   bool noMC = false;
-
 
   if (dataHistos.size() == 0) {
     noDATA = true;
@@ -1165,33 +1088,59 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   for (unsigned iData = 0; iData < dataHistos.size(); ++iData) {
     dataHistos[iData]->Rebin(rebin_);
 
+    dataFiles_[iData].lineColor = kBlack;
+    dataFiles_[iData].lineWidth = 1.;
+
     if (dataFiles_[iData].markerStyle != -1) {
       dataHistos[iData]->SetMarkerStyle(dataFiles_[iData].markerStyle);
     } else {
-      dataHistos[iData]->SetMarkerStyle(markerStyle_default++);  // make it change at every histo
-    }
-
-    if (dataFiles_[iData].fillColor != -1) {
-      dataHistos[iData]->SetMarkerColor(dataFiles_[iData].fillColor);
-    } else {
-      dataHistos[iData]->SetMarkerColor(markerColor_default++);  // make it change at every histo
+      if (noMC) {
+        dataHistos[iData]->SetMarkerStyle(21);
+        dataFiles_[iData].markerStyle = 21;
+      } else {
+        dataFiles_[iData].markerStyle = markerStyle_default;
+        dataHistos[iData]->SetMarkerStyle(markerStyle_default++);  // make it change at every histo
+      }
     }
 
     if (dataFiles_[iData].fillStyle != -1) {
       dataHistos[iData]->SetMarkerSize(0);
       dataHistos[iData]->SetFillStyle(dataFiles_[iData].fillStyle);
       dataHistos[iData]->SetFillColor(dataFiles_[iData].fillColor);
+
+      dataFiles_[iData].markerSize = 0;
+
       if (dataFiles_[iData].fillStyle == 1001) {
         dataHistos[iData]->SetLineColor(kBlack);
         dataHistos[iData]->SetLineWidth(0);
+
+        dataFiles_[iData].lineColor = kBlack;
+        dataFiles_[iData].lineWidth = 0.;
       }
     }
 
+    if (dataFiles_[iData].fillColor != -1) {
+      dataHistos[iData]->SetMarkerColor(dataFiles_[iData].fillColor);
+    } else {
+      if (noMC) {
+        dataHistos[iData]->SetMarkerColor(TColor::GetColor(0, 0, 153));
+        dataHistos[iData]->SetLineColor(TColor::GetColor(0, 0, 153));
+        dataHistos[iData]->SetLineWidth(1.);
+
+        dataFiles_[iData].fillColor = TColor::GetColor(0, 0, 153);
+        dataFiles_[iData].lineColor = TColor::GetColor(0, 0, 153);
+        dataFiles_[iData].lineWidth = 1.;
+      } else {
+        dataFiles_[iData].fillColor = markerColor_default;
+        dataHistos[iData]->SetMarkerColor(markerColor_default++);  // make it change at every histo
+      }
+    }
+
+    if (noMC) {
+      dataHistos[iData]->SetMarkerSize(1.);
+      dataFiles_[iData].markerSize = 1.;
+    }
   }
-
-
-
-
 
   // SECOND: SET BASIC AESTHETICS FOR MC HISTO(S) and CREATE MC HISTO SUM
   TH1D* mcHisto_sum = 0;
@@ -1418,10 +1367,21 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     } else {
       graph_data_poisson = fitTools::getGraphPoissonErrors(dataHistos[0], "binWidth");
     }
-    if (dataFiles_[0].markerStyle != -1) {
-      graph_data_poisson->SetMarkerStyle(dataFiles_[0].markerStyle);
+
+    graph_data_poisson->SetMarkerStyle(dataFiles_[0].markerStyle);
+    graph_data_poisson->SetMarkerSize(dataFiles_[0].markerSize);
+
+    graph_data_poisson->SetLineColor(dataFiles_[0].fillColor);
+    graph_data_poisson->SetLineWidth(dataFiles_[0].lineWidth);
+
+    if (dataFiles_[0].fillStyle == -1) {
+      graph_data_poisson->SetMarkerColor(dataFiles_[0].fillColor);
     } else {
-      graph_data_poisson->SetMarkerStyle(20);
+      graph_data_poisson->SetFillStyle(dataFiles_[0].fillStyle);
+      graph_data_poisson->SetFillColor(dataFiles_[0].fillColor);
+    }
+
+    if (noMC) {
     }
   }
 
