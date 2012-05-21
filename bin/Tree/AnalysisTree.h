@@ -27,6 +27,7 @@ class AnalysisTree {
     UInt_t          nvertex;
     Int_t           pu_nvertex;
     Float_t         event_weight;
+    Float_t         generator_weight;
 
     // List of branches
     TBranch        *b_ntrue_interactions;   //!
@@ -80,4 +81,5 @@ void AnalysisTree::Init(TTree *tree)
   fChain->SetBranchAddress("nvertex", &nvertex, &b_nvertex);
   fChain->SetBranchAddress("pu_nvertex", &pu_nvertex, &b_nvertex);
   fChain->SetBranchAddress("event_weight", &event_weight, &b_event_weight);
+  fChain->SetBranchAddress("generator_weight", &generator_weight, NULL);
 }
