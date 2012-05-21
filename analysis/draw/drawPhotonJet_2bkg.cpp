@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
   db->drawHisto("MET_passedID", "Missing E_{T}", "GeV", "Events", log);
 
   PtBinning ptBinning;
-  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning();
+  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning(ptBinning.size() - 2);
 
   EtaBinning etaBinning;
   size_t etaBinningSize = etaBinning.size();
