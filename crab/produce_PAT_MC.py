@@ -191,7 +191,7 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
 #  parameters:
 ## ------------------------------------------------------
 #
-process.GlobalTag.globaltag = cms.string("START44_V13::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
+process.GlobalTag.globaltag = cms.string("START52_V9::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
 #                                         ##
 process.source.fileNames =  cms.untracked.vstring('file:input_mc.root')  ##  (e.g. 'file:AOD.root')
 #                                         ##

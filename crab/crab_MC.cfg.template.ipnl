@@ -40,4 +40,3 @@ check_user_remote_dir = 0
 [GRID]
 rb = CERN
 virtual_organization = cms
-ce_white_list = T3_FR_IPNL
