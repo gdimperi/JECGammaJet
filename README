@@ -1,15 +1,18 @@
-How-to setup (CMSSW 5.2.3 patch 4, pat V08-08-25-01)
+How-to setup (CMSSW 5.2.5, pat V08-09-07)
 
 setenv SCRAM_ARCH slc5_amd64_gcc462
-cmsrel CMSSW_5_2_3_patch4
-cd CMSSW_5_2_3_patch4/src/
+cmsrel CMSSW_5_2_5
+cd CMSSW_5_2_5/src/
 cmsenv
-addpkg DataFormats/PatCandidates   V06-04-34
-addpkg PhysicsTools/PatAlgos       V08-08-25-01
-addpkg PhysicsTools/PatUtils       V03-09-18-03
-addpkg CommonTools/ParticleFlow    V00-03-07-01
-addpkg RecoParticleFlow/PFProducer V15-01-05
-addpkg FWCore/GuiBrowsers          V00-00-60
+addpkg DataFormats/PatCandidates   V06-05-01
+addpkg PhysicsTools/PatAlgos       V08-09-07
+addpkg CommonTools/ParticleFlow    V00-03-11
+addpkg JetMETCorrections/Type1MET  V04-06-05
+
+For TypeI MET:
+cvs co -r V00-00-08      CommonTools/RecoUtils
+cvs co -r b5_2_X_cvMEtCorr_2012May08 PhysicsTools/PatUtils/plugins
+cvs co -r b5_2_X_cvMEtCorr_2012May08 PhysicsTools/PatUtils
 
 mkdir JetMETCorrections
 cd JetMETCorrections

@@ -42,7 +42,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
 
     json = cms.string(os.path.join(fullPath, "lumiSummary.json")),
     csv = cms.string(os.path.join(fullPath, "lumibyls.csv")),
-    filterData = cms.untracked.bool(True),
+    filterData = cms.untracked.bool(False),
 
     # JEC
     doJetCorrection = cms.untracked.bool(False),

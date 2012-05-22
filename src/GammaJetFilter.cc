@@ -203,8 +203,8 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   }
 
   mPhotonsIT = iConfig.getUntrackedParameter<edm::InputTag>("photons", edm::InputTag("selectedPatPhotons"));
-  mJetsAK5PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5PFlow", edm::InputTag("selectedPatJetsPFlowAK5"));
-  mJetsAK7PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7PFlow", edm::InputTag("selectedPatJetsPFlowAK7"));
+  mJetsAK5PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5PFlow", edm::InputTag("selectedPatJetsPFlowAK5chs"));
+  mJetsAK7PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7PFlow", edm::InputTag("selectedPatJetsPFlowAK7chs"));
   mJetsAK5CaloIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5Calo", edm::InputTag("selectedPatJets"));
   mJetsAK7CaloIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7Calo", edm::InputTag("selectedPatJetsCaloAK7"));
   mDoJEC = iConfig.getUntrackedParameter<bool>("doJetCorrection", false);
@@ -250,8 +250,8 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
      mEventsWeight = 1.;
    }
 
-   mJetCollections.push_back("PFlowAK5");
-   //mJetCollections.push_back("PFlowAK7");
+   mJetCollections.push_back("PFlowAK5chs");
+   //mJetCollections.push_back("PFlowAK7chs");
    //mJetCollections.push_back("CaloAK5");
    //mJetCollections.push_back("CaloAK7");
 
@@ -371,7 +371,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   edm::Handle<double> pFlowRho;
-  iEvent.getByLabel(edm::InputTag("kt6PFJetsPFlowAK5", "rho"), pFlowRho);
+  iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), pFlowRho);
 
   edm::Handle<pat::PhotonCollection> photons;
   iEvent.getByLabel(mPhotonsIT, photons);
@@ -402,7 +402,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if (mDoJEC) {
     correctJets(jets, iEvent, iSetup);
   }
-  eventHasJets |= processJets(photon, jets, AK5, mJetTrees["PFlowAK5"]);
+  eventHasJets |= processJets(photon, jets, AK5, mJetTrees["PFlowAK5chs"]);
 
   /*iEvent.getByLabel(mJetsAK7PFlowIT, jets);
     eventHasJets |= processJets(photon, jets, AK7, mJetTrees["AK7PFlow"]);
@@ -430,7 +430,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (it->find("Calo") != std::string::npos)
       iEvent.getByLabel(edm::InputTag("kt6CaloJets", "rho"), rhos);
     else
-      iEvent.getByLabel(edm::InputTag(std::string("kt6PFJets" + *it), "rho"), rhos);
+      iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rhos);
 
     double rho = *rhos;
     updateBranch(mMiscTrees[*it], &rho, "rho", "D");
@@ -482,12 +482,12 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   // Electrons
   edm::Handle<pat::ElectronCollection> electrons;
-  iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
+  iEvent.getByLabel("selectedPatElectronsPFlowAK5chs", electrons);
   electronsToTree(electrons, primaryVertex);
 
   // Muons
   edm::Handle<pat::MuonCollection> muons;
-  iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
+  iEvent.getByLabel("selectedPatMuonsPFlowAK5chs", muons);
   muonsToTree(muons, primaryVertex);
 
   mSelectedEvents->SetVal(mSelectedEvents->GetVal() + 1);

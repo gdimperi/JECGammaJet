@@ -31,7 +31,7 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
   p = postfix
 
-  usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC, postfix=p, jetCorrections=jetCorrections, typeIMetCorrections = useTypeIMET)
+  usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC, postfix=p, jetCorrections=jetCorrections, typeIMetCorrections = False)
   #getattr(process, "pfPileUp" + p).Enable = cms.bool(usePFNoPU)
   if usePFNoPU:
     getattr(process, "pfPileUp" + p).Vertices = 'goodOfflinePrimaryVertices'
@@ -39,6 +39,7 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
   getattr(process, "pfJets" + p).doAreaFastjet = cms.bool(True)
   getattr(process, "pfJets" + p).doRhoFastjet = False
+  getattr(process, 'patJetCorrFactors').rho = cms.InputTag("kt6PFJets", "rho") # Do not use kt6PFJetsPFlowAK5, it's not ok for L1FastJet.
 
   # top projections in PF2PAT:
   getattr(process,"pfNoPileUp" + p).enable = True
@@ -56,17 +57,50 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   # Keep only jets with pt > 2 Gev
   getattr(process, "selectedPatJets" + p).cut = "pt > 2";
 
-  # Remove uneeded objects
+  if useTypeIMET:
+    getattr(process, 'patDefaultSequence' + p).remove(getattr(process, 'patMETs' + p))
+
+    cloneProcessingSnippet(process, process.producePatPFMETCorrections, p)
+
+    getattr(process, 'selectedPatJetsForMETtype1p2Corr' + p).src = cms.InputTag('selectedPatJets' + p)
+    getattr(process, 'selectedPatJetsForMETtype2Corr' + p).src = cms.InputTag('selectedPatJets' + p)
+    getattr(process, 'pfCandMETcorr' + p).src = cms.InputTag('pfNoJet' + p)
+    getattr(process, 'patPFJetMETtype1p2Corr' + p).type1JetPtThreshold = cms.double(10.0)
+    getattr(process, 'patType1CorrectedPFMet' + p).srcType1Corrections = cms.VInputTag(
+        cms.InputTag("patPFJetMETtype1p2Corr" + p, "type1"),
+        cms.InputTag("patPFMETtype0Corr" + p) #uncomment this line to include type-0 corrections
+        )
+    getattr(process, 'patType1p2CorrectedPFMet' + p).srcType1Corrections = cms.VInputTag(
+        cms.InputTag("patPFJetMETtype1p2Corr" + p, "type1"),
+        cms.InputTag("patPFMETtype0Corr" + p) #uncomment this line to include type-0 corrections
+        )
+
+    getattr(process, 'patPFJetMETtype1p2Corr' + p).skipEM = cms.bool(False)
+    getattr(process, 'patPFJetMETtype1p2Corr' + p).skipMuons = cms.bool(False)
+    getattr(process, 'patMETs' + p).metSource = 'patType1CorrectedPFMet' + p  #for type I+II corrections, switch this to patType1p2CorrectedPFMet
+
+    if not runOnMC:
+      if 'L2L3Residual' in jetCorrections:
+        getattr(process, 'patPFJetMETtype1p2Corr' + p).jetCorrLabel = 'L2L3Residual'
+      getattr(process, 'patPFMet' + p).addGenMET = cms.bool(False)
+
   names = ["Taus"]
   if jetAlgo != "AK5":
     names += ["Electrons", "Muons"]
   removeSpecificPATObjects(process, names = names, outputModules = ['out'], postfix = p) 
 
   adaptPVs(process, pvCollection = cms.InputTag("goodOfflinePrimaryVertices"), postfix = p)
-  return getattr(process, "patPF2PATSequence" + p)
+
+  if useTypeIMET:
+    return getattr(process, "patPF2PATSequence" + p) + getattr(process, "producePatPFMETCorrections" + p) + getattr(process, "patMETs" + p)
+  else:
+    return getattr(process, "patPF2PATSequence" + p)
 
 # Do we correct MET with Type1?
 correctMETWithT1 = True
+if correctMETWithT1:
+  process.load("PhysicsTools.PatUtils.patPFMETCorrections_cff")
+  from PhysicsTools.PatAlgos.tools.helpers import cloneProcessingSnippet
 
 print "##########################"
 print "PF jets with PF2PAT"
@@ -78,7 +112,7 @@ postfixes = {'PFlowAK5': 'AK5'}
 
 path = cms.Sequence()
 for p, algo in postfixes.items():
-  path += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=False, useTypeIMET=correctMETWithT1)
+  path += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=True, useTypeIMET=correctMETWithT1)
   #path += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=True, useTypeIMET=correctMETWithT1)
 
 processCaloJets = False
@@ -179,7 +213,9 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'drop *_*PFlow_caloTowers_*',
     'keep *recoTracks_generalTracks_*_*',
     'keep *_addPileupInfo_*_*',
-    'keep *_generator_*_*'
+    'keep *_generator_*_*',
+    # Type I residual
+    'drop *_selectedPatJetsForMET*_*_PAT'
     )
 
 # switch on PAT trigger
