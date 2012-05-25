@@ -213,7 +213,11 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'drop *_*PFlow_caloTowers_*',
     'keep *recoTracks_generalTracks_*_*',
     # Type I residual
-    'drop *_selectedPatJetsForMET*_*_PAT'
+    'drop *_selectedPatJetsForMET*_*_PAT',
+    # For Photon ID
+    'keep *_reducedEcalRecHitsEB_*_*',
+    #'keep *_reducedEcalRecHitsEE_*_*'
+    'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*'
     )
 
 # switch on PAT trigger
@@ -229,7 +233,7 @@ process.GlobalTag.globaltag = cms.string("GR_R_52_V7::All") ##  (according to ht
 #                                         ##
 process.source.fileNames =  cms.untracked.vstring('file:input_data.root')  ##  (e.g. 'file:AOD.root')
 #                                         ##
-process.maxEvents.input = 100
+process.maxEvents.input = 30000
 #                                         ##
 #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
 #                                         ##
