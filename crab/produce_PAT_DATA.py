@@ -216,7 +216,6 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'drop *_selectedPatJetsForMET*_*_PAT',
     # For Photon ID
     'keep *_reducedEcalRecHitsEB_*_*',
-    #'keep *_reducedEcalRecHitsEE_*_*'
     'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*'
     )
 

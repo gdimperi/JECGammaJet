@@ -215,7 +215,10 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_addPileupInfo_*_*',
     'keep *_generator_*_*',
     # Type I residual
-    'drop *_selectedPatJetsForMET*_*_PAT'
+    'drop *_selectedPatJetsForMET*_*_PAT',
+    # For Photon ID
+    'keep *_reducedEcalRecHitsEB_*_*',
+    'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*'
     )
 
 # switch on PAT trigger
