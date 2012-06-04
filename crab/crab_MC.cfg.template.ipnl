@@ -11,7 +11,7 @@ pset = produce_PAT_MC.py
 total_number_of_events = -1
 
 ### Number of events to be processed per job
-events_per_job = 30000
+events_per_job = 28000
 
 ### The output files produced by your application (comma separated list)
 output_file = patTuple_PF2PAT_MC.root

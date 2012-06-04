@@ -12,6 +12,10 @@ MC G:
 /G_Pt-1400to1800_TuneZ2_7TeV_pythia6/sbrochet-JetMet_PF2PAT_01apr_Fall11-5105f901d1c8d136e9eaa25f22cecd3a/USER
 /G_Pt-1800_TuneZ2_7TeV_pythia6/sbrochet-JetMet_PF2PAT_01apr_Fall11-5105f901d1c8d136e9eaa25f22cecd3a/USER
 
+2012:
+/G_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6/sbrochet-JetMet_PF2PAT_2012_22May_Summer12-fbe304f4e69d87969ac8d25e6b0621a8/USER 1363588
+/G_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6/sbrochet-JetMet_PF2PAT_2012_27May_Summer12-fbe304f4e69d87969ac8d25e6b0621a8/USER 1363588 (With new branches for spike cleaning)
+
 MC QCD:
 /QCD_Pt-0to5_TuneZ2_7TeV_pythia6/sbrochet-JetMet_PF2PAT_01apr_Fall11-5105f901d1c8d136e9eaa25f22cecd3a/USER
 /QCD_Pt-5to15_TuneZ2_7TeV_pythia6/sbrochet-JetMet_PF2PAT_01apr_Fall11-5105f901d1c8d136e9eaa25f22cecd3a/USER
@@ -29,9 +33,13 @@ MC QCD:
 /QCD_Pt-1400to1800_TuneZ2_7TeV_pythia6/sbrochet-JetMet_PF2PAT_01apr_Fall11-5105f901d1c8d136e9eaa25f22cecd3a/USER
 /QCD_Pt-1800_TuneZ2_7TeV_pythia6/sbrochet-JetMet_PF2PAT_01apr_Fall11-5105f901d1c8d136e9eaa25f22cecd3a/USER
 
+2012:
+
+
 Data:
 Run2011
 /Photon/sbrochet-JetMet_PF2PAT_Fall11-1b06aac9796da83f55c87e1db62c27cd/USER
 
 Run2012
-/Photon/sbrochet-JetMet_PF2PAT_PromptReco-b2d655a149602216b2a6b64338738e73/USER
+/Photon/sbrochet-JetMet_PF2PAT_PromptReco-b2d655a149602216b2a6b64338738e73/USER Don't use
+/Photon/sbrochet-JetMet_PF2PAT_Run2012A_PromptReco_22May-292d73a6795d0a493723b2d3a624156c/USER Full 2012A run

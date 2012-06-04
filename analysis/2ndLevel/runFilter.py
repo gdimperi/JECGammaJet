@@ -7,16 +7,18 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = cms.untracked.string('INFO')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
+process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string("GR_R_44_V13::All")
+process.GlobalTag.globaltag = cms.string("GR_R_52_V7::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        'file:patTuple_PF2PAT.root'
-        #"/store/user/sbrochet/Photon/JetMet_PF2PAT_Fall11/1b06aac9796da83f55c87e1db62c27cd/patTuple_PF2PAT_94_3_QuD.root"
+        #'file:patTuple_PF2PAT.root'
+        '/store/user/sbrochet/Photon/JetMet_PF2PAT_Run2012A_PromptReco_22May//292d73a6795d0a493723b2d3a624156c/patTuple_PF2PAT_102_3_7Kw.root'
+        
     )
 )
 
@@ -42,7 +44,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
 
     json = cms.string(os.path.join(fullPath, "lumiSummary.json")),
     csv = cms.string(os.path.join(fullPath, "lumibyls.csv")),
-    filterData = cms.untracked.bool(False),
+    filterData = cms.untracked.bool(True),
 
     # JEC
     doJetCorrection = cms.untracked.bool(False),
