@@ -37,17 +37,23 @@
 #include "gammaJetFinalizer.h"
 #include "JECReader.h"
 
+#include <boost/regex.hpp>
+
 #define RESET_COLOR "\033[m"
 #define MAKE_RED "\033[31m"
 #define MAKE_BLUE "\033[34m"
 
+#define ADD_TREES
+
+#define DELTAPHI_CUT (2.14)
+
 bool EXIT = false;
 
-GammaJetFinalizer::GammaJetFinalizer() {
+GammaJetFinalizer::GammaJetFinalizer():
+  mTriggers("triggers.xml") {
   mLumiReWeighter = NULL;
   mPUWeight = 1.;
 
-  mSecondJetPtThreshold = 0.10;
   mDoMCComparison = false;
   mNoPUReweighting = false;
   mIsBatchJob = false;
@@ -62,7 +68,11 @@ std::string GammaJetFinalizer::buildPostfix() {
   std::string algo = mJetAlgo == AK5 ? "AK5" : "AK7";
   std::string type = mJetType == PF ? "PFlow" : "Calo";
 
-  return type + algo;
+  std::string postfix = type + algo;
+
+  postfix += "chs";
+
+  return postfix;
 }
 
 void GammaJetFinalizer::loadFiles(TChain& chain) {
@@ -80,6 +90,15 @@ void GammaJetFinalizer::runAnalysis() {
 
   // Initialization
   mExtrapBinning.initialize(mPtBinning, (mJetType == PF) ? "PFlow" : "Calo");
+
+  std::cout << "Parsing triggers.xml ..." << std::endl;
+  if (! mTriggers.parse()) {
+    std::cerr << "Failed to parse triggers.xml..." << std::endl;
+    return;
+  }
+  std::cout << "done." << std::endl;
+  std::cout << "triggers mapping:" << std::endl;
+  mTriggers.print();
 
   std::cout << "Opening files ..." << std::endl;
 
@@ -172,27 +191,29 @@ void GammaJetFinalizer::runAnalysis() {
     : TString::Format("PhotonJet_%s_%s_part%02d.root", mDatasetName.c_str(), postFix.c_str(), mCurrentJob).Data();
   fwlite::TFileService fs(outputFile);
 
-  /*TTree* photonTree = NULL;
-    cloneTree(photon.fChain, photonTree);
+#ifdef ADD_TREES
+  TTree* photonTree = NULL;
+  cloneTree(photon.fChain, photonTree);
 
-    TTree* firstJetTree = NULL;
-    cloneTree(firstJet.fChain, firstJetTree);
+  TTree* firstJetTree = NULL;
+  cloneTree(firstJet.fChain, firstJetTree);
 
-    TTree* secondJetTree = NULL;
-    cloneTree(secondJet.fChain, secondJetTree);
+  TTree* secondJetTree = NULL;
+  cloneTree(secondJet.fChain, secondJetTree);
 
-    TTree* metTree = NULL;
-    cloneTree(MET.fChain, metTree);
+  TTree* metTree = NULL;
+  cloneTree(MET.fChain, metTree);
 
-    TTree* muonsTree = NULL;
-    cloneTree(muons.fChain, muonsTree);
+  TTree* muonsTree = NULL;
+  cloneTree(muons.fChain, muonsTree);
 
-    TTree* electronsTree = NULL;
-    cloneTree(electrons.fChain, electronsTree);
+  TTree* electronsTree = NULL;
+  cloneTree(electrons.fChain, electronsTree);
 
-    TTree* analysisTree = NULL;
-    cloneTree(analysis.fChain, analysisTree);
-    analysisTree->SetName("misc");*/
+  TTree* analysisTree = NULL;
+  cloneTree(analysis.fChain, analysisTree);
+  analysisTree->SetName("misc");
+#endif
 
   FactorizedJetCorrector* jetCorrector = NULL;
   //void* jetCorrector = NULL;
@@ -200,7 +221,7 @@ void GammaJetFinalizer::runAnalysis() {
 
     std::string jecJetAlgo = "AK5";
     if (mJetType == PF)
-      jecJetAlgo += "PF";
+      jecJetAlgo += "PFchs";
     else/* if (recoType == "calo")*/
       jecJetAlgo += "Calo";
     /*else if (recoType == "jpt")
@@ -336,6 +357,9 @@ void GammaJetFinalizer::runAnalysis() {
     delete f;
   }
 
+  // Store alpha cut
+  analysisDir.make<TParameter<double>>("alpha_cut", mAlphaCut);
+
   uint64_t totalEvents = photonChain.GetEntries();
   uint64_t passedEvents = 0;
 
@@ -402,11 +426,19 @@ void GammaJetFinalizer::runAnalysis() {
       secondJet.pt = secondRawJet.pt * correction;
     }
 
+    if (! checkTrigger()) {
+      continue;
+    }
+
     if (mIsMC) {
       computePUWeight();
     }
 
-    double eventWeight = (mIsMC) ? mPUWeight * analysis.event_weight : 1.;
+    double generatorWeight = (mIsMC) ? analysis.generator_weight : 1.;
+    if (generatorWeight == 0.)
+      generatorWeight = 1.;
+
+    double eventWeight = (mIsMC) ? mPUWeight * analysis.event_weight * generatorWeight : 1.;
 
     //TODO: On-the-fly JEC
 
@@ -414,12 +446,12 @@ void GammaJetFinalizer::runAnalysis() {
     // The photon is good from previous step
     // From previous step, we have fabs(deltaPhi(photon, firstJet)) > PI/2
     double deltaPhi = fabs(reco::deltaPhi(firstJet.phi, photon.phi));
-    bool isBack2Back = (deltaPhi >= (M_PI - 1.));
+    bool isBack2Back = (deltaPhi >= DELTAPHI_CUT);
     if (! isBack2Back) {
       continue;
     }
 
-    bool secondJetOK = !secondJet.is_present || (secondJet.pt < 5. || secondJet.pt < mSecondJetPtThreshold * photon.pt);
+    bool secondJetOK = !secondJet.is_present || (secondJet.pt < 5. || secondJet.pt < mAlphaCut * photon.pt);
 
     if (mDoMCComparison) {
       // Lowest unprescaled trigger for 2011 if at 135 GeV
@@ -531,67 +563,70 @@ void GammaJetFinalizer::runAnalysis() {
 
     if (secondJetOK) {
 
+      do {
+        h_deltaPhi_passedID->Fill(deltaPhi, eventWeight);
+        h_ptPhoton_passedID->Fill(photon.pt, eventWeight);
+        h_ptFirstJet_passedID->Fill(firstJet.pt, eventWeight);
+        h_ptSecondJet_passedID->Fill(secondJet.pt, eventWeight);
+        h_MET_passedID->Fill(MET.et, eventWeight);
 
-      h_deltaPhi_passedID->Fill(deltaPhi, eventWeight);
-      h_ptPhoton_passedID->Fill(photon.pt, eventWeight);
-      h_ptFirstJet_passedID->Fill(firstJet.pt, eventWeight);
-      h_ptSecondJet_passedID->Fill(secondJet.pt, eventWeight);
-      h_MET_passedID->Fill(MET.et, eventWeight);
+        h_METvsfirstJet->Fill(MET.et, firstJet.pt, eventWeight);
+        h_firstJetvsSecondJet->Fill(firstJet.pt, secondJet.pt, eventWeight);
 
-      h_METvsfirstJet->Fill(MET.et, firstJet.pt, eventWeight);
-      h_firstJetvsSecondJet->Fill(firstJet.pt, secondJet.pt, eventWeight);
+        // Special case
+        if (fabs(firstJet.eta) < 1.3) {
+          responseBalancingEta013[ptBin]->Fill(respBalancing, eventWeight);
+          responseBalancingRawEta013[ptBin]->Fill(respBalancingRaw, eventWeight);
 
-      // Special case
-      if (fabs(firstJet.eta) < 1.3) {
-        responseBalancingEta013[ptBin]->Fill(respBalancing, eventWeight);
-        responseBalancingRawEta013[ptBin]->Fill(respBalancingRaw, eventWeight);
+          responseMPFEta013[ptBin]->Fill(respMPF, eventWeight);
+          responseMPFRawEta013[ptBin]->Fill(respMPFRaw, eventWeight);
 
-        responseMPFEta013[ptBin]->Fill(respMPF, eventWeight);
-        responseMPFRawEta013[ptBin]->Fill(respMPFRaw, eventWeight);
+          if (mIsMC && ptBinGen >= 0) {
+            responseBalancingGenEta013[ptBinGen]->Fill(respBalancingGen, eventWeight);
+            responseBalancingRawGenEta013[ptBinGen]->Fill(respBalancingRawGen, eventWeight);
 
-        if (mIsMC && ptBinGen >= 0) {
-          responseBalancingGenEta013[ptBinGen]->Fill(respBalancingGen, eventWeight);
-          responseBalancingRawGenEta013[ptBinGen]->Fill(respBalancingRawGen, eventWeight);
-
-          responseMPFGenEta013[ptBinGen]->Fill(respMPFGen, eventWeight);
+            responseMPFGenEta013[ptBinGen]->Fill(respMPFGen, eventWeight);
+          }
         }
-      }
 
-      if (fabs(firstJet.eta) < 2.4 && (fabs(firstJet.eta) < 1.4442 || fabs(firstJet.eta) > 1.5560)){ 
-        // Viola
-        ptFirstJetEta024[ptBin]->Fill(firstJet.pt, eventWeight);
+        if (fabs(firstJet.eta) < 2.4 && (fabs(firstJet.eta) < 1.4442 || fabs(firstJet.eta) > 1.5560)){ 
+          // Viola
+          ptFirstJetEta024[ptBin]->Fill(firstJet.pt, eventWeight);
 
-        responseBalancingEta024[ptBin]->Fill(respBalancing, eventWeight);
-        responseMPFEta024[ptBin]->Fill(respMPF, eventWeight);
-      }
+          responseBalancingEta024[ptBin]->Fill(respBalancing, eventWeight);
+          responseMPFEta024[ptBin]->Fill(respMPF, eventWeight);
+        }
 
-      if (etaBin < 0) {
-        //std::cout << "Jet eta " << firstJet.eta() << " is not covered by our eta binning. Dumping event." << std::endl;
-        continue;
-      }
+        if (etaBin < 0) {
+          //std::cout << "Jet eta " << firstJet.eta() << " is not covered by our eta binning. Dumping event." << std::endl;
+          break;
+        }
 
 
-      responseBalancing[etaBin][ptBin]->Fill(respBalancing, eventWeight);
-      responseBalancingRaw[etaBin][ptBin]->Fill(respBalancingRaw, eventWeight);
+        responseBalancing[etaBin][ptBin]->Fill(respBalancing, eventWeight);
+        responseBalancingRaw[etaBin][ptBin]->Fill(respBalancingRaw, eventWeight);
 
-      responseMPF[etaBin][ptBin]->Fill(respMPF, eventWeight);
-      responseMPFRaw[etaBin][ptBin]->Fill(respMPFRaw, eventWeight);
+        responseMPF[etaBin][ptBin]->Fill(respMPF, eventWeight);
+        responseMPFRaw[etaBin][ptBin]->Fill(respMPFRaw, eventWeight);
 
-      // Gen values
-      if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
-        responseBalancingGen[etaBinGen][ptBinGen]->Fill(respBalancingGen, eventWeight);
-        responseBalancingRawGen[etaBinGen][ptBinGen]->Fill(respBalancingRawGen, eventWeight);
+        // Gen values
+        if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
+          responseBalancingGen[etaBinGen][ptBinGen]->Fill(respBalancingGen, eventWeight);
+          responseBalancingRawGen[etaBinGen][ptBinGen]->Fill(respBalancingRawGen, eventWeight);
 
-        responseMPFGen[etaBinGen][ptBinGen]->Fill(respMPFGen, eventWeight);
-      }
+          responseMPFGen[etaBinGen][ptBinGen]->Fill(respMPFGen, eventWeight);
+        }
+      } while (false);
 
-      /*photonTree->Fill();
-        firstJetTree->Fill();
-        secondJetTree->Fill();
-        metTree->Fill();
-        electronsTree->Fill();
-        muonsTree->Fill();
-        analysisTree->Fill();*/
+#ifdef ADD_TREES
+      photonTree->Fill();
+      firstJetTree->Fill();
+      secondJetTree->Fill();
+      metTree->Fill();
+      electronsTree->Fill();
+      muonsTree->Fill();
+      analysisTree->Fill();
+#endif
 
       passedEvents++;
     }
@@ -684,8 +719,8 @@ std::vector<std::vector<std::vector<T*> > > GammaJetFinalizer::buildExtrapolatio
 
 void GammaJetFinalizer::computePUWeight() {
   static std::string puPrefix = "/gridgroup/cms/brochet/public/pu";
-  static std::string puData = TString::Format("%s/pu_truth_data_photon_2011_true_nopix_cleaned_50bins.root", puPrefix.c_str()).Data();
-  static std::string puMC = TString::Format("%s/fall11_computed_mc_%s_pu_truth_50bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
+  static std::string puData = TString::Format("%s/pu_truth_data_photon_2012A_true_75bins.root", puPrefix.c_str()).Data();
+  static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
 
   if (mNoPUReweighting)
     return;
@@ -693,6 +728,7 @@ void GammaJetFinalizer::computePUWeight() {
   if (! mLumiReWeighter) {
     if (! boost::filesystem::exists(puMC)) {
       std::cout << "Warning: " << MAKE_RED << "pileup histogram for MC was not found. No PU reweighting." << RESET_COLOR << std::endl;
+      std::cout << "File missing: " << puMC << std::endl;
       mNoPUReweighting = true;
       mPUWeight = 1.;
       return;
@@ -729,6 +765,28 @@ void GammaJetFinalizer::checkInputFiles() {
 
     ++it;
   }
+}
+
+bool GammaJetFinalizer::checkTrigger() {
+
+  const PathVector& mandatoryTriggers = mTriggers.getTriggers(analysis.run);
+
+  size_t size = analysis.trigger_names->size();
+  for (unsigned int i = 0; i < size; i++) {
+    bool passed = analysis.trigger_results->at(i);
+    if (! passed)
+      continue;
+
+    for (const PathData& mandatoryTrigger: mandatoryTriggers) {
+      if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger.first)) {
+        // The requested trigger is here and triggered, check pt range
+        const Range<float>& ptRange = mandatoryTrigger.second;
+        return ptRange.in(photon.pt);
+      }
+    }
+  }
+
+  return false;
 }
 
 std::vector<std::string> readInputFiles(const std::string& list) {
@@ -794,12 +852,14 @@ int main(int argc, char** argv) {
     TCLAP::SwitchArg mcComparisonArg("", "mc-comp", "Cut photon pt to avoid trigger prescale issues", cmd);
     TCLAP::SwitchArg externalJECArg("", "jec", "Use external JEC", cmd);
 
+    TCLAP::ValueArg<float> alphaCutArg("", "alpha", "P_t^{second jet} / p_t^{photon} cut (default: 0.2)", false, 0.2, "float", cmd);
+
     cmd.parse(argc, argv);
 
-    std::cout << "Initializing..." << std::endl;
-    gSystem->Load("libFWCoreFWLite.so");
-    AutoLibraryLoader::enable();
-    std::cout << "done." << std::endl;
+    //std::cout << "Initializing..." << std::endl;
+    //gSystem->Load("libFWCoreFWLite.so");
+    //AutoLibraryLoader::enable();
+    //std::cout << "done." << std::endl;
 
     std::vector<std::string> files;
     if (inputArg.isSet()) {
@@ -815,6 +875,7 @@ int main(int argc, char** argv) {
     finalizer.setMC(mcArg.getValue());
     finalizer.setMCComparison(mcComparisonArg.getValue());
     finalizer.setUseExternalJEC(externalJECArg.getValue());
+    finalizer.setAlphaCut(alphaCutArg.getValue());
     if (totalJobsArg.isSet() && currentJobArg.isSet()) {
       finalizer.setBatchJob(currentJobArg.getValue(), totalJobsArg.getValue());
     }
@@ -825,6 +886,4 @@ int main(int argc, char** argv) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     return 1;
   }
-
-
 }

@@ -57,6 +57,8 @@ FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xml
     return NULL;
   }
 
+  const std::string mcDataText = (isMC) ? "MC" : "DATA";
+
   XercesDOMParser parser;
   parser.setValidationScheme(XercesDOMParser::Val_Auto);
   parser.setDoNamespaces(false);
@@ -110,7 +112,8 @@ FactorizedJetCorrector* makeFactorizedJetCorrectorFromXML(const std::string& xml
           onlyOnData = XMLString::equals(foo, trueStr);
         }
 
-        std::string filename = path.get() + prefix.get() + "_" + jetAlgo + "_" + name.get() + ".txt";
+        std::string filename = path.get() + prefix.get() + "_" + mcDataText + "_" + jetAlgo + "_" + name.get() + ".txt";
+        //std::string filename = path.get() + prefix.get() + "_" + name.get() + "_" + jetAlgo + ".txt";
         if (!onlyOnData || (onlyOnData && !isMC)) {
           std::cout << "Using payload '" << filename << "'" << std::endl;
           correctors.push_back(JetCorrectorParameters(filename));

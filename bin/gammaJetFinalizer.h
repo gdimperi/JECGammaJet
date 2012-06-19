@@ -10,6 +10,7 @@
 #include "etaBinning.h"
 #include "ptBinning.h"
 #include "extrapBinning.h"
+#include "triggers.h"
 
 #include <vector>
 
@@ -93,6 +94,10 @@ class GammaJetFinalizer
       mTotalJobs = totalJobs;
     }
 
+    void setAlphaCut(float alphaCut) {
+      mAlphaCut = alphaCut;
+    }
+
     void runAnalysis();
 
   private:
@@ -100,6 +105,9 @@ class GammaJetFinalizer
     void loadFiles(TChain& chain);
 
     void doSecondJetExtrapolation();
+
+    //bool passTrigger(const TRegexp& regexp) const;
+    bool checkTrigger();
 
     void computePUWeight();
  
@@ -152,7 +160,7 @@ class GammaJetFinalizer
     int mCurrentJob;
     bool mUseExternalJECCorrecion;
 
-    float  mSecondJetPtThreshold;
+    float  mAlphaCut;
     bool   mDoMCComparison;
 
     edm::LumiReWeighting* mLumiReWeighter;
@@ -170,4 +178,7 @@ class GammaJetFinalizer
     float respGenPhoton;
     float respGenGamma;
     float respPhotonGamma;
+
+    // Triggers data
+    Triggers mTriggers;
 };

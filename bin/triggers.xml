@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<triggers>
+  <runs from="190450" to="193686"><!-- run 2012A, from 190456 to 193686 -->
+    <path>
+      <name>HLT_Photon20_.*</name>
+      <pt from="23" to="35" />
+    </path>
+    <path>
+      <name>HLT_Photon30_.*</name>
+      <pt from="35" to="58" />
+    </path>
+    <path>
+      <name>HLT_Photon50_.*</name>
+      <pt from="58" to="87" />
+    </path>
+    <path>
+      <name>HLT_Photon75_.*</name>
+      <pt from="87" to="104" />
+    </path>
+    <path>
+      <name>HLT_Photon90_.*</name>
+      <pt from="104" to="140" />
+    </path>
+    <path>
+      <name>HLT_Photon135_.*</name>
+      <pt from="140" to="8000" />
+    </path>
+  </runs>
+  <runs from="193752" to="-1"><!-- run 2012B, from 193752 to ... -->
+    <path>
+      <name>HLT_Photon20_.*</name>
+      <pt from="23" to="35" />
+    </path>
+    <path>
+      <name>HLT_Photon30_.*</name>
+      <pt from="35" to="58" />
+    </path>
+    <path>
+      <name>HLT_Photon50_.*</name>
+      <pt from="58" to="87" />
+    </path>
+    <path>
+      <name>HLT_Photon75_.*</name>
+      <pt from="87" to="104" />
+    </path>
+    <path>
+      <name>HLT_Photon90_.*</name>
+      <pt from="104" to="140" />
+    </path>
+    <path>
+      <name>HLT_Photon135_.*</name>
+      <pt from="140" to="155" />
+    </path>
+    <path>
+      <name>HLT_Photon150_.*</name>
+      <pt from="155" to="8000" />
+    </path>
+  </runs>
+</triggers>
