@@ -29,3 +29,6 @@ files.list
 */CVS/*
 .cvsignore
 */.cvsignore
+
+# JEC
+analysis/jec_payloads/
