@@ -1,7 +1,7 @@
 #! /bin/env python
 # Launch crab for every datasets in mc_signal_datasets.list
 
-import os, shutil
+import os, shutil,datetime
 from optparse import OptionParser
 
 isCastor = os.system("uname -n | grep cern &> /dev/null") == 0
@@ -12,7 +12,7 @@ parser.add_option("--mc", dest="mc", type="choice", choices=['Summer12', 'Fall11
 
 (options, args) = parser.parse_args()
 
-version = 1
+version = 3
 
 if options.path is None or not os.path.isdir(options.path):
   parser.error("you must specify a valid path")
@@ -28,6 +28,9 @@ f.close();
 print "Working ..."
 i = 1;
 
+now = datetime.datetime.now()
+date = now.strftime("%d%B")
+
 # Copy common_dump_config.py and dump_MC.py
 shutil.copy2("produce_PAT_MC.py", "%s/produce_PAT_MC.py" % options.path)
 
@@ -37,7 +40,8 @@ for dataset in datasets:
   i = i + 1
   dataset = dataset.rstrip()
   name = dataset.replace("/", "_")[1:dataset.lower().find('tunez2') - 1]
-  publish_name = "JetMet_PF2PAT_2012_27May_%s" % options.mc
+  publish_name = "JetMet_PF2PAT_2012_%s_%s" % (date, options.mc)
+  print("Publish name: %s" % publish_name)
 
   if (isCastor):
     template = "crab_MC.cfg.template.castor"
