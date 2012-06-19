@@ -68,7 +68,9 @@ int main(int argc, char* argv[]) {
 
     std::string jetAlgo = (algoArg.getValue() == "ak5") ? "AK5" : "AK7";
     std::string recoType = (typeArg.getValue() == "pf") ? "PFlow" : "Calo";
-    std::string postFix = jetAlgo + recoType;
+
+    std::string postFix = recoType + jetAlgo;
+    postFix += "chs";
 
     std::string algoType;
     if (recoType == "Calo")
@@ -127,18 +129,20 @@ int main(int argc, char* argv[]) {
 
     db->add_mcFile(mcPhotonJetFile, mc_dataset, "#gamma+jet MC", 46);
 
-    TString mc2FileName;
-    if (flags.length() > 0) {
-      mc2FileName = TString::Format("PhotonJet_%s_%s_%s.root", mc2_dataset.c_str(), postFix.c_str(), flags.c_str());
-    } else {
-      mc2FileName = TString::Format("PhotonJet_%s_%s.root", mc2_dataset.c_str(), postFix.c_str());
-    }
-    TFile* mcQCDFile = TFile::Open(mc2FileName);
-    std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
+    if (mc2_dataset != "") {
+      TString mc2FileName;
+      if (flags.length() > 0) {
+        mc2FileName = TString::Format("PhotonJet_%s_%s_%s.root", mc2_dataset.c_str(), postFix.c_str(), flags.c_str());
+      } else {
+        mc2FileName = TString::Format("PhotonJet_%s_%s.root", mc2_dataset.c_str(), postFix.c_str());
+      }
+      TFile* mcQCDFile = TFile::Open(mc2FileName);
+      std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
 
-    if (mc_dataset != mc2_dataset) {
-      db->add_mcFile(mcQCDFile, mc2_dataset, "QCD MC", 38);
-    } 
+      if (mc_dataset != mc2_dataset) {
+        db->add_mcFile(mcQCDFile, mc2_dataset, "QCD MC", 38);
+      }
+    }
 
     // Read luminosity
     TParameter<double>* lumi = static_cast<TParameter<double>*>(dataFile->Get("analysis/luminosity"));

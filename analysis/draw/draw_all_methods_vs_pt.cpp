@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
+#include <sstream>
 
 #include <TFile.h>
 #include <TGraphErrors.h>
@@ -37,7 +38,7 @@ void saveCanvas(TCanvas* canvas, const std::string& name) {
 }
 
 
-void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& FIT_RMS, drawBase* db, bool rawJets);
+void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& FIT_RMS, drawBase* db, bool rawJets, const std::string& alphaCut, TFile* outputFile);
 
 
 int main(int argc, char* argv[]) {
@@ -68,7 +69,8 @@ int main(int argc, char* argv[]) {
 
   jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
-  std::string postFix = jetAlgo + recoType;
+  std::string postFix = recoType + jetAlgo;
+  postFix += "chs";
 
   drawBase* db = new drawBase("PhotonJet", recoType, jetAlgo, OUTPUT_GRAPHS);
   db->set_flags(flags);
@@ -97,17 +99,19 @@ int main(int argc, char* argv[]) {
 
   db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma+jet MC", 46);
 
-  TString mc2FileName;
-  if (flags.length() > 0) {
-    mc2FileName = TString::Format("PhotonJet_%s_%s_%s.root", mc_QCD.c_str(), postFix.c_str(), flags.c_str());
-  } else {
-    mc2FileName = TString::Format("PhotonJet_%s_%s.root", mc_QCD.c_str(), postFix.c_str());
-  }
-  TFile* mcQCDFile = TFile::Open(mc2FileName);
-  std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
+  if (mc_QCD != "") {
+    TString mc2FileName;
+    if (flags.length() > 0) {
+      mc2FileName = TString::Format("PhotonJet_%s_%s_%s.root", mc_QCD.c_str(), postFix.c_str(), flags.c_str());
+    } else {
+      mc2FileName = TString::Format("PhotonJet_%s_%s.root", mc_QCD.c_str(), postFix.c_str());
+    }
+    TFile* mcQCDFile = TFile::Open(mc2FileName);
+    std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
 
-  if (mc_QCD != mc_photonjet) {
-    db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", 38);
+    if (mc_QCD != mc_photonjet) {
+      db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", 38);
+    }
   }
 
   // MC should already be normalized to a lumi of 1 pb-1
@@ -115,6 +119,11 @@ int main(int argc, char* argv[]) {
   db->set_lumi(lumi->GetVal() * 1e-6);
   db->set_lumiNormalization();
 
+  double alpha_cut = static_cast<TParameter<double>*>(dataFile->Get("analysis/alpha_cut"))->GetVal();
+  std::stringstream ss;
+  ss << ((int) (alpha_cut * 100));
+  std::string alphaCut = ss.str();
+  
   std::string fit_rms = "RMS99";
   std::string outputDir = "PhotonJetPlots_" + db->get_fullSuffix() + "/vs_pt";
   db->set_outputdir(outputDir);
@@ -123,14 +132,22 @@ int main(int argc, char* argv[]) {
   EtaBinning etaBinning;
   size_t s = etaBinning.size();
 
+  TFile* output = TFile::Open(std::string(outputDir + "/plots.root").c_str(), "recreate");
+
   for (size_t i = 0; i < s; i++) {
     std::string etaBin = etaBinning.getBinName(i);
-    draw_vs_pt_plots("response",   etaBin, fit_rms, db, false);
-    draw_vs_pt_plots("resolution", etaBin, fit_rms, db, false);
+    draw_vs_pt_plots("response",   etaBin, fit_rms, db, false, alphaCut, output);
+    draw_vs_pt_plots("resolution", etaBin, fit_rms, db, false, alphaCut, output);
 
-    draw_vs_pt_plots("response",   etaBin, fit_rms, db, true);
-    draw_vs_pt_plots("resolution", etaBin, fit_rms, db, true);
+    draw_vs_pt_plots("response",   etaBin, fit_rms, db, true, "", NULL);
+    draw_vs_pt_plots("resolution", etaBin, fit_rms, db, true, "", NULL);
   }
+
+  draw_vs_pt_plots("response",   "eta013", fit_rms, db, false, alphaCut, output);
+  draw_vs_pt_plots("resolution", "eta013", fit_rms, db, false, alphaCut, output);
+
+  draw_vs_pt_plots("response",   "eta013", fit_rms, db, true, "", NULL);
+  draw_vs_pt_plots("resolution", "eta013", fit_rms, db, true, "", NULL);
 
   /*draw_vs_pt_plots("response",   "eta011", fit_rms, db, (bool)true);
   draw_vs_pt_plots("resolution", "eta011", fit_rms, db, (bool)true);
@@ -179,7 +196,7 @@ int main(int argc, char* argv[]) {
 
 
 
-void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& FIT_RMS, drawBase* db, bool rawJets) {
+void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& FIT_RMS, drawBase* db, bool rawJets, const std::string& alphaCut, TFile* outputFile) {
 
   std::string etaRegion_str;
   if (etaRegion == "eta013") etaRegion_str = "|#eta| < 1.3";
@@ -190,6 +207,17 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   else if (etaRegion == "eta23") etaRegion_str = "2 < |#eta| < 3";
   else if (etaRegion == "eta243") etaRegion_str = "2.4 < |#eta| < 3";
   else if (etaRegion == "eta35") etaRegion_str = "3 < |#eta| < 5";
+  else etaRegion_str = "[unknown eta region]";
+  
+  std::string fullEtaRegion;
+  if (etaRegion == "eta013") fullEtaRegion = "eta00_13";
+  else if (etaRegion == "eta011") fullEtaRegion = "eta00_11";
+  else if (etaRegion == "eta009") fullEtaRegion = "eta00_09";
+  else if (etaRegion == "eta132") fullEtaRegion = "eta13_20";
+  else if (etaRegion == "eta1524") fullEtaRegion = "eta15_24";
+  else if (etaRegion == "eta23") fullEtaRegion = "eta20_30";
+  else if (etaRegion == "eta243") fullEtaRegion = "eta24_30";
+  else if (etaRegion == "eta35") fullEtaRegion = "eta30_50";
   else etaRegion_str = "[unknown eta region]";
 
   if (resp_reso != "response" && resp_reso != "resolution") {
@@ -279,6 +307,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseBALANCING_vs_pt->SetMarkerStyle(21);
   gr_responseBALANCING_vs_pt->SetMarkerSize(markerSize);
   gr_responseBALANCING_vs_pt->SetMarkerColor(kGray + 2);
+  gr_responseBALANCING_vs_pt->SetName(TString::Format("PtBalchs_DATA_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   std::string responseBALANCINGMC_name = responseBALANCING_name;
   boost::replace_all(responseBALANCINGMC_name, "data", "mc");
@@ -287,6 +316,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseBALANCINGMC_vs_pt->SetMarkerStyle(25);
   gr_responseBALANCINGMC_vs_pt->SetMarkerSize(markerSize);
   gr_responseBALANCINGMC_vs_pt->SetMarkerColor(kGray + 2);
+  gr_responseBALANCINGMC_vs_pt->SetName(TString::Format("PtBalchs_MC_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   TGraphErrors* gr_responseMPF_vs_pt = NULL;
   TGraphErrors* gr_responseMPFMC_vs_pt = NULL;
@@ -306,6 +336,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseMPF_vs_pt->SetMarkerStyle(20);
   gr_responseMPF_vs_pt->SetMarkerSize(markerSize);
   gr_responseMPF_vs_pt->SetMarkerColor(38);
+  gr_responseMPF_vs_pt->SetName(TString::Format("MPFchs_DATA_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   std::string responseMPFMC_name = responseMPF_name;
   boost::replace_all(responseMPFMC_name, "data", "mc");
@@ -314,6 +345,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseMPFMC_vs_pt->SetMarkerStyle(24);
   gr_responseMPFMC_vs_pt->SetMarkerSize(markerSize);
   gr_responseMPFMC_vs_pt->SetMarkerColor(38);
+  gr_responseMPFMC_vs_pt->SetName(TString::Format("MPFchs_MC_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
   /*} else {
     std::string mpf_name = resp_reso + "MPF_TypeICor";
     if (etaRegion != "")
@@ -355,6 +387,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   //if( (db->get_recoType()=="calo")||(db->get_recoType()=="jpt") )
   if (db->get_recoType() == "calo")
     gr_responseEXTRAP_vs_pt->RemovePoint(0); //remove also third point for calo
+  gr_responseEXTRAP_vs_pt->SetName(TString::Format("PtBalchs_extrap_DATA_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   //std::string responseEXTRAPMC_name = (correctedPt) ? "gr_extrap"+resp_reso_short+"L2L3_vs_pt" : "gr_extrap"+resp_reso_short+"_vs_pt";
   std::string responseEXTRAPMC_name = "gr_extrap" + resp_reso_short + "_vs_pt";
@@ -367,6 +400,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   //if( (db->get_recoType()=="calo")||(db->get_recoType()=="jpt") )
   if (db->get_recoType() == "calo")
     gr_responseEXTRAPMC_vs_pt->RemovePoint(0); //remove also second point for calo
+  gr_responseEXTRAPMC_vs_pt->SetName(TString::Format("PtBalchs_extrap_MC_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
 
   // MPF Extrap (only for response)
@@ -378,6 +412,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseMPFExtrap_vs_pt->SetMarkerSize(markerSize);
   gr_responseMPFExtrap_vs_pt->SetMarkerColor(49);
   gr_responseMPFExtrap_vs_pt->RemovePoint(0);
+  gr_responseMPFExtrap_vs_pt->SetName(TString::Format("MPFchs_extrap_DATA_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
   //}
 
   TGraphErrors* gr_responseMPFExtrapMC_vs_pt = (TGraphErrors*) file_extrap->Get(std::string("gr_extrap" + resp_reso_short + "MPF_vs_pt").c_str());
@@ -386,6 +421,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseMPFExtrapMC_vs_pt->SetMarkerSize(markerSize);
   gr_responseMPFExtrapMC_vs_pt->SetMarkerColor(49);
   gr_responseMPFExtrapMC_vs_pt->RemovePoint(0);
+  gr_responseMPFExtrapMC_vs_pt->SetName(TString::Format("MPFchs_extrap_MC_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
   //}
 
   /*TGraphErrors* gr_responseMPFExtrap_TypeICor_vs_pt = (TGraphErrors*) file_extrap->Get(std::string("gr_DATA" + resp_reso_short + "MPF_TypeICor_vs_pt").c_str());
@@ -744,6 +780,8 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_dataMC_BALANCING->SetMarkerStyle(21);
   gr_dataMC_BALANCING->SetMarkerSize(markerSize);
   gr_dataMC_BALANCING->SetMarkerColor(kGray + 2);
+  gr_dataMC_BALANCING->SetName(TString::Format("PtBalchs_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
+
   TGraphErrors* gr_dataMC_MPF = NULL;
   //TGraphErrors* gr_dataMC_MPF_TypeICor = NULL;
   //TGraphErrors* gr_dataMC_MPF_TypeIpIICor = NULL;
@@ -752,6 +790,8 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_dataMC_MPF->SetMarkerStyle(20);
   gr_dataMC_MPF->SetMarkerSize(markerSize);
   gr_dataMC_MPF->SetMarkerColor(38);
+  gr_dataMC_MPF->SetName(TString::Format("MPFchs_a_%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
+
   /*} else {
     gr_dataMC_MPF_TypeICor = fitTools::get_graphRatio(gr_responseMPF_TypeICor_vs_pt, gr_responseMPFMC_TypeICor_vs_pt);
     gr_dataMC_MPF_TypeICor->SetMarkerStyle(20);
@@ -768,6 +808,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_dataMC_EXTRAP->SetMarkerStyle(22);
   gr_dataMC_EXTRAP->SetMarkerSize(markerSize);
   gr_dataMC_EXTRAP->SetMarkerColor(46);
+  gr_dataMC_EXTRAP->SetName(TString::Format("PtBalchs_extrap_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   //MPF Extrap
   TGraphErrors* gr_dataMC_MPF_EXTRAP = NULL;
@@ -778,6 +819,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_dataMC_MPF_EXTRAP->SetMarkerStyle(23);
   gr_dataMC_MPF_EXTRAP->SetMarkerSize(markerSize);
   gr_dataMC_MPF_EXTRAP->SetMarkerColor(49);
+  gr_dataMC_MPF_EXTRAP->SetName(TString::Format("MPFchs_extrap_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
   /*} else if (recoGen != "RecoRelRaw") {
     gr_dataMC_MPF_EXTRAP_TypeICor = fitTools::get_graphRatio(gr_responseMPFExtrap_TypeICor_vs_pt, gr_responseMPFExtrapMC_TypeICor_vs_pt);
     gr_dataMC_MPF_EXTRAP_TypeICor->SetMarkerStyle(23);
@@ -789,6 +831,23 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
     gr_dataMC_MPF_EXTRAP_TypeIpIICor->SetMarkerSize(markerSize);
     gr_dataMC_MPF_EXTRAP_TypeIpIICor->SetMarkerColor(49);
     }*/
+
+  if (outputFile && resp_reso == "response") {
+    outputFile->cd();
+    gr_dataMC_BALANCING->Write();
+    gr_dataMC_MPF->Write();
+    gr_dataMC_EXTRAP->Write();
+    gr_dataMC_MPF_EXTRAP->Write();
+
+    gr_responseBALANCING_vs_pt->Write();
+    gr_responseBALANCINGMC_vs_pt->Write();
+    gr_responseMPF_vs_pt->Write();
+    gr_responseMPFMC_vs_pt->Write();
+    gr_responseEXTRAP_vs_pt->Write();
+    gr_responseEXTRAPMC_vs_pt->Write();
+    gr_responseMPFExtrap_vs_pt->Write();
+    gr_responseMPFExtrapMC_vs_pt->Write();
+  }
 
 
   TGraphErrors* gr_dataMC_ELIF = 0;

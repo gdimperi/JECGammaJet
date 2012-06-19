@@ -1162,10 +1162,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       }
     }
 
-    if (noMC) {
+    //if (noMC) {
       dataHistos[iData]->SetMarkerSize(1.);
       dataFiles_[iData].markerSize = 1.;
-    }
+    //}
   }
 
   // SECOND: SET BASIC AESTHETICS FOR MC HISTO(S) and CREATE MC HISTO SUM
@@ -1506,7 +1506,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   } // if !nomc
   for (unsigned i = 0; i < dataHistos.size(); ++i) {
     if (dataHistos.size() == 1 && poissonAsymmErrors_) {
-      graph_data_poisson->Draw("Psame");
+      graph_data_poisson->Draw("P same");
       //xframe->Draw("same");
     } else {
       int backwardsIndex = dataHistos.size() - 1 - i; //backwards is prettier: bg on the back, signal in front
@@ -3080,10 +3080,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       x2 = 0.42;
       y2 = 0.24;
     } else if (legendQuadrant == 0) {
-      x1 = 0.145;
-      y1 = 0.953;
-      x2 = 0.6;
-      y2 = 0.975;
+      x1 = 0.17;
+      y1 = 0.963;
+      x2 = 0.65;
+      y2 = 0.985;
     }
 
 

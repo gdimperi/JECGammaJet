@@ -53,6 +53,8 @@ int main(int argc, char* argv[]) {
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
 
+  postFix += "chs";
+
 
   //Float_t etamax = 3.;
   //bool sameEvents = false; //until njets histos have no overflows... or maybe use GetEntries instead of integral?
@@ -89,17 +91,19 @@ int main(int argc, char* argv[]) {
     db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma+jet MC", 46);
   }
 
-  TString mc2FileName;
-  if (flags.length() > 0) {
-    mc2FileName = TString::Format("PhotonJet_%s_%s_%s.root", mc_QCD.c_str(), postFix.c_str(), flags.c_str());
-  } else {
-    mc2FileName = TString::Format("PhotonJet_%s_%s.root", mc_QCD.c_str(), postFix.c_str());
-  }
-  TFile* mcQCDFile = TFile::Open(mc2FileName);
-  std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
+  if (mc_QCD != "") {
+    TString mc2FileName;
+    if (flags.length() > 0) {
+      mc2FileName = TString::Format("PhotonJet_%s_%s_%s.root", mc_QCD.c_str(), postFix.c_str(), flags.c_str());
+    } else {
+      mc2FileName = TString::Format("PhotonJet_%s_%s.root", mc_QCD.c_str(), postFix.c_str());
+    }
+    TFile* mcQCDFile = TFile::Open(mc2FileName);
+    std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
 
-  if (mcQCDFile && mc_QCD != mc_photonjet) {
-    db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", 38);
+    if (mcQCDFile && mc_QCD != mc_photonjet) {
+      db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", 38);
+    }
   }
 
   // MC should already be normalized to a lumi of 1 pb-1
@@ -128,14 +132,18 @@ int main(int argc, char* argv[]) {
 
   //db->drawHisto("etaPhot", "#eta", "", "", log);
 
+  db->set_rebin(1);
   db->drawHisto("nvertex", "Number of Reconstructed Vertices", "", "Events", log);
   db->drawHisto("nvertex_reweighted", "Number of Reconstructed Vertices (after reweighting)", "", "Events", log);
+
+  db->set_rebin(2);
   db->drawHisto("deltaPhi_passedID", "#Delta #varphi", "", "Events", log);
 
+  db->set_rebin(5);
   db->drawHisto("MET_passedID", "Missing E_{T}", "GeV", "Events", log);
 
   PtBinning ptBinning;
-  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning(ptBinning.size() - 2);
+  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning(ptBinning.size() - 1);
 
   EtaBinning etaBinning;
   size_t etaBinningSize = etaBinning.size();
