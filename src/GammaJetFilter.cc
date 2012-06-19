@@ -32,6 +32,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "CommonTools/Utils/interface/PtComparator.h"
 
+#include "FWCore/Common/interface/TriggerNames.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDFilter.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -40,16 +41,14 @@
 #include "FWCore/Framework/interface/LuminosityBlock.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/Run.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
 #include "FWCore/Utilities/interface/Exception.h"
-
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Common/interface/Ref.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
@@ -74,6 +73,7 @@
 
 #include <TParameter.h>
 #include <TTree.h>
+#include <TRegexp.h>
 
 //
 // class declaration
@@ -177,10 +177,12 @@ class GammaJetFilter : public edm::EDFilter {
 
       void particleToTree(const reco::Candidate* particle, TTree* t, std::vector<boost::shared_ptr<void> >& addresses);
       void updateBranch(TTree* tree, void* address, const std::string& name, const std::string& type = "F");
+      template<typename T>
+      void updateBranch(TTree* tree, T* address, const std::string& name);
       void updateBranchArray(TTree* tree, void* address, const std::string& name, const std::string& size, const std::string& type = "F");
       
       void photonToTree(const pat::Photon& photon);
-      void metsToTree(const pat::MET& met, const std::vector<TTree*>& trees);
+      void metsToTree(const pat::MET& met, const pat::MET& rawMet, const std::vector<TTree*>& trees);
       void metToTree(const pat::MET* met, TTree* tree, TTree* genTree);
       void jetsToTree(const pat::Jet& firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees);
       void jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree);
@@ -322,6 +324,18 @@ void GammaJetFilter::updateBranch(TTree* tree, void* address, const std::string&
   }
 }
 
+template<typename T>
+void GammaJetFilter::updateBranch(TTree* tree, T* address, const std::string& name) {
+  TBranch* branch = tree->GetBranch(name.c_str());
+  if (branch == NULL) {
+    branch = tree->Branch(name.c_str(), address); 
+  } else {
+    branch->SetAddress(&address);
+  }
+}
+
+
+
 void GammaJetFilter::updateBranchArray(TTree* tree, void* address, const std::string& name, const std::string& size, const std::string& type/* = "F"*/) {
   TBranch* branch = tree->GetBranch(name.c_str());
   if (branch == NULL) {
@@ -437,7 +451,16 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   FOREACH(mJetCollections) {
     edm::Handle<pat::METCollection> mets;
     iEvent.getByLabel(std::string("patMETs" + ((*it == "AK5Calo") ? "" : *it)), mets);
-    metsToTree(mets->at(0), mMETTrees[*it]);
+
+    edm::Handle<pat::METCollection> rawMets;
+    iEvent.getByLabel(std::string("patPFMet" + ((*it == "AK5Calo") ? "" : *it)), rawMets);
+
+    if (rawMets.isValid())
+      metsToTree(mets->at(0), rawMets->at(0), mMETTrees[*it]);
+    else {
+      pat::MET rawMet = pat::MET();
+      metsToTree(mets->at(0), rawMets->at(0), mMETTrees[*it]);
+    }
   }
 
   // Rho
@@ -492,7 +515,45 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   updateBranch(mAnalysisTree, &mEventsWeight, "event_weight"); // Only valid for binned samples
   updateBranch(mAnalysisTree, &generatorWeight, "generator_weight", "D"); // Only valid for flat samples
 
+  // Triggers
+  edm::Handle<edm::TriggerResults> triggerResults;
+  iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
+
+  static std::vector<TRegexp> validTriggers = { TRegexp("HLT_Photon*"), TRegexp("HLT_DoublePhoton*") };
+  const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResults);
+
+  std::vector<std::string>* trigNames = new std::vector<std::string>();
+  std::vector<bool>* trigResults = new std::vector<bool>();
+
+  size_t size = triggerResults->size();
+
+  for (size_t i = 0; i < size; i++) {
+    std::string triggerName = triggerNames.triggerName(i);
+    bool isValid = false;
+    for (TRegexp validTrigger: validTriggers) {
+      if (TString(triggerName).Contains(validTrigger)) {
+        isValid = true;
+        break;
+      }
+    }
+
+    if (!isValid)
+      continue;
+
+    unsigned int index = triggerNames.triggerIndex(triggerName);
+    bool passed = triggerResults->accept(index);
+
+    trigResults->push_back(passed);
+    trigNames->push_back(triggerName);
+  }
+
+  updateBranch(mAnalysisTree, trigNames, "trigger_names");
+  updateBranch(mAnalysisTree, trigResults, "trigger_results");
+
   mAnalysisTree->Fill();
+
+  delete trigNames;
+  delete trigResults;
 
   photonToTree(photon);
 
@@ -900,17 +961,9 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree)
   }
 }
 
-void GammaJetFilter::metsToTree(const pat::MET& met, const std::vector<TTree*>& trees) {
+void GammaJetFilter::metsToTree(const pat::MET& met, const pat::MET& rawMet, const std::vector<TTree*>& trees) {
   metToTree(&met, trees[0], trees[2]);
-
-  // Uncorrected MET
-  pat::MET rawMET(met);
-  reco::LeafCandidate::PolarLorentzVector p4 = rawMET.polarP4();
-  p4.SetPt(met.uncorrectedPt());
-  p4.SetPhi(met.uncorrectedPhi());
-  rawMET.setP4(p4);
-
-  metToTree(&rawMET, trees[1], NULL);
+  metToTree(&rawMet, trees[1], NULL);
 }
 
 void GammaJetFilter::metToTree(const pat::MET* met, TTree* tree, TTree* genTree) {
@@ -929,7 +982,7 @@ void GammaJetFilter::electronsToTree(const edm::Handle<pat::ElectronCollection>&
 
   int n = electrons->size();
   static int   id[30];
-  static int   isolated[30];
+  static float isolation[30];
   static float pt[30];
   static float px[30];
   static float py[30];
@@ -952,22 +1005,22 @@ void GammaJetFilter::electronsToTree(const edm::Handle<pat::ElectronCollection>&
     elecID     &= it->dB() < 0.02;
     elecID     &= ((int) it->electronID("eidLoose") & 0x1);
 
-    bool isIsolated = (it->dr03TkSumPt() + it->dr03EcalRecHitSumEt() + it->dr03HcalTowerSumEt()) / it->et();
+    float iso     = (it->dr03TkSumPt() + it->dr03EcalRecHitSumEt() + it->dr03HcalTowerSumEt()) / it->et();
 
-    id[i]       = elecID;
-    isolated[i] = isIsolated;
-    pt[i]       = electron.pt();
-    px[i]       = electron.px();
-    py[i]       = electron.py();
-    pz[i]       = electron.pz();
-    eta[i]      = electron.eta();
-    phi[i]      = electron.phi();
-    charge[i]   = electron.charge();
+    id[i]         = elecID;
+    isolation[i]  = iso;
+    pt[i]         = electron.pt();
+    px[i]         = electron.px();
+    py[i]         = electron.py();
+    pz[i]         = electron.pz();
+    eta[i]        = electron.eta();
+    phi[i]        = electron.phi();
+    charge[i]     = electron.charge();
   }
 
   updateBranch(mElectronsTree, &n, "n", "I");
   updateBranchArray(mElectronsTree, id, "id", "n", "I");
-  updateBranchArray(mElectronsTree, isolated, "isolated", "n", "I");
+  updateBranchArray(mElectronsTree, isolation, "isolation", "n");
   updateBranchArray(mElectronsTree, pt, "pt", "n");
   updateBranchArray(mElectronsTree, px, "px", "n");
   updateBranchArray(mElectronsTree, py, "py", "n");
@@ -983,7 +1036,7 @@ void GammaJetFilter::muonsToTree(const edm::Handle<pat::MuonCollection>& muons, 
 
   int n = muons->size();
   static int   id[30];
-  static int   isolated[30];
+  static float isolation[30];
   static float pt[30];
   static float px[30];
   static float py[30];
@@ -1012,22 +1065,22 @@ void GammaJetFilter::muonsToTree(const edm::Handle<pat::MuonCollection>& muons, 
     muonID     &= it->numberOfMatches() > 1;
     muonID     &= fabs(pv.z() - it->vertex().z()) < 1.;
 
-    bool isIsolated = (it->trackIso() + it->ecalIso() + it->hcalIso()) / (it->pt());
+    float iso      = (it->trackIso() + it->ecalIso() + it->hcalIso()) / (it->pt());
 
-    id[i]       = muonID;
-    isolated[i] = isIsolated;
-    pt[i]       = muon.pt();
-    px[i]       = muon.px();
-    py[i]       = muon.py();
-    pz[i]       = muon.pz();
-    eta[i]      = muon.eta();
-    phi[i]      = muon.phi();
-    charge[i]   = muon.charge();
+    id[i]          = muonID;
+    isolation[i]   = iso;
+    pt[i]          = muon.pt();
+    px[i]          = muon.px();
+    py[i]          = muon.py();
+    pz[i]          = muon.pz();
+    eta[i]         = muon.eta();
+    phi[i]         = muon.phi();
+    charge[i]      = muon.charge();
   }
 
   updateBranch(mMuonsTree, &n, "n", "I");
   updateBranchArray(mMuonsTree, id, "id", "n", "I");
-  updateBranchArray(mMuonsTree, isolated, "isolated", "n", "I");
+  updateBranchArray(mMuonsTree, isolation, "isolation", "n");
   updateBranchArray(mMuonsTree, pt, "pt", "n");
   updateBranchArray(mMuonsTree, px, "px", "n");
   updateBranchArray(mMuonsTree, py, "py", "n");

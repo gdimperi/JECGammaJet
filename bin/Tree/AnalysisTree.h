@@ -20,14 +20,16 @@ class AnalysisTree {
     TTree          *fChain;   //!pointer to the analyzed TTree or TChain
 
     // Declaration of leaf types
-    UInt_t          run;
-    UInt_t          lumi_block;
-    UInt_t          event;
-    Float_t         ntrue_interactions;
-    UInt_t          nvertex;
-    Int_t           pu_nvertex;
-    Float_t         event_weight;
-    Double_t        generator_weight;
+    UInt_t                      run;
+    UInt_t                      lumi_block;
+    UInt_t                      event;
+    Float_t                     ntrue_interactions;
+    UInt_t                      nvertex;
+    Int_t                       pu_nvertex;
+    Float_t                     event_weight;
+    Double_t                    generator_weight;
+    std::vector<std::string>*   trigger_names;
+    std::vector<bool>*          trigger_results;
 
     // List of branches
     TBranch        *b_ntrue_interactions;   //!
@@ -43,7 +45,7 @@ class AnalysisTree {
 };
 
 
-AnalysisTree::AnalysisTree() : fChain(0) 
+AnalysisTree::AnalysisTree() : fChain(0), trigger_names(NULL), trigger_results(NULL)
 {
 }
 
@@ -72,7 +74,7 @@ void AnalysisTree::Init(TTree *tree)
     return;
 
   fChain = tree;
-  fChain->SetMakeClass(1);
+  //fChain->SetMakeClass(1);
 
   fChain->SetBranchAddress("run", &run, NULL);
   fChain->SetBranchAddress("lumi_block", &lumi_block, NULL);
@@ -82,4 +84,6 @@ void AnalysisTree::Init(TTree *tree)
   fChain->SetBranchAddress("pu_nvertex", &pu_nvertex, &b_nvertex);
   fChain->SetBranchAddress("event_weight", &event_weight, &b_event_weight);
   fChain->SetBranchAddress("generator_weight", &generator_weight, NULL);
+  fChain->SetBranchAddress("trigger_names", &trigger_names, NULL);
+  fChain->SetBranchAddress("trigger_results", &trigger_results, NULL);
 }

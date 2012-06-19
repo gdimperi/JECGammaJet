@@ -32,7 +32,7 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   p = postfix
 
   usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC, postfix=p, jetCorrections=jetCorrections, typeIMetCorrections = False)
-  #getattr(process, "pfPileUp" + p).Enable = cms.bool(usePFNoPU)
+  getattr(process, "pfPileUp" + p).Enable = cms.bool(usePFNoPU)
   if usePFNoPU:
     getattr(process, "pfPileUp" + p).Vertices = 'goodOfflinePrimaryVertices'
     getattr(process, "pfPileUp" + p).checkClosestZVertex = cms.bool(False)
@@ -42,7 +42,7 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   getattr(process, 'patJetCorrFactors').rho = cms.InputTag("kt6PFJets", "rho") # Do not use kt6PFJetsPFlowAK5, it's not ok for L1FastJet.
 
   # top projections in PF2PAT:
-  getattr(process,"pfNoPileUp" + p).enable = True
+  getattr(process,"pfNoPileUp" + p).enable = cms.bool(usePFNoPU)
   getattr(process,"pfNoMuon" + p).enable = True
   getattr(process,"pfNoElectron" + p).enable = True
   getattr(process,"pfNoTau" + p).enable = False
@@ -110,10 +110,11 @@ print "##########################"
 #postfixes = {'PFlowAK5': 'AK5', 'PFlowAK7': 'AK7'}
 postfixes = {'PFlowAK5': 'AK5'}
 
-path = cms.Sequence()
+process.sequence_chs = cms.Sequence()
+process.sequence_nochs = cms.Sequence()
 for p, algo in postfixes.items():
-  path += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=True, useTypeIMET=correctMETWithT1)
-  #path += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=True, useTypeIMET=correctMETWithT1)
+  process.sequence_nochs += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=False, useTypeIMET=correctMETWithT1)
+  process.sequence_chs   += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=True, useTypeIMET=correctMETWithT1)
 
 processCaloJets = False
 
@@ -162,9 +163,21 @@ if not runOnMC:
 
 removeSpecificPATObjects(process, names = ['Electrons', 'Muons', 'Taus'])
 
+runCHS = True
+if runCHS:
+  print "##########################"
+  print "Running CHS sequence"
+  print "##########################"
+
+process.analysisSequence = cms.Sequence()
+
+process.analysisSequence *= process.sequence_nochs
+if runCHS:
+  process.analysisSequence *= process.sequence_chs
+
 # Add default pat sequence to our path
 # This brings to life TcMET, Calo jets and Photons
-path *= process.patDefaultSequence
+process.analysisSequence *= process.patDefaultSequence
 
 # Filtering
 
@@ -196,7 +209,7 @@ process.p = cms.Path(
     process.scrapingVeto +
     process.goodOfflinePrimaryVertices +
     process.HBHENoiseFilter +
-    path +
+    process.analysisSequence +
     process.nEventsFiltered
     )
 
@@ -216,6 +229,7 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_generator_*_*',
     # Type I residual
     'drop *_selectedPatJetsForMET*_*_PAT',
+    'keep *_patPFMet*_*_PAT', # Keep raw met
     # For Photon ID
     'keep *_reducedEcalRecHitsEB_*_*',
     'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*'
