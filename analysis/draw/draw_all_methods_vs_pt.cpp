@@ -38,7 +38,7 @@ void saveCanvas(TCanvas* canvas, const std::string& name) {
 }
 
 
-void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& FIT_RMS, drawBase* db, bool rawJets, const std::string& alphaCut, TFile* outputFile);
+void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& etaRegion_str, const std::string& FIT_RMS, drawBase* db, bool rawJets, const std::string& alphaCut, TFile* outputFile);
 
 
 int main(int argc, char* argv[]) {
@@ -133,21 +133,32 @@ int main(int argc, char* argv[]) {
   size_t s = etaBinning.size();
 
   TFile* output = TFile::Open(std::string(outputDir + "/plots.root").c_str(), "recreate");
+  TFile* output_raw = TFile::Open(std::string(outputDir + "/plots_raw.root").c_str(), "recreate");
 
   for (size_t i = 0; i < s; i++) {
     std::string etaBin = etaBinning.getBinName(i);
-    draw_vs_pt_plots("response",   etaBin, fit_rms, db, false, alphaCut, output);
-    draw_vs_pt_plots("resolution", etaBin, fit_rms, db, false, alphaCut, output);
+    std::string etaBinTitle = etaBinning.getBinTitle(i);
 
-    draw_vs_pt_plots("response",   etaBin, fit_rms, db, true, "", NULL);
-    draw_vs_pt_plots("resolution", etaBin, fit_rms, db, true, "", NULL);
+    draw_vs_pt_plots("response",   etaBin, etaBinTitle, fit_rms, db, false, alphaCut, output);
+    draw_vs_pt_plots("resolution", etaBin, etaBinTitle, fit_rms, db, false, alphaCut, output);
+
+    draw_vs_pt_plots("response",   etaBin, etaBinTitle, fit_rms, db, true, alphaCut, output_raw);
+    draw_vs_pt_plots("resolution", etaBin, etaBinTitle, fit_rms, db, true, alphaCut, output_raw);
   }
 
-  draw_vs_pt_plots("response",   "eta013", fit_rms, db, false, alphaCut, output);
-  draw_vs_pt_plots("resolution", "eta013", fit_rms, db, false, alphaCut, output);
+  std::string etaBinTitle = "|#eta| #leq 1.3";
 
-  draw_vs_pt_plots("response",   "eta013", fit_rms, db, true, "", NULL);
-  draw_vs_pt_plots("resolution", "eta013", fit_rms, db, true, "", NULL);
+  draw_vs_pt_plots("response",   "eta013", etaBinTitle, fit_rms, db, false, alphaCut, output);
+  draw_vs_pt_plots("resolution", "eta013", etaBinTitle, fit_rms, db, false, alphaCut, output);
+
+  draw_vs_pt_plots("response",   "eta013", etaBinTitle, fit_rms, db, true, alphaCut, output_raw);
+  draw_vs_pt_plots("resolution", "eta013", etaBinTitle, fit_rms, db, true, alphaCut, output_raw);
+
+  output->Close();
+  output_raw->Close();
+
+  delete output;
+  delete output_raw;
 
   /*draw_vs_pt_plots("response",   "eta011", fit_rms, db, (bool)true);
   draw_vs_pt_plots("resolution", "eta011", fit_rms, db, (bool)true);
@@ -196,29 +207,17 @@ int main(int argc, char* argv[]) {
 
 
 
-void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& FIT_RMS, drawBase* db, bool rawJets, const std::string& alphaCut, TFile* outputFile) {
+void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion, const std::string& etaRegion_str, const std::string& FIT_RMS, drawBase* db, bool rawJets, const std::string& alphaCut, TFile* outputFile) {
 
-  std::string etaRegion_str;
-  if (etaRegion == "eta013") etaRegion_str = "|#eta| < 1.3";
-  else if (etaRegion == "eta011") etaRegion_str = "|#eta| < 1.1";
-  else if (etaRegion == "eta009") etaRegion_str = "|#eta| < 0.9";
-  else if (etaRegion == "eta132") etaRegion_str = "1.3 < |#eta| < 2";
-  else if (etaRegion == "eta1524") etaRegion_str = "1.5 < |#eta| < 2.4";
-  else if (etaRegion == "eta23") etaRegion_str = "2 < |#eta| < 3";
-  else if (etaRegion == "eta243") etaRegion_str = "2.4 < |#eta| < 3";
-  else if (etaRegion == "eta35") etaRegion_str = "3 < |#eta| < 5";
-  else etaRegion_str = "[unknown eta region]";
-  
   std::string fullEtaRegion;
   if (etaRegion == "eta013") fullEtaRegion = "eta00_13";
-  else if (etaRegion == "eta011") fullEtaRegion = "eta00_11";
-  else if (etaRegion == "eta009") fullEtaRegion = "eta00_09";
-  else if (etaRegion == "eta132") fullEtaRegion = "eta13_20";
-  else if (etaRegion == "eta1524") fullEtaRegion = "eta15_24";
-  else if (etaRegion == "eta23") fullEtaRegion = "eta20_30";
-  else if (etaRegion == "eta243") fullEtaRegion = "eta24_30";
-  else if (etaRegion == "eta35") fullEtaRegion = "eta30_50";
-  else etaRegion_str = "[unknown eta region]";
+  else if (etaRegion == "eta008") fullEtaRegion = "eta00_08";
+  else if (etaRegion == "eta0813") fullEtaRegion = "eta08_13";
+  else if (etaRegion == "eta1319") fullEtaRegion = "eta13_19";
+  else if (etaRegion == "eta1925") fullEtaRegion = "eta19_25";
+  else if (etaRegion == "eta2530") fullEtaRegion = "eta25_30";
+  else if (etaRegion == "eta3052") fullEtaRegion = "eta30_52";
+  else fullEtaRegion = "eta_unknown";
 
   if (resp_reso != "response" && resp_reso != "resolution") {
     std::cout << "Only 'Response' and 'Resolution' supported. Exiting." << std::endl;
@@ -790,7 +789,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_dataMC_MPF->SetMarkerStyle(20);
   gr_dataMC_MPF->SetMarkerSize(markerSize);
   gr_dataMC_MPF->SetMarkerColor(38);
-  gr_dataMC_MPF->SetName(TString::Format("MPFchs_a_%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
+  gr_dataMC_MPF->SetName(TString::Format("MPFchs_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   /*} else {
     gr_dataMC_MPF_TypeICor = fitTools::get_graphRatio(gr_responseMPF_TypeICor_vs_pt, gr_responseMPFMC_TypeICor_vs_pt);

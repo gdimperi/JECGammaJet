@@ -21,23 +21,12 @@ drawExtrap::drawExtrap(const std::string& analysisType, const std::string& recoT
 
 
 
-void drawExtrap::drawResponseExtrap(const std::string& etaRegion, bool rawJets) {
+void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::string& etaRegion_str, bool rawJets) {
 
   int recoPhot_color = kRed;
   int recoGen_color = kBlue;
   int genPhot_color = kGreen + 2;
   //int genPhot_color = kGreen+3;
-
-  std::string etaRegion_str;
-  if (etaRegion == "eta013") etaRegion_str = "|#eta| < 1.3";
-  else if (etaRegion == "eta011") etaRegion_str = "|#eta| < 1.1";
-  else if (etaRegion == "eta009") etaRegion_str = "|#eta| < 0.9";
-  else if (etaRegion == "eta132") etaRegion_str = "1.3 < |#eta| < 2";
-  else if (etaRegion == "eta1524") etaRegion_str = "1.5 < |#eta| < 2.4";
-  else if (etaRegion == "eta23") etaRegion_str = "2 < |#eta| < 3";
-  else if (etaRegion == "eta243") etaRegion_str = "2.4 < |#eta| < 3";
-  else if (etaRegion == "eta35") etaRegion_str = "3 < |#eta| < 5";
-  else etaRegion_str = "[unknown eta region]";
 
   std::vector<std::pair<float, float> > ptPhot_binning = mPtBinning.getBinning();
 

@@ -152,19 +152,20 @@ int main(int argc, char* argv[]) {
     db->set_FIXM(FIXM);
     db->set_EXCLUDEFIRSTPOINT(EXCLUDE_FIRST_POINT);
 
-    db->drawResponseExtrap("eta011", false);
-    db->drawResponseExtrap("eta011", true);
+    EtaBinning etaBinning;
+    size_t etaBinningSize = etaBinning.size();
 
-    db->drawResponseExtrap("eta013", false);
-    db->drawResponseExtrap("eta013", true);
+    for (size_t i = 0; i < etaBinningSize; i++) {
+      db->set_legendTitle(etaBinning.getBinTitle(i)); 
 
-    db->drawResponseExtrap("eta1524", false);
-    db->drawResponseExtrap("eta1524", true);
+      db->drawResponseExtrap(etaBinning.getBinName(i), etaBinning.getBinTitle(i), false);
+      db->drawResponseExtrap(etaBinning.getBinName(i), etaBinning.getBinTitle(i), true);
+    }
 
-    db->drawResponseExtrap("eta243", false);
-    db->drawResponseExtrap("eta243", true);
+    db->set_legendTitle("|#eta| < 1.3");
 
-    //db->drawResponseExtrap("eta35");
+    db->drawResponseExtrap("eta013", "|#eta| < 1.3", false);
+    db->drawResponseExtrap("eta013", "|#eta| < 1.3", true);
 
     delete db;
   } catch (TCLAP::ArgException &e) {
