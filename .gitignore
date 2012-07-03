@@ -33,3 +33,8 @@ files.list
 # JEC
 analysis/jec_payloads/
 analysis/readJECFromPrepDB/*.db
+*xsection
+datasets.list
+*.json
+nohup.out
+*.orig
