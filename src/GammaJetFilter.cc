@@ -4,10 +4,10 @@
 // 
 /**\class GammaJetFilter GammaJetFilter.cc JetMETCorrections/GammaJetFilter/src/GammaJetFilter.cc
 
- Description: [one line class summary]
+Description: [one line class summary]
 
- Implementation:
-     [Notes on implementation]
+Implementation:
+[Notes on implementation]
 */
 //
 // Original Author:  Sébastien Brochet
@@ -31,6 +31,7 @@
 // user include files
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "CommonTools/Utils/interface/PtComparator.h"
+#include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -73,7 +74,8 @@
 
 #include <TParameter.h>
 #include <TTree.h>
-#include <TRegexp.h>
+
+#include <boost/regex.hpp>
 
 //
 // class declaration
@@ -84,110 +86,119 @@ enum JetAlgorithm {
   AK7
 };
 
+struct JetInfos {
+  JetAlgorithm algo;
+  edm::InputTag inputTag;
+};
+
 #define FOREACH(x) for (std::vector<std::string>::const_iterator it = x.begin(); it != x.end(); ++it)
 
 class GammaJetFilter : public edm::EDFilter {
-   public:
-      explicit GammaJetFilter(const edm::ParameterSet&);
-      ~GammaJetFilter();
+  public:
+    explicit GammaJetFilter(const edm::ParameterSet&);
+    ~GammaJetFilter();
 
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+    static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-   private:
-      virtual void beginJob();
-      virtual bool filter(edm::Event&, const edm::EventSetup&);
-      virtual void endJob();
-      
-      virtual bool beginRun(edm::Run&, edm::EventSetup const&);
-      virtual bool endRun(edm::Run&, edm::EventSetup const&);
-      virtual bool beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
-      virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
+  private:
+    virtual void beginJob();
+    virtual bool filter(edm::Event&, const edm::EventSetup&);
+    virtual void endJob();
 
-      void correctJets(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup);
-      bool processJets(const pat::Photon& photon, const pat::JetCollection& jets, const JetAlgorithm algo, std::vector<TTree*>& trees);
+    virtual bool beginRun(edm::Run&, edm::EventSetup const&);
+    virtual bool endRun(edm::Run&, edm::EventSetup const&);
+    virtual bool beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
+    virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
-      //const EcalRecHitCollection* getEcalRecHitCollection(const reco::BasicCluster& cluster);
-      bool isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology);
-      //bool isValidPhotonEE(const pat::Photon& photon, const double rho);
-      //bool isValidPhotonEB(const pat::Photon& photon, const double rho);
-      bool isValidJet(const pat::Jet& jet);
+    void correctJets(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup);
+    void extractRawJets(pat::JetCollection& jets);
+    bool processJets(const pat::Photon& photon, const pat::JetCollection& jets, const JetAlgorithm algo, std::vector<TTree*>& trees);
 
-      void readJSONFile();
-      void readCSVFile();
-      void updateLuminosity(const edm::LuminosityBlock& lumiBlock);
+    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
 
-      // ----------member data ---------------------------
-      bool mIsMC;
-      bool mFilterData;
-      std::string mJSONFile;
-      std::string mCSVFile;
-      boost::shared_ptr<Json::Value> mValidRuns;
-      boost::shared_ptr<Json::Value> mCurrentRunValidLumis;
-      std::map<std::pair<unsigned int, unsigned int>, double> mLumiByLS;
-      bool mIsValidLumiBlock;
+    //const EcalRecHitCollection* getEcalRecHitCollection(const reco::BasicCluster& cluster);
+    bool isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology);
+    //bool isValidPhotonEE(const pat::Photon& photon, const double rho);
+    //bool isValidPhotonEB(const pat::Photon& photon, const double rho);
+    bool isValidJet(const pat::Jet& jet);
 
-      bool mDoJEC;
-      bool mJECFromRaw;
-      std::string mCorrectorLabel;
-      GreaterByPt<pat::Jet> mSorter;
+    void readJSONFile();
+    void readCSVFile();
+    void updateLuminosity(const edm::LuminosityBlock& lumiBlock);
 
-      bool mFirstJetPtCut;
-      double mFirstJetThreshold;
-      
-      std::vector<std::string> mJetCollections;
+    // ----------member data ---------------------------
+    bool mIsMC;
+    bool mFilterData;
+    std::string mJSONFile;
+    std::string mCSVFile;
+    boost::shared_ptr<Json::Value> mValidRuns;
+    boost::shared_ptr<Json::Value> mCurrentRunValidLumis;
+    std::map<std::pair<unsigned int, unsigned int>, double> mLumiByLS;
+    bool mIsValidLumiBlock;
 
-      // Input Tags
-      edm::InputTag mPhotonsIT;
-      edm::InputTag mJetsAK5PFlowIT;
-      edm::InputTag mJetsAK7PFlowIT;
-      edm::InputTag mJetsAK5CaloIT;
-      edm::InputTag mJetsAK7CaloIT;
+    bool mDoJEC;
+    bool mJECFromRaw;
+    std::string mCorrectorLabel;
+    GreaterByPt<pat::Jet> mSorter;
 
-      boost::shared_ptr<JetIDSelectionFunctor> mCaloJetID;
-      pat::strbitset mCaloJetIDRet;
+    bool mFirstJetPtCut;
+    double mFirstJetThreshold;
 
-      double mPtHatMin;
-      double mPtHatMax;
+    std::vector<std::string> mJetCollections;
+    std::map<std::string, JetInfos> mJetCollectionsData;
 
-      // Trees
-      void createTrees(const std::string& rootName, TFileService& fs);
-      TTree* mPhotonTree;
-      TTree* mPhotonGenTree;
-      TTree* mAnalysisTree;
-      TTree* mElectronsTree;
-      TTree* mMuonsTree;
-      TParameter<double>*    mTotalLuminosity;
-      float                  mEventsWeight;
-      TParameter<long long>* mProcessedEvents;
-      TParameter<long long>* mSelectedEvents;
-      
-      std::map<std::string, std::vector<TTree*> > mJetTrees;
-      std::map<std::string, std::vector<TTree*> > mMETTrees;
-      std::map<std::string, TTree*>               mMiscTrees;
+    // Input Tags
+    edm::InputTag mPhotonsIT;
+    edm::InputTag mJetsAK5PFlowIT;
+    edm::InputTag mJetsAK7PFlowIT;
+    edm::InputTag mJetsAK5CaloIT;
+    edm::InputTag mJetsAK7CaloIT;
 
-      // TParameters for storing current config (JEC, correctorLabel, Treshold, etc...
-      TParameter<bool>*             mJECRedone;
-      TParameter<bool>*             mJECFromRawParameter;
-      TNamed*                       mJECCorrectorLabel;
-      TParameter<bool>*             mFirstJetPtCutParameter;
-      TParameter<double>*           mFirstJetThresholdParameter;
+    boost::shared_ptr<JetIDSelectionFunctor> mCaloJetID;
+    pat::strbitset mCaloJetIDRet;
 
-      // DEBUG
-      TH1F* mDeltaPhi;
+    double mPtHatMin;
+    double mPtHatMax;
 
-      void particleToTree(const reco::Candidate* particle, TTree* t, std::vector<boost::shared_ptr<void> >& addresses);
-      void updateBranch(TTree* tree, void* address, const std::string& name, const std::string& type = "F");
-      template<typename T>
-      void updateBranch(TTree* tree, T* address, const std::string& name);
-      void updateBranchArray(TTree* tree, void* address, const std::string& name, const std::string& size, const std::string& type = "F");
-      
-      void photonToTree(const pat::Photon& photon);
-      void metsToTree(const pat::MET& met, const pat::MET& rawMet, const std::vector<TTree*>& trees);
-      void metToTree(const pat::MET* met, TTree* tree, TTree* genTree);
-      void jetsToTree(const pat::Jet& firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees);
-      void jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree);
-      void electronsToTree(const edm::Handle<pat::ElectronCollection>& electrons, const reco::Vertex& pv);
-      void muonsToTree(const edm::Handle<pat::MuonCollection>& muons, const reco::Vertex& pv);
+    // Trees
+    void createTrees(const std::string& rootName, TFileService& fs);
+    TTree* mPhotonTree;
+    TTree* mPhotonGenTree;
+    TTree* mAnalysisTree;
+    TTree* mElectronsTree;
+    TTree* mMuonsTree;
+    TParameter<double>*    mTotalLuminosity;
+    float                  mEventsWeight;
+    TParameter<long long>* mProcessedEvents;
+    TParameter<long long>* mSelectedEvents;
+
+    std::map<std::string, std::vector<TTree*> > mJetTrees;
+    std::map<std::string, std::vector<TTree*> > mMETTrees;
+    std::map<std::string, TTree*>               mMiscTrees;
+
+    // TParameters for storing current config (JEC, correctorLabel, Treshold, etc...
+    TParameter<bool>*             mJECRedone;
+    TParameter<bool>*             mJECFromRawParameter;
+    TNamed*                       mJECCorrectorLabel;
+    TParameter<bool>*             mFirstJetPtCutParameter;
+    TParameter<double>*           mFirstJetThresholdParameter;
+
+    // DEBUG
+    TH1F* mDeltaPhi;
+
+    void particleToTree(const reco::Candidate* particle, TTree* t, std::vector<boost::shared_ptr<void> >& addresses);
+    void updateBranch(TTree* tree, void* address, const std::string& name, const std::string& type = "F");
+    template<typename T>
+      void updateBranch(TTree* tree, T*& address, const std::string& name);
+    void updateBranchArray(TTree* tree, void* address, const std::string& name, const std::string& size, const std::string& type = "F");
+
+    void photonToTree(const pat::Photon& photon);
+    void metsToTree(const pat::MET& met, const pat::MET& rawMet, const std::vector<TTree*>& trees);
+    void metToTree(const pat::MET* met, TTree* tree, TTree* genTree);
+    void jetsToTree(const pat::Jet& firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees);
+    void jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree);
+    void electronsToTree(const edm::Handle<pat::ElectronCollection>& electrons, const reco::Vertex& pv);
+    void muonsToTree(const edm::Handle<pat::MuonCollection>& muons, const reco::Vertex& pv);
 };
 
 //
@@ -206,7 +217,7 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
 {
 
   mIsMC = iConfig.getUntrackedParameter<bool>("isMC", "false");
-  
+
   if (! mIsMC) {
     mJSONFile = iConfig.getParameter<std::string>("json");
     mCSVFile = iConfig.getParameter<std::string>("csv");
@@ -214,8 +225,8 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   }
 
   mPhotonsIT = iConfig.getUntrackedParameter<edm::InputTag>("photons", edm::InputTag("selectedPatPhotons"));
-  mJetsAK5PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5PFlow", edm::InputTag("selectedPatJetsPFlowAK5chs"));
-  mJetsAK7PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7PFlow", edm::InputTag("selectedPatJetsPFlowAK7chs"));
+  mJetsAK5PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5PFlow", edm::InputTag("selectedPatJetsPFlowAK5"));
+  mJetsAK7PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7PFlow", edm::InputTag("selectedPatJetsPFlowAK7"));
   mJetsAK5CaloIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5Calo", edm::InputTag("selectedPatJets"));
   mJetsAK7CaloIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7Calo", edm::InputTag("selectedPatJetsCaloAK7"));
   mDoJEC = iConfig.getUntrackedParameter<bool>("doJetCorrection", false);
@@ -228,59 +239,97 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   mFirstJetPtCut = iConfig.getUntrackedParameter<bool>("firstJetPtCut", true);
   mFirstJetThreshold = iConfig.getUntrackedParameter<double>("firstJetThreshold", 0.3);
 
+  bool runOnCHS    = iConfig.getUntrackedParameter<bool>("runOnCHS", true);
+  bool runOnNonCHS = iConfig.getUntrackedParameter<bool>("runOnNonCHS", true);
+
+  bool runOnPFAK5    = iConfig.getUntrackedParameter<bool>("runOnPFAK5", true);
+  bool runOnPFAK7    = iConfig.getUntrackedParameter<bool>("runOnPFAK7", true);
+  bool runOnCaloAK5  = iConfig.getUntrackedParameter<bool>("runOnCaloAK5", true);
+  bool runOnCaloAK7  = iConfig.getUntrackedParameter<bool>("runOnCaloAK7", true);
+
+  edm::InputTag jetsAK5PFlowITchs = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5PFlowchs", edm::InputTag("selectedPatJetsPFlowAK5chs"));
+  edm::InputTag jetsAK7PFlowITchs = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7PFlowchs", edm::InputTag("selectedPatJetsPFlowAK7chs"));
+
   if (! mIsMC && mFilterData) {
     // Load JSON file of good runs
     readJSONFile();
     readCSVFile();
   }
 
-   edm::Service<TFileService> fs;
-   mPhotonTree = fs->make<TTree>("photon", "photon tree");
-   mPhotonGenTree = fs->make<TTree>("photon_gen", "photon gen tree");
-   mAnalysisTree = fs->make<TTree>("analysis", "analysis tree");
-   mMuonsTree = fs->make<TTree>("muons", "muons tree");
-   mElectronsTree = fs->make<TTree>("electrons", "electrons tree");
+  edm::Service<TFileService> fs;
+  mPhotonTree = fs->make<TTree>("photon", "photon tree");
+  mPhotonGenTree = fs->make<TTree>("photon_gen", "photon gen tree");
+  mAnalysisTree = fs->make<TTree>("analysis", "analysis tree");
+  mMuonsTree = fs->make<TTree>("muons", "muons tree");
+  mElectronsTree = fs->make<TTree>("electrons", "electrons tree");
 
-   mTotalLuminosity = fs->make<TParameter<double> >("total_luminosity", 0.);
-   
-   mEventsWeight = 1.;
-   mPtHatMin     = -1.;
-   mPtHatMax     = -1.;
+  mTotalLuminosity = fs->make<TParameter<double> >("total_luminosity", 0.);
 
-   if (mIsMC) {
-     // Read cross section and number of generated events
-     double crossSection = iConfig.getParameter<double>("crossSection");
-     unsigned long long generatedEvents = iConfig.getParameter<unsigned long long>("generatedEvents");
-     mEventsWeight = crossSection / (float) generatedEvents;
+  mEventsWeight = 1.;
+  mPtHatMin     = -1.;
+  mPtHatMax     = -1.;
 
-     mPtHatMin = iConfig.getUntrackedParameter<double>("ptHatMin", -1.);
-     mPtHatMax = iConfig.getUntrackedParameter<double>("ptHatMax", -1.);
-   }
+  if (mIsMC) {
+    // Read cross section and number of generated events
+    double crossSection = iConfig.getParameter<double>("crossSection");
+    unsigned long long generatedEvents = iConfig.getParameter<unsigned long long>("generatedEvents");
+    mEventsWeight = crossSection / (float) generatedEvents;
 
-   mJetCollections.push_back("PFlowAK5chs");
-   //mJetCollections.push_back("PFlowAK7chs");
-   //mJetCollections.push_back("CaloAK5");
-   //mJetCollections.push_back("CaloAK7");
+    mPtHatMin = iConfig.getUntrackedParameter<double>("ptHatMin", -1.);
+    mPtHatMax = iConfig.getUntrackedParameter<double>("ptHatMax", -1.);
+  }
 
-   FOREACH(mJetCollections) {
-     createTrees(*it, *fs);
-   }
+  if (runOnNonCHS) {
+    if (runOnPFAK5) {
+      mJetCollections.push_back("PFlowAK5");
+      mJetCollectionsData["PFlowAK5"] = {AK5, mJetsAK5PFlowIT};
+    }
+    if (runOnPFAK7) {
+      mJetCollections.push_back("PFlowAK7");
+      mJetCollectionsData["PFlowAK7"] = {AK7, mJetsAK7PFlowIT};
+    }
+  }
 
-   mProcessedEvents = fs->make<TParameter<long long> >("total_events", 0);
-   mSelectedEvents = fs->make<TParameter<long long> >("passed_events", 0);
+  if (runOnCHS) {
+    if (runOnPFAK5) {
+      mJetCollections.push_back("PFlowAK5chs");
+      mJetCollectionsData["PFlowAK5chs"] = {AK5, jetsAK5PFlowITchs};
+    }
+    if (runOnPFAK7) {
+      mJetCollections.push_back("PFlowAK7chs");
+      mJetCollectionsData["PFlowAK7chs"] = {AK7, jetsAK7PFlowITchs};
+    }
+  }
 
-   mJECRedone = fs->make<TParameter<bool> >("jec_redone", mDoJEC, '*');
-   mFirstJetPtCutParameter = fs->make<TParameter<bool> >("cut_on_first_jet_pt", mFirstJetPtCut, '*');
-   if (mDoJEC) {
-     mJECFromRawParameter = fs->make<TParameter<bool> >("jec_from_raw_jet", mJECFromRaw, '*');
-     mJECCorrectorLabel = fs->make<TNamed>("jec_corrector_label", mCorrectorLabel);
-   }
+  if (runOnCaloAK5) {
+    mJetCollections.push_back("CaloAK5");
+    mJetCollectionsData["CaloAK5"]  = {AK5, mJetsAK5CaloIT};
+  }
 
-   if (mFirstJetPtCut) {
-     mFirstJetThresholdParameter = fs->make<TParameter<double> >("cut_on_first_jet_treshold", mFirstJetThreshold);
-   }
+  if (runOnCaloAK7) {
+    mJetCollections.push_back("CaloAK7");
+    mJetCollectionsData["CaloAK7"]  = {AK7, mJetsAK7CaloIT};
+  }
 
-   mDeltaPhi = fs->make<TH1F>("deltaPhi", "deltaPhi", 40, M_PI / 2., M_PI);
+  FOREACH(mJetCollections) {
+    createTrees(*it, *fs);
+  }
+
+  mProcessedEvents = fs->make<TParameter<long long> >("total_events", 0);
+  mSelectedEvents = fs->make<TParameter<long long> >("passed_events", 0);
+
+  mJECRedone = fs->make<TParameter<bool> >("jec_redone", mDoJEC, '*');
+  mFirstJetPtCutParameter = fs->make<TParameter<bool> >("cut_on_first_jet_pt", mFirstJetPtCut, '*');
+  if (mDoJEC) {
+    mJECFromRawParameter = fs->make<TParameter<bool> >("jec_from_raw_jet", mJECFromRaw, '*');
+    mJECCorrectorLabel = fs->make<TNamed>("jec_corrector_label", mCorrectorLabel);
+  }
+
+  if (mFirstJetPtCut) {
+    mFirstJetThresholdParameter = fs->make<TParameter<double> >("cut_on_first_jet_treshold", mFirstJetThreshold);
+  }
+
+  mDeltaPhi = fs->make<TH1F>("deltaPhi", "deltaPhi", 40, M_PI / 2., M_PI);
 }
 
 
@@ -325,7 +374,7 @@ void GammaJetFilter::updateBranch(TTree* tree, void* address, const std::string&
 }
 
 template<typename T>
-void GammaJetFilter::updateBranch(TTree* tree, T* address, const std::string& name) {
+void GammaJetFilter::updateBranch(TTree* tree, T*& address, const std::string& name) {
   TBranch* branch = tree->GetBranch(name.c_str());
   if (branch == NULL) {
     branch = tree->Branch(name.c_str(), address); 
@@ -393,7 +442,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   edm::Handle<double> pFlowRho;
-  iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), pFlowRho);
+  iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), pFlowRho); // For photon ID
 
   // Necesseray collection for calculate sigmaIPhiIPhi
   edm::Handle<EcalRecHitCollection> recHits;
@@ -427,44 +476,47 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle<pat::JetCollection> jetsHandle;
 
-  iEvent.getByLabel(mJetsAK5PFlowIT, jetsHandle);
-  pat::JetCollection jets = *jetsHandle;
-  if (mDoJEC) {
-    correctJets(jets, iEvent, iSetup);
-  }
-  eventHasJets |= processJets(photon, jets, AK5, mJetTrees["PFlowAK5chs"]);
-
-  /*iEvent.getByLabel(mJetsAK7PFlowIT, jets);
-    eventHasJets |= processJets(photon, jets, AK7, mJetTrees["AK7PFlow"]);
-
-    iEvent.getByLabel(mJetsAK5CaloIT, jets);
-    eventHasJets |= processJets(photon, jets, AK5, mJetTrees["AK5Calo"]);
-
-    iEvent.getByLabel(mJetsAK7CaloIT, jets);
-    eventHasJets |= processJets(photon, jets, AK7, mJetTrees["AK7Calo"]);*/
-
-  if (! eventHasJets)
-    return false;
-
-  // MET
-
   FOREACH(mJetCollections) {
-    edm::Handle<pat::METCollection> mets;
-    iEvent.getByLabel(std::string("patMETs" + ((*it == "AK5Calo") ? "" : *it)), mets);
+
+    JetInfos infos = mJetCollectionsData[*it];
+
+    iEvent.getByLabel(infos.inputTag, jetsHandle);
+    pat::JetCollection jets = *jetsHandle;
+    if (mDoJEC) {
+      correctJets(jets, iEvent, iSetup);
+    } else {
+      extractRawJets(jets);
+    }
+
+    bool valid = processJets(photon, jets, infos.algo, mJetTrees[*it]);
+    eventHasJets |= valid ;
+
+    if (! valid)
+      continue;
+
+    // MET
+    edm::Handle<pat::METCollection> metsHandle;
+    iEvent.getByLabel(std::string("patMETs" + ((*it == "AK5Calo") ? "" : *it)), metsHandle);
 
     edm::Handle<pat::METCollection> rawMets;
     iEvent.getByLabel(std::string("patPFMet" + ((*it == "AK5Calo") ? "" : *it)), rawMets);
 
-    if (rawMets.isValid())
-      metsToTree(mets->at(0), rawMets->at(0), mMETTrees[*it]);
-    else {
-      pat::MET rawMet = pat::MET();
-      metsToTree(mets->at(0), rawMets->at(0), mMETTrees[*it]);
-    }
-  }
+    pat::METCollection mets = *metsHandle;
+    pat::MET& met = mets[0];
+    const pat::MET& rawMet = rawMets->at(0);
 
-  // Rho
-  FOREACH(mJetCollections) {
+    if (mDoJEC) {
+      correctMETWithTypeI(rawMet, met, jets);
+    }
+
+    if (rawMets.isValid())
+      metsToTree(met, rawMet, mMETTrees[*it]);
+    else {
+      pat::MET emptyRawMet = pat::MET();
+      metsToTree(met, emptyRawMet, mMETTrees[*it]);
+    }
+
+    // Rho
     edm::Handle<double> rhos;
     if (it->find("Calo") != std::string::npos)
       iEvent.getByLabel(edm::InputTag("kt6CaloJets", "rho"), rhos);
@@ -476,6 +528,9 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     mMiscTrees[*it]->Fill();
   }
+
+  if (! eventHasJets)
+    return false;
 
   // Number of vertices for pu reweighting
   edm::Handle<std::vector<PileupSummaryInfo> > puInfos;
@@ -519,34 +574,37 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<edm::TriggerResults> triggerResults;
   iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
 
-  static std::vector<TRegexp> validTriggers = { TRegexp("HLT_Photon*"), TRegexp("HLT_DoublePhoton*") };
-  const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResults);
-
   std::vector<std::string>* trigNames = new std::vector<std::string>();
   std::vector<bool>* trigResults = new std::vector<bool>();
 
-  size_t size = triggerResults->size();
+  if (triggerResults.isValid()) {
+    static std::vector<boost::regex> validTriggers = { boost::regex("HLT_.*Photon.*", boost::regex_constants::icase) };
+    const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResults);
 
-  for (size_t i = 0; i < size; i++) {
-    std::string triggerName = triggerNames.triggerName(i);
-    bool isValid = false;
-    for (TRegexp validTrigger: validTriggers) {
-      if (TString(triggerName).Contains(validTrigger)) {
-        isValid = true;
-        break;
+    size_t size = triggerResults->size();
+
+    for (size_t i = 0; i < size; i++) {
+      std::string triggerName = triggerNames.triggerName(i);
+      bool isValid = false;
+      for (boost::regex& validTrigger: validTriggers) {
+        if (boost::regex_match(triggerName, validTrigger)) {
+          isValid = true;
+          break;
+        }
       }
+
+      if (!isValid)
+        continue;
+
+      unsigned int index = triggerNames.triggerIndex(triggerName);
+      bool passed = triggerResults->accept(index);
+
+      trigResults->push_back(passed);
+      trigNames->push_back(triggerName);
     }
-
-    if (!isValid)
-      continue;
-
-    unsigned int index = triggerNames.triggerIndex(triggerName);
-    bool passed = triggerResults->accept(index);
-
-    trigResults->push_back(passed);
-    trigNames->push_back(triggerName);
   }
 
+  // Create branches, even if they're empty
   updateBranch(mAnalysisTree, trigNames, "trigger_names");
   updateBranch(mAnalysisTree, trigResults, "trigger_results");
 
@@ -580,6 +638,10 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
   for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it)  {
     pat::Jet& jet = *it;
 
+    // Store raw jet, it's not possible to get it after corrections
+    pat::Jet rawJet = jet.correctedJet("Uncorrected");
+    jet.addUserData("rawJet", rawJet, true); // Store raw jet inside our jet. This allow us to correctly sort the resulting collection
+
     if (mJECFromRaw) {
       double toRaw = jet.jecFactor("Uncorrected");
       jet.setP4(jet.p4() * toRaw); // It's now a raw jet
@@ -591,6 +653,58 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
 
   // Sort collection by pt
   std::sort(jets.begin(), jets.end(), mSorter);
+}
+
+void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
+  double deltaPx = 0., deltaPy = 0.;
+  static StringCutObjectSelector<reco::Muon> skipMuonSelection("isGlobalMuon | isStandAloneMuon");
+
+  // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
+  // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
+  for (pat::JetCollection::const_iterator it = jets.begin(); it != jets.end(); ++it) {
+    const pat::Jet& jet = *it;
+
+    if (jet.pt() > 10) {
+
+      const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
+
+      double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
+      if (emEnergyFraction > 0.90)
+        continue;
+
+      reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
+
+      // Skip muons
+      /*std::vector<reco::PFCandidatePtr> cands = rawJet->getPFConstituents();
+      for (std::vector<reco::PFCandidatePtr>::const_iterator cand = cands.begin(); cand != cands.end(); ++cand) {
+        if ((*cand)->muonRef().isNonnull() && skipMuonSelection(*(*cand)->muonRef())) {
+          reco::Candidate::LorentzVector muonP4 = (*cand)->p4();
+          rawJetP4 -= muonP4;
+        }
+      }*/
+
+
+      deltaPx += (jet.px() - rawJetP4.px());
+      deltaPy += (jet.py() - rawJetP4.py());
+    }
+  }
+
+  double correctedMetPx = rawMet.px() - deltaPx;
+  double correctedMetPy = rawMet.py() - deltaPy;
+  double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
+
+  met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
+}
+
+void GammaJetFilter::extractRawJets(pat::JetCollection& jets) {
+
+  for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it) {
+    pat::Jet& jet = *it;
+
+    const pat::Jet rawJet = jet.correctedJet("Uncorrected");
+    jet.addUserData("rawJet", rawJet, true);
+  }
+
 }
 
 bool GammaJetFilter::processJets(const pat::Photon& photon, const pat::JetCollection& jets, const JetAlgorithm algo, std::vector<TTree*>& trees) {
@@ -917,11 +1031,11 @@ void GammaJetFilter::jetsToTree(const pat::Jet& firstJet, const pat::Jet* second
   jetToTree(secondJet, trees[1], trees[5]);
 
   // Raw jets
-  pat::Jet uncorrectJet = firstJet.correctedJet("Uncorrected");
-  jetToTree(&uncorrectJet, trees[2], NULL);
+  const pat::Jet* rawJet = firstJet.userData<pat::Jet>("rawJet");
+  jetToTree(rawJet, trees[2], NULL);
 
-  uncorrectJet = (secondJet) ? secondJet->correctedJet("Uncorrected") : pat::Jet();
-  jetToTree((secondJet) ? &uncorrectJet : NULL, trees[3], NULL);
+  rawJet = (secondJet) ? secondJet->userData<pat::Jet>("rawJet") : NULL;
+  jetToTree(rawJet, trees[3], NULL);
 
 }
 
