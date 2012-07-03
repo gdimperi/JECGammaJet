@@ -9,16 +9,16 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string("GR_R_52_V7::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
+process.GlobalTag.globaltag = cms.string("GR_R_52_V9D::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50000) )
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
         #'file:patTuple_PF2PAT.root'
-        '/store/user/sbrochet/Photon/JetMet_PF2PAT_Run2012A_PromptReco_22May//292d73a6795d0a493723b2d3a624156c/patTuple_PF2PAT_102_3_7Kw.root'
-        
+        #'/store/user/sbrochet/Photon/JetMet_PF2PAT_Run2012A_PromptReco_09June/292d73a6795d0a493723b2d3a624156c/patTuple_PF2PAT_84_2_tpP.root'        
+        '/store/user/sbrochet/SinglePhoton/JetMet_PF2PAT_Run2012B_PromptReco_23June/e316a04ff768fa1f713908f8996bbb95/patTuple_PF2PAT_216_1_xRU.root'
     )
 )
 
@@ -46,11 +46,20 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     csv = cms.string(os.path.join(fullPath, "lumibyls.csv")),
     filterData = cms.untracked.bool(True),
 
+    runOnNonCHS   = cms.untracked.bool(False),
+    runOnCHS      = cms.untracked.bool(True),
+
+    runOnPFAK5    = cms.untracked.bool(True),
+    runOnPFAK7    = cms.untracked.bool(False),
+
+    runOnCaloAK5  = cms.untracked.bool(False),
+    runOnCaloAK7  = cms.untracked.bool(False),
+
     # JEC
-    doJetCorrection = cms.untracked.bool(False),
-    correctJecFromRaw = cms.untracked.bool(False),
-    #correctorLabel = cms.untracked.string("ak5PFL1FastL2L3")
-    correctorLabel = cms.untracked.string("ak5PFResidual")
+    doJetCorrection = cms.untracked.bool(True),
+    correctJecFromRaw = cms.untracked.bool(True),
+    correctorLabel = cms.untracked.string("ak5PFL1FastL2L3")
+    #correctorLabel = cms.untracked.string("ak5PFResidual")
     )
 
 process.p = cms.Path(process.gammaJet)

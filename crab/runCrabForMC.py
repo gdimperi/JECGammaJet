@@ -12,7 +12,7 @@ parser.add_option("--mc", dest="mc", type="choice", choices=['Summer12', 'Fall11
 
 (options, args) = parser.parse_args()
 
-version = 3
+version = 1
 
 if options.path is None or not os.path.isdir(options.path):
   parser.error("you must specify a valid path")
@@ -52,7 +52,7 @@ for dataset in datasets:
 
   outputConfigFile = "%s/crab_MC_%s.cfg" % (options.path, name)
 
-  os.system("sed -e \"s/@datasetname@/%s/g\" -e \"s/@uiworkingdir@/crab_%s_v%d/g\" -e \"s:@outputdir@:%s:g\" -e \"s:@publish_data_name@:%s:g\" %s > %s" % (dataset.replace("/", "\\/"), name, version, remoteOutputDir, publish_name, template, outputConfigFile))
+  os.system("sed -e \"s/@datasetname@/%s/g\" -e \"s/@uiworkingdir@/crab_%s_%s/g\" -e \"s:@outputdir@:%s:g\" -e \"s:@publish_data_name@:%s:g\" %s > %s" % (dataset.replace("/", "\\/"), name, date, remoteOutputDir, publish_name, template, outputConfigFile))
   # Be sure to create the directory on dpm, and chmod it to 777
   if (isCastor):
     fullRemoveOutputDir = ("/dpm/in2p3.fr/home/cms/data/store/user/sbrochet/%s") % (remoteOutputDir)

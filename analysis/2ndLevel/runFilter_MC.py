@@ -9,16 +9,17 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string("START44_V13::All")
+process.GlobalTag.globaltag = cms.string("START52_V11B::All")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 readFiles = cms.untracked.vstring(
-    "/store/user/sbrochet/G_Pt-30to50_TuneZ2_7TeV_pythia6/JetMet_PF2PAT_01apr_Fall11/5105f901d1c8d136e9eaa25f22cecd3a/patTuple_PF2PAT_MC_54_3_zYV.root"
+    #"/store/user/sbrochet/G_Pt-30to50_TuneZ2_7TeV_pythia6/JetMet_PF2PAT_01apr_Fall11/5105f901d1c8d136e9eaa25f22cecd3a/patTuple_PF2PAT_MC_54_3_zYV.root"
     #"file:patTuple_PF2PAT_MC.root"
-    #"/store/user/sbrochet/G_Pt-120to170_TuneZ2star_8TeV_pythia6/JetMet_PF2PAT_01apr_Summer12/7dd90f19ebb89f404e8c497cae6b6c9f/patTuple_PF2PAT_MC_17_1_Zvq.root"
+    #"/store/user/sbrochet/G_Pt-170to300_TuneZ2_7TeV_pythia6/JetMet_PF2PAT_01apr_Fall11/5105f901d1c8d136e9eaa25f22cecd3a/patTuple_PF2PAT_MC_55_1_S8q.root"
+    "/store/user/sbrochet/G_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6/JetMet_PF2PAT_2012_27May_Summer12/fbe304f4e69d87969ac8d25e6b0621a8/patTuple_PF2PAT_MC_46_1_l65.root"
     )
 process.source = cms.Source ("PoolSource", fileNames = readFiles)
 
@@ -62,6 +63,15 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     generatedEvents = cms.uint64(int(generatedEvents)),
     ptHatMin = cms.untracked.double(ptHatMin),
     ptHatMax = cms.untracked.double(ptHatMax),
+
+    runOnNonCHS   = cms.untracked.bool(False),
+    runOnCHS      = cms.untracked.bool(True),
+
+    runOnPFAK5    = cms.untracked.bool(True),
+    runOnPFAK7    = cms.untracked.bool(False),
+
+    runOnCaloAK5  = cms.untracked.bool(False),
+    runOnCaloAK7  = cms.untracked.bool(False),
 
     # JEC
     doJetCorrection = cms.untracked.bool(False),

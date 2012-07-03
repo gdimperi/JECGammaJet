@@ -248,7 +248,7 @@ process.GlobalTag.globaltag = cms.string("GR_R_52_V7::All") ##  (according to ht
 #                                         ##
 process.source.fileNames =  cms.untracked.vstring('file:input_data.root')  ##  (e.g. 'file:AOD.root')
 #                                         ##
-process.maxEvents.input = 30000
+process.maxEvents.input = 3000
 #                                         ##
 #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
 #                                         ##
