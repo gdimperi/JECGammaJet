@@ -32,3 +32,4 @@ files.list
 
 # JEC
 analysis/jec_payloads/
+analysis/readJECFromPrepDB/*.db
