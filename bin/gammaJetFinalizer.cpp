@@ -43,9 +43,13 @@
 #define MAKE_RED "\033[31m"
 #define MAKE_BLUE "\033[34m"
 
-#define ADD_TREES
+#define ADD_TREES true
 
-#define DELTAPHI_CUT (2.14)
+#define DELTAPHI_CUT (M_PI - 1)
+
+#define TRIGGER_OK                    0
+#define TRIGGER_NOT_FOUND            -1
+#define TRIGGER_FOUND_BUT_PT_OUT     -2
 
 bool EXIT = false;
 
@@ -70,7 +74,8 @@ std::string GammaJetFinalizer::buildPostfix() {
 
   std::string postfix = type + algo;
 
-  postfix += "chs";
+  if (mUseCHS)
+    postfix += "chs";
 
   return postfix;
 }
@@ -191,15 +196,30 @@ void GammaJetFinalizer::runAnalysis() {
     : TString::Format("PhotonJet_%s_%s_part%02d.root", mDatasetName.c_str(), postFix.c_str(), mCurrentJob).Data();
   fwlite::TFileService fs(outputFile);
 
-#ifdef ADD_TREES
+#if ADD_TREES
   TTree* photonTree = NULL;
   cloneTree(photon.fChain, photonTree);
+
+  TTree* genPhotonTree = NULL;
+  cloneTree(genPhoton.fChain, genPhotonTree);
 
   TTree* firstJetTree = NULL;
   cloneTree(firstJet.fChain, firstJetTree);
 
+  TTree* firstGenJetTree = NULL;
+  cloneTree(firstGenJet.fChain, firstGenJetTree);
+
+  TTree* firstRawJetTree = NULL;
+  cloneTree(firstRawJet.fChain, firstRawJetTree);
+
   TTree* secondJetTree = NULL;
   cloneTree(secondJet.fChain, secondJetTree);
+
+  TTree* secondGenJetTree = NULL;
+  cloneTree(secondGenJet.fChain, secondGenJetTree);
+
+  TTree* secondRawJetTree = NULL;
+  cloneTree(secondRawJet.fChain, secondRawJetTree);
 
   TTree* metTree = NULL;
   cloneTree(MET.fChain, metTree);
@@ -221,14 +241,14 @@ void GammaJetFinalizer::runAnalysis() {
 
     std::string jecJetAlgo = "AK5";
     if (mJetType == PF)
-      jecJetAlgo += "PFchs";
+      jecJetAlgo += "PF";
     else/* if (recoType == "calo")*/
       jecJetAlgo += "Calo";
     /*else if (recoType == "jpt")
       jecJetAlgo += "JPT";*/
 
-    /*if (HAS_PU_CORRECTIONS && recoType == "pf")
-      jecJetAlgo += "chs";*/
+    if (mJetType == PF && mUseCHS)
+      jecJetAlgo += "chs";
 
     std::cout << "Using '" << jecJetAlgo << "' algorithm for external JEC" << std::endl;
 
@@ -362,6 +382,10 @@ void GammaJetFinalizer::runAnalysis() {
 
   uint64_t totalEvents = photonChain.GetEntries();
   uint64_t passedEvents = 0;
+  uint64_t passedEventsFromTriggers = 0;
+  uint64_t rejectedEventsFromTriggers = 0;
+  uint64_t rejectedEventsTriggerNotFound = 0;
+  uint64_t rejectedEventsPtOut = 0;
 
   uint64_t from = 0;
   uint64_t to = totalEvents;
@@ -426,9 +450,39 @@ void GammaJetFinalizer::runAnalysis() {
       secondJet.pt = secondRawJet.pt * correction;
     }
 
-    if (! checkTrigger()) {
+    int checkTriggerResult = 0;
+    if (! mIsMC && (checkTriggerResult = checkTrigger()) != TRIGGER_OK) {
+      switch (checkTriggerResult) {
+        case TRIGGER_NOT_FOUND:
+          if (mVerbose) {
+            std::cout << MAKE_RED << "[Run #" << analysis.run << "] Event does not pass required trigger. List of passed triggers: " << RESET_COLOR << std::endl;
+            size_t size = analysis.trigger_names->size();
+            for (size_t i = 0; i < size; i++) {
+              if (analysis.trigger_results->at(i)) {
+                std::cout << "\t" << analysis.trigger_names->at(i) << std::endl;
+              }
+            }
+          }
+          rejectedEventsTriggerNotFound++;
+          break;
+        case TRIGGER_FOUND_BUT_PT_OUT:
+          if (mVerbose) {
+            std::cout << MAKE_RED << "[Run #" << analysis.run << ", pT: " << photon.pt << "] Event does pass required trigger, but pT is out of range. List of passed triggers: " << RESET_COLOR << std::endl;
+            size_t size = analysis.trigger_names->size();
+            for (size_t i = 0; i < size; i++) {
+              if (analysis.trigger_results->at(i)) {
+                std::cout << "\t" << analysis.trigger_names->at(i) <<  std::endl;
+              }
+            }
+          }
+          rejectedEventsPtOut++;
+          break;
+      }
+
+      rejectedEventsFromTriggers++;
       continue;
     }
+    passedEventsFromTriggers++;
 
     if (mIsMC) {
       computePUWeight();
@@ -439,6 +493,9 @@ void GammaJetFinalizer::runAnalysis() {
       generatorWeight = 1.;
 
     double eventWeight = (mIsMC) ? mPUWeight * analysis.event_weight * generatorWeight : 1.;
+#ifdef ADD_TREES
+    analysis.event_weight = eventWeight;
+#endif
 
     //TODO: On-the-fly JEC
 
@@ -561,6 +618,23 @@ void GammaJetFinalizer::runAnalysis() {
       } while (false);
     }
 
+#ifdef ADD_TREES
+    if (mUncutTrees) {
+      photonTree->Fill();
+      genPhotonTree->Fill();
+      firstJetTree->Fill();
+      firstGenJetTree->Fill();
+      firstRawJetTree->Fill();
+      secondJetTree->Fill();
+      secondGenJetTree->Fill();
+      secondRawJetTree->Fill();
+      metTree->Fill();
+      electronsTree->Fill();
+      muonsTree->Fill();
+      analysisTree->Fill();
+    }
+#endif
+
     if (secondJetOK) {
 
       do {
@@ -618,14 +692,21 @@ void GammaJetFinalizer::runAnalysis() {
         }
       } while (false);
 
-#ifdef ADD_TREES
-      photonTree->Fill();
-      firstJetTree->Fill();
-      secondJetTree->Fill();
-      metTree->Fill();
-      electronsTree->Fill();
-      muonsTree->Fill();
-      analysisTree->Fill();
+#if ADD_TREES
+      if (! mUncutTrees) {
+        photonTree->Fill();
+        genPhotonTree->Fill();
+        firstJetTree->Fill();
+        firstGenJetTree->Fill();
+        firstRawJetTree->Fill();
+        secondJetTree->Fill();
+        secondGenJetTree->Fill();
+        secondRawJetTree->Fill();
+        metTree->Fill();
+        electronsTree->Fill();
+        muonsTree->Fill();
+        analysisTree->Fill();
+      }
 #endif
 
       passedEvents++;
@@ -633,6 +714,9 @@ void GammaJetFinalizer::runAnalysis() {
   }
 
   std::cout << "Selection efficiency: " << MAKE_RED << (double) passedEvents / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Selection efficiency for trigger selection: " << MAKE_RED << (double) passedEventsFromTriggers / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Rejected events because trigger was not found: " << MAKE_RED << (double) rejectedEventsTriggerNotFound / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Rejected events because trigger was found but pT was out of range: " << MAKE_RED << (double) rejectedEventsPtOut / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
 }
 
 void GammaJetFinalizer::doSecondJetExtrapolation() {
@@ -719,7 +803,7 @@ std::vector<std::vector<std::vector<T*> > > GammaJetFinalizer::buildExtrapolatio
 
 void GammaJetFinalizer::computePUWeight() {
   static std::string puPrefix = "/gridgroup/cms/brochet/public/pu";
-  static std::string puData = TString::Format("%s/pu_truth_data_photon_2012A_true_75bins.root", puPrefix.c_str()).Data();
+  static std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_cleaned_75bins.root", puPrefix.c_str()).Data();
   static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
 
   if (mNoPUReweighting)
@@ -767,12 +851,12 @@ void GammaJetFinalizer::checkInputFiles() {
   }
 }
 
-bool GammaJetFinalizer::checkTrigger() {
+int GammaJetFinalizer::checkTrigger() {
 
   const PathVector& mandatoryTriggers = mTriggers.getTriggers(analysis.run);
 
   size_t size = analysis.trigger_names->size();
-  for (unsigned int i = 0; i < size; i++) {
+  for (int i = size - 1; i >= 0; i--) {
     bool passed = analysis.trigger_results->at(i);
     if (! passed)
       continue;
@@ -780,13 +864,17 @@ bool GammaJetFinalizer::checkTrigger() {
     for (const PathData& mandatoryTrigger: mandatoryTriggers) {
       if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger.first)) {
         // The requested trigger is here and triggered, check pt range
-        const Range<float>& ptRange = mandatoryTrigger.second;
-        return ptRange.in(photon.pt);
+        if (mIsMC) {
+          return TRIGGER_OK;
+        } else {
+          const Range<float>& ptRange = mandatoryTrigger.second;
+          return ptRange.in(photon.pt) ? TRIGGER_OK : TRIGGER_FOUND_BUT_PT_OUT;
+        }
       }
     }
   }
 
-  return false;
+  return TRIGGER_NOT_FOUND;
 }
 
 std::vector<std::string> readInputFiles(const std::string& list) {
@@ -854,6 +942,10 @@ int main(int argc, char** argv) {
 
     TCLAP::ValueArg<float> alphaCutArg("", "alpha", "P_t^{second jet} / p_t^{photon} cut (default: 0.2)", false, 0.2, "float", cmd);
 
+    TCLAP::SwitchArg chsArg("", "chs", "Use CHS branches", cmd);
+    TCLAP::SwitchArg verboseArg("v", "verbose", "Enable verbose mode", cmd);
+    TCLAP::SwitchArg uncutTreesArg("", "uncut-trees", "Fill trees before second jet cut", cmd);
+
     cmd.parse(argc, argv);
 
     //std::cout << "Initializing..." << std::endl;
@@ -876,6 +968,9 @@ int main(int argc, char** argv) {
     finalizer.setMCComparison(mcComparisonArg.getValue());
     finalizer.setUseExternalJEC(externalJECArg.getValue());
     finalizer.setAlphaCut(alphaCutArg.getValue());
+    finalizer.setCHS(chsArg.getValue());
+    finalizer.setVerbose(verboseArg.getValue());
+    finalizer.setUncutTrees(uncutTreesArg.getValue());
     if (totalJobsArg.isSet() && currentJobArg.isSet()) {
       finalizer.setBatchJob(currentJobArg.getValue(), totalJobsArg.getValue());
     }

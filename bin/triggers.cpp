@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <exception>
+#include <cassert>
 
 #include "tinyxml2.h"
 
@@ -62,7 +63,8 @@ const PathVector& Triggers::getTriggers(unsigned int run) {
     }
   }
 
-  throw new std::exception();
+  std::cout << "Error: run " << run << " not found for triggers selection" << std::endl;
+  assert(false);
 }
 
 /*const Regexp& Triggers::getHLTPath(unsigned int run, float pt) {

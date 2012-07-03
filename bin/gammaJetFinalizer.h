@@ -98,6 +98,18 @@ class GammaJetFinalizer
       mAlphaCut = alphaCut;
     }
 
+    void setCHS(bool chs) {
+      mUseCHS = chs;
+    }
+
+    void setVerbose(bool verbose) {
+      mVerbose = verbose;
+    }
+
+    void setUncutTrees(bool uncutTrees) {
+      mUncutTrees = uncutTrees;
+    }
+
     void runAnalysis();
 
   private:
@@ -107,7 +119,7 @@ class GammaJetFinalizer
     void doSecondJetExtrapolation();
 
     //bool passTrigger(const TRegexp& regexp) const;
-    bool checkTrigger();
+    int checkTrigger();
 
     void computePUWeight();
  
@@ -162,6 +174,9 @@ class GammaJetFinalizer
 
     float  mAlphaCut;
     bool   mDoMCComparison;
+    bool   mUseCHS;
+    bool   mVerbose;
+    bool   mUncutTrees;
 
     edm::LumiReWeighting* mLumiReWeighter;
     float mPUWeight;

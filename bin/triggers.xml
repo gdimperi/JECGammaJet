@@ -3,57 +3,83 @@
   <runs from="190450" to="193686"><!-- run 2012A, from 190456 to 193686 -->
     <path>
       <name>HLT_Photon20_.*</name>
-      <pt from="23" to="35" />
+      <pt from="20" to="30" />
     </path>
     <path>
       <name>HLT_Photon30_.*</name>
-      <pt from="35" to="58" />
+      <pt from="30" to="50" />
     </path>
     <path>
       <name>HLT_Photon50_.*</name>
-      <pt from="58" to="87" />
+      <pt from="50" to="75" />
     </path>
     <path>
       <name>HLT_Photon75_.*</name>
-      <pt from="87" to="104" />
+      <pt from="75" to="90" />
     </path>
     <path>
       <name>HLT_Photon90_.*</name>
-      <pt from="104" to="140" />
+      <pt from="90" to="135" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
-      <pt from="140" to="8000" />
+      <pt from="135" to="8000" />
     </path>
   </runs>
   <runs from="193752" to="-1"><!-- run 2012B, from 193752 to ... -->
     <path>
       <name>HLT_Photon20_.*</name>
-      <pt from="23" to="35" />
+      <pt from="20" to="30" />
     </path>
     <path>
       <name>HLT_Photon30_.*</name>
-      <pt from="35" to="58" />
+      <pt from="30" to="50" />
     </path>
     <path>
       <name>HLT_Photon50_.*</name>
-      <pt from="58" to="87" />
+      <pt from="50" to="75" />
     </path>
     <path>
       <name>HLT_Photon75_.*</name>
-      <pt from="87" to="104" />
+      <pt from="75" to="90" />
     </path>
     <path>
       <name>HLT_Photon90_.*</name>
-      <pt from="104" to="140" />
+      <pt from="90" to="135" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
-      <pt from="140" to="155" />
+      <pt from="135" to="150" />
     </path>
     <path>
       <name>HLT_Photon150_.*</name>
-      <pt from="155" to="8000" />
+      <pt from="150" to="8000" />
+    </path>
+  </runs>
+  <runs from="1" to="10"><!-- MC -->
+    <path>
+      <name>HLT_Photon20_.*</name>
+      <pt from="20" to="30" />
+    </path>
+    <path>
+      <name>HLT_Photon30_.*</name>
+      <pt from="30" to="50" />
+    </path>
+    <path>
+      <name>HLT_Photon50_.*</name>
+      <pt from="50" to="75" />
+    </path>
+    <path>
+      <name>HLT_Photon75_.*</name>
+      <pt from="75" to="90" />
+    </path>
+    <path>
+      <name>HLT_Photon90_.*</name>
+      <pt from="90" to="135" />
+    </path>
+    <path>
+      <name>HLT_Photon135_.*</name>
+      <pt from="135" to="8000" />
     </path>
   </runs>
 </triggers>

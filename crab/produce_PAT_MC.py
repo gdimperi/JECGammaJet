@@ -232,7 +232,9 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_patPFMet*_*_PAT', # Keep raw met
     # For Photon ID
     'keep *_reducedEcalRecHitsEB_*_*',
-    'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*'
+    'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*',
+    # Trigger
+    'keep *_TriggerResults_*_HLT'
     )
 
 # switch on PAT trigger
