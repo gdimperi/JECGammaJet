@@ -1071,6 +1071,14 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree)
 
   if (genTree) {
     particleToTree((jet) ? jet->genJet() : NULL, genTree, addresses);
+    // Add parton id
+    const reco::Candidate* parton = (jet) ? jet->genParton() : NULL;
+    int pdgId = (parton) ? parton->pdgId() : 0;
+    updateBranch(genTree, &pdgId, "parton_pdg_id", "I");
+
+    int flavour = (jet) ? jet->partonFlavour() : 0;
+    updateBranch(genTree, &flavour, "parton_flavour", "I");
+
     genTree->Fill();
   }
 }
