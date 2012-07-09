@@ -27,7 +27,7 @@ print "Working ..."
 i = 1;
 
 now = datetime.datetime.now()
-date = now.strftime("%d%B")
+date = now.strftime("%d%B%Y")
 
 # Copy common_dump_config.py and dump_MC.py
 shutil.copy2("runFilter_MC.py", "%s/runFilter_MC.py" % options.path)
