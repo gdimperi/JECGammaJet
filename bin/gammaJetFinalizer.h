@@ -119,9 +119,10 @@ class GammaJetFinalizer
     void doSecondJetExtrapolation();
 
     //bool passTrigger(const TRegexp& regexp) const;
-    int checkTrigger();
+    int checkTrigger(std::string& passedTrigger);
 
-    void computePUWeight();
+    std::string cleanTriggerName(const std::string& trigger);
+    void computePUWeight(const std::string& passedTrigger);
  
     template<typename T>
       std::vector<std::vector<T*> > buildEtaVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax);
@@ -179,6 +180,7 @@ class GammaJetFinalizer
     bool   mUncutTrees;
 
     edm::LumiReWeighting* mLumiReWeighter;
+    std::map<std::string, boost::shared_ptr<edm::LumiReWeighting>> mLumiReweighting;
     float mPUWeight;
 
     float respMPF;

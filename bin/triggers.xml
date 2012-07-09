@@ -81,5 +81,9 @@
       <name>HLT_Photon135_.*</name>
       <pt from="135" to="8000" />
     </path>
+    <path>
+      <name>HLT_Photon150_.*</name>
+      <pt from="135" to="8000" />
+    </path>
   </runs>
 </triggers>

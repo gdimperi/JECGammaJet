@@ -451,7 +451,8 @@ void GammaJetFinalizer::runAnalysis() {
     }
 
     int checkTriggerResult = 0;
-    if (! mIsMC && (checkTriggerResult = checkTrigger()) != TRIGGER_OK) {
+    std::string passedTrigger;
+    if ((checkTriggerResult = checkTrigger(passedTrigger)) != TRIGGER_OK) {
       switch (checkTriggerResult) {
         case TRIGGER_NOT_FOUND:
           if (mVerbose) {
@@ -484,8 +485,12 @@ void GammaJetFinalizer::runAnalysis() {
     }
     passedEventsFromTriggers++;
 
+    if (analysis.nvertex >= 21)
+      continue;
+
     if (mIsMC) {
-      computePUWeight();
+      passedTrigger = cleanTriggerName(passedTrigger);
+      computePUWeight(passedTrigger);
     }
 
     double generatorWeight = (mIsMC) ? analysis.generator_weight : 1.;
@@ -801,15 +806,21 @@ std::vector<std::vector<std::vector<T*> > > GammaJetFinalizer::buildExtrapolatio
   return etaBinning;
 }
 
-void GammaJetFinalizer::computePUWeight() {
+std::string GammaJetFinalizer::cleanTriggerName(const std::string& trigger) {
+  static boost::regex r(R"(_\.\*)");
+  return boost::regex_replace(trigger, r, "");
+}
+
+void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger) {
   static std::string puPrefix = "/gridgroup/cms/brochet/public/pu";
-  static std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_cleaned_75bins.root", puPrefix.c_str()).Data();
   static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
+  std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_75bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
 
   if (mNoPUReweighting)
     return;
 
-  if (! mLumiReWeighter) {
+  if (! mLumiReweighting.count(passedTrigger)) {
+
     if (! boost::filesystem::exists(puMC)) {
       std::cout << "Warning: " << MAKE_RED << "pileup histogram for MC was not found. No PU reweighting." << RESET_COLOR << std::endl;
       std::cout << "File missing: " << puMC << std::endl;
@@ -817,11 +828,13 @@ void GammaJetFinalizer::computePUWeight() {
       mPUWeight = 1.;
       return;
     } else {
-      mLumiReWeighter = new edm::LumiReWeighting(puMC, puData, "pileup", "pileup");
+      std::cout << MAKE_BLUE << "Create PU reweighting profile for " << passedTrigger << RESET_COLOR << std::endl;
+      mLumiReweighting[passedTrigger] = boost::shared_ptr<edm::LumiReWeighting>(new edm::LumiReWeighting(puMC, puData, "pileup", "pileup"));
     }
+
   }
 
-  mPUWeight = mLumiReWeighter->weight(analysis.ntrue_interactions);
+  mPUWeight = mLumiReweighting[passedTrigger]->weight(analysis.ntrue_interactions);
 }
 
 void GammaJetFinalizer::checkInputFiles() {
@@ -851,7 +864,7 @@ void GammaJetFinalizer::checkInputFiles() {
   }
 }
 
-int GammaJetFinalizer::checkTrigger() {
+int GammaJetFinalizer::checkTrigger(std::string& passedTrigger) {
 
   const PathVector& mandatoryTriggers = mTriggers.getTriggers(analysis.run);
 
@@ -864,6 +877,7 @@ int GammaJetFinalizer::checkTrigger() {
     for (const PathData& mandatoryTrigger: mandatoryTriggers) {
       if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger.first)) {
         // The requested trigger is here and triggered, check pt range
+        passedTrigger = mandatoryTrigger.first.str();
         if (mIsMC) {
           return TRIGGER_OK;
         } else {
