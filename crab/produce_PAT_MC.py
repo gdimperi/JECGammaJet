@@ -31,7 +31,7 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
   p = postfix
 
-  usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC, postfix=p, jetCorrections=jetCorrections, typeIMetCorrections = False)
+  usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC, postfix=p, jetCorrections=jetCorrections, typeIMetCorrections = useTypeIMET)
   getattr(process, "pfPileUp" + p).Enable = cms.bool(usePFNoPU)
   if usePFNoPU:
     getattr(process, "pfPileUp" + p).Vertices = 'goodOfflinePrimaryVertices'
@@ -39,7 +39,7 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
   getattr(process, "pfJets" + p).doAreaFastjet = cms.bool(True)
   getattr(process, "pfJets" + p).doRhoFastjet = False
-  getattr(process, 'patJetCorrFactors').rho = cms.InputTag("kt6PFJets", "rho") # Do not use kt6PFJetsPFlowAK5, it's not ok for L1FastJet.
+  getattr(process, 'patJetCorrFactors' + p).rho = cms.InputTag("kt6PFJets", "rho") # Do not use kt6PFJetsPFlowAK5, it's not ok for L1FastJet.
 
   # top projections in PF2PAT:
   getattr(process,"pfNoPileUp" + p).enable = cms.bool(usePFNoPU)
@@ -57,32 +57,32 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   # Keep only jets with pt > 2 Gev
   getattr(process, "selectedPatJets" + p).cut = "pt > 2";
 
-  if useTypeIMET:
-    getattr(process, 'patDefaultSequence' + p).remove(getattr(process, 'patMETs' + p))
+  #if useTypeIMET:
+  #  getattr(process, 'patDefaultSequence' + p).remove(getattr(process, 'patMETs' + p))
 
-    cloneProcessingSnippet(process, process.producePatPFMETCorrections, p)
+  #  cloneProcessingSnippet(process, process.producePatPFMETCorrections, p)
 
-    getattr(process, 'selectedPatJetsForMETtype1p2Corr' + p).src = cms.InputTag('selectedPatJets' + p)
-    getattr(process, 'selectedPatJetsForMETtype2Corr' + p).src = cms.InputTag('selectedPatJets' + p)
-    getattr(process, 'pfCandMETcorr' + p).src = cms.InputTag('pfNoJet' + p)
-    getattr(process, 'patPFJetMETtype1p2Corr' + p).type1JetPtThreshold = cms.double(10.0)
-    getattr(process, 'patType1CorrectedPFMet' + p).srcType1Corrections = cms.VInputTag(
-        cms.InputTag("patPFJetMETtype1p2Corr" + p, "type1"),
-        cms.InputTag("patPFMETtype0Corr" + p) #uncomment this line to include type-0 corrections
-        )
-    getattr(process, 'patType1p2CorrectedPFMet' + p).srcType1Corrections = cms.VInputTag(
-        cms.InputTag("patPFJetMETtype1p2Corr" + p, "type1"),
-        cms.InputTag("patPFMETtype0Corr" + p) #uncomment this line to include type-0 corrections
-        )
+  #  getattr(process, 'selectedPatJetsForMETtype1p2Corr' + p).src = cms.InputTag('selectedPatJets' + p)
+  #  getattr(process, 'selectedPatJetsForMETtype2Corr' + p).src = cms.InputTag('selectedPatJets' + p)
+  #  getattr(process, 'pfCandMETcorr' + p).src = cms.InputTag('pfNoJet' + p)
+  #  getattr(process, 'patPFJetMETtype1p2Corr' + p).type1JetPtThreshold = cms.double(10.0)
+  #  getattr(process, 'patType1CorrectedPFMet' + p).srcType1Corrections = cms.VInputTag(
+  #      cms.InputTag("patPFJetMETtype1p2Corr" + p, "type1"),
+  #      cms.InputTag("patPFMETtype0Corr" + p) #uncomment this line to include type-0 corrections
+  #      )
+  #  getattr(process, 'patType1p2CorrectedPFMet' + p).srcType1Corrections = cms.VInputTag(
+  #      cms.InputTag("patPFJetMETtype1p2Corr" + p, "type1"),
+  #      cms.InputTag("patPFMETtype0Corr" + p) #uncomment this line to include type-0 corrections
+  #      )
 
-    getattr(process, 'patPFJetMETtype1p2Corr' + p).skipEM = cms.bool(False)
-    getattr(process, 'patPFJetMETtype1p2Corr' + p).skipMuons = cms.bool(False)
-    getattr(process, 'patMETs' + p).metSource = 'patType1CorrectedPFMet' + p  #for type I+II corrections, switch this to patType1p2CorrectedPFMet
+  #  getattr(process, 'patPFJetMETtype1p2Corr' + p).skipEM = cms.bool(False)
+  #  getattr(process, 'patPFJetMETtype1p2Corr' + p).skipMuons = cms.bool(False)
+  #  getattr(process, 'patMETs' + p).metSource = 'patType1CorrectedPFMet' + p  #for type I+II corrections, switch this to patType1p2CorrectedPFMet
 
-    if not runOnMC:
-      if 'L2L3Residual' in jetCorrections:
-        getattr(process, 'patPFJetMETtype1p2Corr' + p).jetCorrLabel = 'L2L3Residual'
-      getattr(process, 'patPFMet' + p).addGenMET = cms.bool(False)
+  if not runOnMC:
+    if 'L2L3Residual' in jetCorrections:
+      getattr(process, 'patPFJetMETtype1p2Corr' + p).jetCorrLabel = 'L2L3Residual'
+    getattr(process, 'patPFMet' + p).addGenMET = cms.bool(False)
 
   names = ["Taus"]
   if jetAlgo != "AK5":
@@ -246,7 +246,8 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
 #  parameters:
 ## ------------------------------------------------------
 #
-process.GlobalTag.globaltag = cms.string("START52_V9::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
+#process.GlobalTag.globaltag = cms.string("START52_V9::All") # Old JEC
+process.GlobalTag.globaltag = cms.string("START52_V11C::All") # New JEC #  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
 #                                         ##
 process.source.fileNames =  cms.untracked.vstring('file:input_mc.root')  ##  (e.g. 'file:AOD.root')
 #                                         ##
