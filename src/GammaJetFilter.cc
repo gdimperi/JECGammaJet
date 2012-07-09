@@ -1057,12 +1057,16 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree)
     float jetProbability = jet->bDiscriminator("jetProbabilityBJetTags");
     float jetBProbability = jet->bDiscriminator("jetBProbabilityBJetTags");
 
+    // New 2012
+    float csv = jet->bDiscriminator("combinedSecondaryVertexBJetTags");
+
     updateBranch(tree, &tcHighEfficiency, "btag_tc_high_eff");
     updateBranch(tree, &tcHighPurity, "btag_tc_high_pur");
     updateBranch(tree, &ssvHighEfficiency, "btag_ssv_high_eff");
     updateBranch(tree, &ssvHighPurity, "btag_ssv_high_pur");
     updateBranch(tree, &jetProbability, "btag_jet_probability");
     updateBranch(tree, &jetBProbability, "btag_jet_b_probability");
+    updateBranch(tree, &csv, "btag_csv");
 
     tree->Fill(); // This Fill() must be called inside the {} block, otherwise it'll crash. Don't move it!
   } else {
