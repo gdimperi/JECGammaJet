@@ -9,7 +9,18 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string("START52_V11B::All")
+process.GlobalTag.globaltag = cms.string("START52_V11C::All")
+process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
+
+# Do some CHS stuff
+process.ak5PFchsL1Fastjet  = process.ak5PFL1Fastjet.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsL2Relative = process.ak5PFL2Relative.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsL3Absolute = process.ak5PFL3Absolute.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsResidual   = process.ak5PFResidual.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsL1FastL2L3 = cms.ESProducer(
+    'JetCorrectionESChain',
+    correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute')
+    )
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
@@ -74,10 +85,10 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     runOnCaloAK7  = cms.untracked.bool(False),
 
     # JEC
-    doJetCorrection = cms.untracked.bool(False),
-    correctJecFromRaw = cms.untracked.bool(False),
-    #correctorLabel = cms.untracked.string("ak5PFL1FastL2L3")
-    correctorLabel = cms.untracked.string("ak5PFResidual")
+    doJetCorrection = cms.untracked.bool(True),
+    correctJecFromRaw = cms.untracked.bool(True),
+    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3")
+    #correctorLabel = cms.untracked.string("ak5PFResidual")
     )
 
 process.p = cms.Path(process.gammaJet)
