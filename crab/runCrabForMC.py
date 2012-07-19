@@ -29,7 +29,7 @@ print "Working ..."
 i = 1;
 
 now = datetime.datetime.now()
-date = now.strftime("%d%B")
+date = now.strftime("%d%B%Y")
 
 # Copy common_dump_config.py and dump_MC.py
 shutil.copy2("produce_PAT_MC.py", "%s/produce_PAT_MC.py" % options.path)
