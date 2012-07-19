@@ -56,7 +56,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     csv = cms.string(os.path.join(fullPath, "lumibyls.csv")),
     filterData = cms.untracked.bool(True),
 
-    runOnNonCHS   = cms.untracked.bool(False),
+    runOnNonCHS   = cms.untracked.bool(True),
     runOnCHS      = cms.untracked.bool(True),
 
     runOnPFAK5    = cms.untracked.bool(True),
@@ -66,7 +66,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     runOnCaloAK7  = cms.untracked.bool(False),
 
     # JEC
-    doJetCorrection = cms.untracked.bool(True),
+    doJetCorrection = cms.untracked.bool(False),
     correctJecFromRaw = cms.untracked.bool(True),
     correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3")
     #correctorLabel = cms.untracked.string("ak5PFResidual")

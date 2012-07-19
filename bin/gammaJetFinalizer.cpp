@@ -429,6 +429,9 @@ void GammaJetFinalizer::runAnalysis() {
 
     misc.GetEntry(i);
 
+    if (! photon.is_present || ! firstJet.is_present)
+      continue;
+
     if (jetCorrector) {
       // jetCorrector isn't null. Correct raw jet with jetCorrector and rebuild the corrected jet
       jetCorrector->setJetEta(firstRawJet.eta);
@@ -485,8 +488,8 @@ void GammaJetFinalizer::runAnalysis() {
     }
     passedEventsFromTriggers++;
 
-    if (analysis.nvertex >= 21)
-      continue;
+    //if (analysis.nvertex >= 21)
+    //  continue;
 
     if (mIsMC) {
       passedTrigger = cleanTriggerName(passedTrigger);

@@ -112,7 +112,7 @@ class GammaJetFilter : public edm::EDFilter {
 
     void correctJets(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup);
     void extractRawJets(pat::JetCollection& jets);
-    bool processJets(const pat::Photon& photon, const pat::JetCollection& jets, const JetAlgorithm algo, std::vector<TTree*>& trees);
+    void processJets(const pat::Photon& photon, const pat::JetCollection& jets, const JetAlgorithm algo, std::vector<TTree*>& trees);
 
     void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
 
@@ -195,7 +195,7 @@ class GammaJetFilter : public edm::EDFilter {
     void photonToTree(const pat::Photon& photon);
     void metsToTree(const pat::MET& met, const pat::MET& rawMet, const std::vector<TTree*>& trees);
     void metToTree(const pat::MET* met, TTree* tree, TTree* genTree);
-    void jetsToTree(const pat::Jet& firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees);
+    void jetsToTree(const pat::Jet* firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees);
     void jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree);
     void electronsToTree(const edm::Handle<pat::ElectronCollection>& electrons, const reco::Vertex& pv);
     void muonsToTree(const edm::Handle<pat::MuonCollection>& muons, const reco::Vertex& pv);
@@ -470,7 +470,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   const pat::Photon& photon = photonsRef[0];
 
-  bool eventHasJets = false;
+  //bool eventHasJets = false;
 
   // Process jets
 
@@ -488,11 +488,11 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       extractRawJets(jets);
     }
 
-    bool valid = processJets(photon, jets, infos.algo, mJetTrees[*it]);
-    eventHasJets |= valid ;
+    /*bool valid = */processJets(photon, jets, infos.algo, mJetTrees[*it]);
+    //eventHasJets |= valid ;
 
-    if (! valid)
-      continue;
+    //if (! valid)
+    //  continue;
 
     // MET
     edm::Handle<pat::METCollection> metsHandle;
@@ -529,8 +529,8 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     mMiscTrees[*it]->Fill();
   }
 
-  if (! eventHasJets)
-    return false;
+  //if (! eventHasJets)
+  //  return false;
 
   // Number of vertices for pu reweighting
   edm::Handle<std::vector<PileupSummaryInfo> > puInfos;
@@ -707,10 +707,7 @@ void GammaJetFilter::extractRawJets(pat::JetCollection& jets) {
 
 }
 
-bool GammaJetFilter::processJets(const pat::Photon& photon, const pat::JetCollection& jets, const JetAlgorithm algo, std::vector<TTree*>& trees) {
-  if (jets.size() == 0) {
-    return false;
-  }
+void GammaJetFilter::processJets(const pat::Photon& photon, const pat::JetCollection& jets, const JetAlgorithm algo, std::vector<TTree*>& trees) {
 
   pat::JetCollection selectedJets;
 
@@ -732,7 +729,7 @@ bool GammaJetFilter::processJets(const pat::Photon& photon, const pat::JetCollec
       // If the leading jet has less than 30% of the Photon pt,
       // dump the event as it's not interesting
       if (mFirstJetPtCut && (it->pt() < photon.pt() * mFirstJetThreshold))
-        return false;
+        break;
 
       selectedJets.push_back(*it);
 
@@ -749,19 +746,20 @@ bool GammaJetFilter::processJets(const pat::Photon& photon, const pat::JetCollec
 
   }
 
+  const pat::Jet* firstJet = NULL;
+  const pat::Jet* secondJet = NULL;
+
   if (selectedJets.size() > 0) {
-    const pat::Jet* secondJet = NULL;
+
+    firstJet = &selectedJets[0];
+
     if (selectedJets.size() > 1)
       secondJet = &selectedJets[1];
 
-    jetsToTree(selectedJets[0], secondJet, trees);
-
     mDeltaPhi->Fill(fabs(reco::deltaPhi(photon, selectedJets[0])));
-
-    return true;
   }
 
-  return false;
+  jetsToTree(firstJet, secondJet, trees);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -1026,17 +1024,16 @@ void GammaJetFilter::photonToTree(const pat::Photon& photon) {
   mPhotonGenTree->Fill();
 }
 
-void GammaJetFilter::jetsToTree(const pat::Jet& firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees) {
-  jetToTree(&firstJet, trees[0], trees[4]);
+void GammaJetFilter::jetsToTree(const pat::Jet* firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees) {
+  jetToTree(firstJet, trees[0], trees[4]);
   jetToTree(secondJet, trees[1], trees[5]);
 
   // Raw jets
-  const pat::Jet* rawJet = firstJet.userData<pat::Jet>("rawJet");
+  const pat::Jet* rawJet = (firstJet) ? firstJet->userData<pat::Jet>("rawJet") : NULL;
   jetToTree(rawJet, trees[2], NULL);
 
   rawJet = (secondJet) ? secondJet->userData<pat::Jet>("rawJet") : NULL;
   jetToTree(rawJet, trees[3], NULL);
-
 }
 
 void GammaJetFilter::jetToTree(const pat::Jet* jet, TTree* tree, TTree* genTree) {
