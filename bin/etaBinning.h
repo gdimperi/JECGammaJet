@@ -75,7 +75,7 @@ class EtaBinning {
 
       mEtaBins.push_back(bin);
       bin.bin = std::make_pair(3.2, 5.2);
-      bin.name = "eta3052";
+      bin.name = "eta3252";
       bin.title = "3.2 #leq |#eta| < 5.2";
       mEtaBins.push_back(bin);
     }
