@@ -3,6 +3,17 @@ from PhysicsTools.PatAlgos.patTemplate_cfg import *
 
 # load the PAT config
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
+process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
+
+# Do some CHS stuff
+process.ak5PFchsL1Fastjet  = process.ak5PFL1Fastjet.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsL2Relative = process.ak5PFL2Relative.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsL3Absolute = process.ak5PFL3Absolute.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsResidual   = process.ak5PFResidual.clone(algorithm = 'AK5PFchs')
+process.ak5PFchsL1FastL2L3 = cms.ESProducer(
+    'JetCorrectionESChain',
+    correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute')
+    )
 
 # Is this Data or MC ?
 runOnMC = False
