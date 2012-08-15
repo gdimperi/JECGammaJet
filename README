@@ -1,15 +1,19 @@
-How-to setup (CMSSW 5.2.5, pat V08-09-11)
+How-to setup (CMSSW 5.3.3 patch 2, pat V08-09-23)
 
-setenv SCRAM_ARCH slc5_amd64_gcc462
-cmsrel CMSSW_5_2_5
-cd CMSSW_5_2_5/src/
+setenv SCRAM_ARCH slc5_amd64_gcc462 / export SCRAM_ARCH=slc5_amd64_gcc462
+
+cmsrel CMSSW_5_3_3_patch2
+cd CMSSW_5_3_3_patch2/src/
 cmsenv
-addpkg DataFormats/PatCandidates V06-05-01
-addpkg PhysicsTools/PatAlgos V08-09-11
-addpkg CommonTools/ParticleFlow V00-03-14
-addpkg JetMETCorrections/Type1MET V04-06-05
-addpkg PhysicsTools/PatUtils V03-09-22
-addpkg CommonTools/RecoUtils V00-00-09
+
+addpkg CommonTools/ParticleFlow            V00-03-16
+addpkg CommonTools/RecoAlgos               V00-03-23
+addpkg CommonTools/RecoUtils               V00-00-12
+addpkg DataFormats/ParticleFlowCandidate   V15-03-02
+addpkg DataFormats/TrackReco               V10-02-02
+addpkg DataFormats/VertexReco              V02-00-04
+addpkg PhysicsTools/PatAlgos               V08-09-23
+addpkg PhysicsTools/PatUtils               V03-09-23
 
 cd JetMETCorrections
 git clone git://madalynn.eu/GammaJetFilter.git

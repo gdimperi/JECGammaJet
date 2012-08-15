@@ -102,10 +102,10 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
   adaptPVs(process, pvCollection = cms.InputTag("goodOfflinePrimaryVertices"), postfix = p)
 
-  if useTypeIMET:
-    return getattr(process, "patPF2PATSequence" + p) + getattr(process, "producePatPFMETCorrections" + p) + getattr(process, "patMETs" + p)
-  else:
-    return getattr(process, "patPF2PATSequence" + p)
+  #if useTypeIMET:
+  #  return getattr(process, "patPF2PATSequence" + p) + getattr(process, "producePatPFMETCorrections" + p) + getattr(process, "patMETs" + p)
+  #else:
+  return getattr(process, "patPF2PATSequence" + p)
 
 # Do we correct MET with Type1?
 correctMETWithT1 = True
@@ -255,11 +255,11 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
 #  parameters:
 ## ------------------------------------------------------
 #
-process.GlobalTag.globaltag = cms.string("GR_R_52_V9D::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
+process.GlobalTag.globaltag = cms.string("GR_R_53_V8::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
 #                                         ##
 process.source.fileNames =  cms.untracked.vstring('file:input_data.root')  ##  (e.g. 'file:AOD.root')
 #                                         ##
-process.maxEvents.input = 3000
+process.maxEvents.input = 200
 #                                         ##
 #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
 #                                         ##
