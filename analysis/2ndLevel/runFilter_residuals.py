@@ -67,10 +67,10 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     runOnCaloAK7  = cms.untracked.bool(False),
 
     # JEC
-    doJetCorrection = cms.untracked.bool(False),
-    correctJecFromRaw = cms.untracked.bool(True),
-    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3")
-    #correctorLabel = cms.untracked.string("ak5PFResidual")
+    doJetCorrection = cms.untracked.bool(True),
+    correctJecFromRaw = cms.untracked.bool(False),
+    #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3")
+    correctorLabel = cms.untracked.string("ak5PFchsResidual")
     )
 
 process.p = cms.Path(process.gammaJet)

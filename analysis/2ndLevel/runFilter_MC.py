@@ -9,7 +9,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string("START52_V11C::All")
+
+process.GlobalTag.globaltag = cms.string("START53_V11::All")
+
 process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
 
 # Do some CHS stuff
