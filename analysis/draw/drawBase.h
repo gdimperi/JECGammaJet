@@ -223,6 +223,10 @@ public:
 
   TGraphErrors* get_graphRatio(TGraphErrors* gr_data, TGraphErrors* gr_MC);
 
+  void setOutputGraphs(bool output) {
+    outputGraphs_ = output;
+  }
+
 private:
 
 

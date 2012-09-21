@@ -1491,40 +1491,22 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   Float_t qerr = fit_reso_genPhot->GetParError(0);
   Float_t m = fit_reso_genPhot->GetParameter(1);
   // [0] = c; [1] = q; [2] = m
+
   TF1* fit_extrapToZero_sqrt = new TF1("fit_extrapToZero_sqrt", "sqrt([0]*[0] + [1]*[1] + 2.*[1]*[2]*x + [2]*[2]*x*x)");
+  //TF1* fit_extrapToZero_sqrt = new TF1("fit_extrapToZero_sqrt", "[0] + [1]*x + [2]*x*x");
   fit_extrapToZero_sqrt->SetRange(0., xMax_fit);
   fit_extrapToZero_sqrt->SetParameter(0, c);
-  fit_extrapToZero_sqrt->SetParLimits(0, 0.01, 0.3);
-  if (NOQ_)
-    fit_extrapToZero_sqrt->FixParameter(1, 0.5 * q); //to evaluate syst
-  else
-    fit_extrapToZero_sqrt->FixParameter(1, q); //fixed
-  if (FIXM_) {
-    fit_extrapToZero_sqrt->FixParameter(2, m);
-  } else {
-    fit_extrapToZero_sqrt->SetParameter(2, m);
-    //fit_extrapToZero_sqrt->SetParLimits(2, 0., 0.05);
-    fit_extrapToZero_sqrt->SetParLimits(2, 0., 0.05 * 100.);
-  }
+  fit_extrapToZero_sqrt->SetParLimits(0, 0.001, 0.3);
+  fit_extrapToZero_sqrt->FixParameter(1, q);
+  fit_extrapToZero_sqrt->SetParameter(2, m);
+
   fit_extrapToZero_sqrt->SetLineStyle(2);
   fit_extrapToZero_sqrt->SetLineColor(recoPhot_color);
   fit_extrapToZero_sqrt->SetLineWidth(1.);
 
   TF1* fit_extrapToZero_sqrt_DATA = new TF1(*fit_extrapToZero_sqrt);
-  fit_extrapToZero_sqrt_DATA->SetName("fit_extrapToZero_sqrt_DATA");
-  if (FIXM_)
-    fit_extrapToZero_sqrt_DATA->FixParameter(2, m);
-  //fit_extrapToZero_sqrt_DATA->FixParameter( 2, fit_extrapToZero_sqrt->GetParameter(2) );
   fit_extrapToZero_sqrt_DATA->SetLineStyle(1);
   fit_extrapToZero_sqrt_DATA->SetLineWidth(1.);
-
-  TF1* fit_extrapToZero_line = new TF1("fit_extrapToZero_line", "[0]+[1]*x");
-  fit_extrapToZero_line->SetRange(0., xMax_fit);
-  fit_extrapToZero_line->SetParameter(0, y1_reco);
-  fit_extrapToZero_line->SetParameter(1, (y2_reco - y1_reco) / (x2_reco - x1_reco));
-  fit_extrapToZero_line->SetParLimits(0, 0., 0.4);
-  fit_extrapToZero_line->SetLineColor(recoPhot_color);
-  fit_extrapToZero_line->SetLineWidth(0.5);
 
   gr_reso_recoPhot->Fit(fit_extrapToZero_sqrt, "RQ");
 

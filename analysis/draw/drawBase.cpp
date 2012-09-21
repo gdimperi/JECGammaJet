@@ -1,10 +1,6 @@
 #include "drawBase.h"
 #include "fitTools.h"
 
-#include "RooRealVar.h"
-#include "RooDataHist.h"
-#include "RooPlot.h"
-
 #include "TColor.h"
 #include "TRegexp.h"
 #include <iostream>
@@ -13,8 +9,6 @@
 #include <boost/algorithm/string.hpp>
 
 #include <sys/stat.h>
-
-using namespace RooFit;
 
 drawBase::drawBase(const std::string& analysisType, const std::string& recoType, const std::string& jetAlgo, bool outputGraphs, const std::string& flags) {
 
@@ -290,7 +284,8 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
 
   bool isMPF = TString(name).Contains("mpf", TString::kIgnoreCase);
   // Ignore bin between 3500 - 7000
-  int number_of_plots = ptBins.size() - 1;
+  //int number_of_plots = ptBins.size() - 1;
+  int number_of_plots = ptBins.size();
 
   std::string ptPhotMean_name = "ptPhotMean";
   std::string ptJetGenMean_name = "ptJetGenMean";
@@ -355,9 +350,7 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
 
     // pt phot cut label
     TString labelPtPhot = TString::Format("%d < p_{T}^{#gamma} < %d GeV/c", (int) currentBin.first, (int) currentBin.second);
-    if (outputGraphs_) {
-      drawHisto(std::string(name + "_" + ptRange), axisName, units, instanceName, log_aussi, legendQuadrant, labelPtPhot.Data(), true);
-    }
+    drawHisto(std::string(name + "_" + ptRange), axisName, units, instanceName, log_aussi, legendQuadrant, labelPtPhot.Data(), true);
 
     // save vs pt info:
 
@@ -594,42 +587,56 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
     //line_plus_resp->SetLineColor(46);
     line_plus_resp->SetLineWidth(2);
     line_plus_resp->SetLineStyle(2);
-    line_plus_resp->Draw("same");
 
     //line_minus_resp->SetLineColor(46);
     line_minus_resp->SetLineWidth(2);
     line_minus_resp->SetLineStyle(2);
-    line_minus_resp->Draw("same");
-
-    //TLine* line_plus2_resp = new TLine( ptBins[0], 1.1, ptPhotMax, 1.1 );
-    //line_plus2_resp->SetLineColor(46);
-    //line_plus2_resp->SetLineWidth(2);
-    //line_plus2_resp->SetLineStyle(2);
-    //line_plus2_resp->Draw("same");
-    //
-    //TLine* line_minus2_resp = new TLine( ptBins[0], 0.9, ptPhotMax, 0.9 );
-    //line_minus2_resp->SetLineColor(46);
-    //line_minus2_resp->SetLineWidth(2);
-    //line_minus2_resp->SetLineStyle(2);
-    //line_minus2_resp->Draw("same");
-
 
     gr_resp_ratio = this->get_graphRatio(gr_response_vs_pt, gr_responseMC_vs_pt);
     gr_resp_ratio->SetName("response_ratio");
     gr_resp_ratio->SetMarkerStyle(20);
-    gr_resp_ratio->SetMarkerSize(1.8);
-    gr_resp_ratio->Draw("P");
+    gr_resp_ratio->SetMarkerSize(1.5);
+    gr_resp_ratio->SetMarkerColor(kBlue - 6);
+
+    TF1* ratioFit = new TF1("ratioFit", "[0]", ptPhotMin, ptPhotMax);
+    ratioFit->SetParameter(0, 0.);
+    ratioFit->SetLineColor(46);
+    ratioFit->SetLineWidth(2);
+    gr_resp_ratio->Fit(ratioFit, "RQ");
+    //std::cout << "-> ChiSquare: " << constline->GetChisquare() << "   NDF: " << constline->GetNDF() << std::endl;
+
+    double fitValue = ratioFit->GetParameter(0);
+    double fitError = ratioFit->GetParError(0);
+
+    TBox* errors = new TBox(ptPhotMin, fitValue - fitError, ptPhotMax, fitValue + fitError);
+    errors->SetFillColor(kBlue - 10);
+    errors->SetFillStyle(1001);
+
+    TPaveText* fitlabel = new TPaveText(0.55, 0.77, 0.88, 0.83, "brNDC");
+    fitlabel->SetTextSize(0.08);
+    fitlabel->SetFillColor(0);
+    TString fitLabelText = TString::Format("Fit: %.3f #pm %.3f", fitValue, fitError);
+    fitlabel->AddText(fitLabelText);
+    fitlabel->Draw("same");
+
+    errors->Draw("same");
+
+    line_plus_resp->Draw("same");
+    line_minus_resp->Draw("same");
+
+    ratioFit->Draw("same");
+
+    gr_resp_ratio->Draw("P same");
 
     gPad->RedrawAxis();
-
 
     pad_hi->cd();
 
   } // if !nodata && !nomc
 
-  TH2D* h2_axes = new TH2D("axes_again", "", 10, ptPhotMin, ptPhotMax, 10, 0., 1.25);
+  TH2D* h2_axes = new TH2D("axes_again", "", 10, ptPhotMin, ptPhotMax, 10, 0.4, 1.25);
   //h2_axes->SetXTitle("Photon p_{T} [GeV/c]");
-  h2_axes->SetYTitle("Response");
+  h2_axes->SetYTitle("Jet p_{T} response");
   //h2_axes->SetYTitle("< p_{T}^{jet} / p_{T}^{#gamma} >");
   h2_axes->GetXaxis()->SetTitleOffset(1.1);
   h2_axes->GetYaxis()->SetTitleOffset(1.2);
@@ -645,7 +652,7 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
   Float_t labelTextSize = 0.035;
   TPaveText* label_algo = get_labelAlgo(2);
 
-  TLegend* legend = new TLegend(0.5, 0.3, 0.85, 0.53, legendTitle_.c_str());
+  TLegend* legend = new TLegend(0.55, 0.15, 0.92, 0.38, legendTitle_.c_str());
   legend->SetFillColor(kWhite);
   legend->SetFillStyle(0);
   legend->SetTextSize(legendTextSize_);
@@ -665,7 +672,7 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
     }
   }
   if (!noMC) {
-    legend->AddEntry(gr_responseGEN_vs_pt, "True Response", "P");
+    //legend->AddEntry(gr_responseGEN_vs_pt, "True Response", "P");
   }
   legend->Draw("same");
 
@@ -682,15 +689,17 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
 
 
   if (!noMC) {
+    /*
     gr_responseGEN_vs_pt->SetMarkerStyle(29);
     gr_responseGEN_vs_pt->SetMarkerColor(46);
     gr_responseGEN_vs_pt->SetMarkerSize(2.);
     gr_responseGEN_vs_pt->Draw("Psame");
+    */
 
     gr_responseMC_vs_pt->SetMarkerStyle(24);
-    gr_responseMC_vs_pt->SetMarkerSize(1.8);
-    gr_responseMC_vs_pt->SetMarkerColor(kBlack);
-    gr_responseMC_vs_pt->SetLineColor(kBlack);
+    gr_responseMC_vs_pt->SetMarkerSize(1.5);
+    gr_responseMC_vs_pt->SetMarkerColor(kBlue - 6);
+    gr_responseMC_vs_pt->SetLineColor(kBlue - 6);
     gr_responseMC_vs_pt->Draw("Psame");
   }
 
@@ -703,8 +712,8 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
       gr_response_vs_pt->SetMarkerSize(1);
     } else {
       gr_response_vs_pt->SetMarkerStyle(20);
-      gr_response_vs_pt->SetMarkerSize(1.8);
-      gr_response_vs_pt->SetMarkerColor(kBlack);
+      gr_response_vs_pt->SetMarkerSize(1.5);
+      gr_response_vs_pt->SetMarkerColor(kBlue - 6);
     }
 
     gr_response_vs_pt->Draw("Psame");
@@ -721,49 +730,8 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
     //c1->SaveAs(canvName_png.c_str());
   }
 
-
-  if (!noDATA && !noMC) {
-
-    // add fit to the data/mc ratio:
-
-    pad_lo->cd();
-
-    TF1* constline = new TF1("constline", "[0]", ptPhotMin, ptPhotMax);
-    constline->SetParameter(0, 0.);
-    //constline->SetLineColor(8);
-    //constline->SetLineColor(38);
-    constline->SetLineColor(46);
-    //constline->SetLineStyle(3);
-    constline->SetLineWidth(3);
-    gr_resp_ratio->Fit(constline, "R");
-    //std::cout << "-> ChiSquare: " << constline->GetChisquare() << "   NDF: " << constline->GetNDF() << std::endl;
-
-    TF1* constline_highpt = new TF1("constline_highpt", "[0]", 30., ptPhotMax);
-    constline_highpt->SetParameter(0, 1.);
-    gr_resp_ratio->Fit(constline_highpt, "RN");
-
-    TPaveText* fitlabel = new TPaveText(0.55, 0.77, 0.88, 0.83, "brNDC");
-    fitlabel->SetTextSize(0.08);
-    fitlabel->SetFillColor(0);
-    char fitLabelText[150];
-    sprintf(fitLabelText, "FIT: %.3f #pm %.3f", constline->GetParameter(0), constline->GetParError(0));
-    fitlabel->AddText(fitLabelText);
-    fitlabel->Draw("same");
-    line_plus_resp->Draw("same");
-    constline->Draw("same");
-    gr_resp_ratio->Draw("P same");
-    gPad->RedrawAxis();
-
-    //if (outputGraphs_) {
-
-    std::string canvName_fit_eps = canvName + "_FITLINE.eps";
-    c1->SaveAs(canvName_fit_eps.c_str());
-
-    //std::string canvName_fit_png = canvname_fit + ".png";
-    //c1->SaveAs(canvName_fit_png.c_str());
-    //}
-
-  }
+  std::string canvName_fit_eps = canvName + "_FITLINE.eps";
+  c1->SaveAs(canvName_fit_eps.c_str());
 
   // ----------------------------------------------------
   //             and now resolutions:
@@ -816,7 +784,7 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
     constline->SetLineColor(46);
     //constline->SetLineStyle(3);
     constline->SetLineWidth(3);
-    gr_reso_ratio->Fit(constline, "R");
+    gr_reso_ratio->Fit(constline, "RQ");
     //std::cout << "-> ChiSquare: " << constline->GetChisquare() << "   NDF: " << constline->GetNDF() << std::endl;
 
     TPaveText* fitlabel = new TPaveText(0.55, 0.4, 0.88, 0.45, "brNDC");

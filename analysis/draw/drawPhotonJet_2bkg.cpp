@@ -122,6 +122,8 @@ int main(int argc, char* argv[]) {
   bool log = true;
   gErrorIgnoreLevel = kWarning;
 
+  db->setOutputGraphs(true);
+
   db->set_rebin(5);
 
   // Data / MC comparison
@@ -142,13 +144,15 @@ int main(int argc, char* argv[]) {
   db->set_rebin(5);
   db->drawHisto("MET_passedID", "Missing E_{T}", "GeV", "Events", log);
 
+  db->setOutputGraphs(OUTPUT_GRAPHS);
+
   PtBinning ptBinning;
-  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning(ptBinning.size() - 1);
+  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning(2, ptBinning.size() - 1);
 
   EtaBinning etaBinning;
   size_t etaBinningSize = etaBinning.size();
 
-  db->set_rebin(5);
+  db->set_rebin(2);
 
   // Balancing
   db->setFolder("analysis/balancing");
