@@ -26,7 +26,7 @@
       <pt from="140" to="8000" />
     </path>
   </runs>
-  <runs from="193752" to="-1"><!-- run 2012B, from 193752 to ... -->
+  <runs from="193752" to="200244"><!-- run 2012B, from 193752 to 196531 -->
     <!--<path>
       <name>HLT_Photon20_.*</name>
       <pt from="23" to="35" />
@@ -54,6 +54,32 @@
     <path>
       <name>HLT_Photon150_.*</name>
       <pt from="155" to="8000" />
+    </path>
+  </runs>
+  <runs from="200245" to="-1"><!-- run 2012C, from 200245 to ... -->
+    <!--<path>
+      <name>HLT_Photon20_.*</name>
+      <pt from="23" to="35" />
+    </path>-->
+    <path>
+      <name>HLT_Photon30_.*</name>
+      <pt from="35" to="58" />
+    </path>
+    <path>
+      <name>HLT_Photon50_.*</name>
+      <pt from="58" to="87" />
+    </path>
+    <path>
+      <name>HLT_Photon75_.*</name>
+      <pt from="87" to="104" />
+    </path>
+    <path>
+      <name>HLT_Photon90_.*</name>
+      <pt from="104" to="140" />
+    </path>
+    <path>
+      <name>HLT_Photon135_.*</name>
+      <pt from="140" to="8000" />
     </path>
   </runs>
   <runs from="1" to="10"><!-- MC -->
@@ -87,11 +113,25 @@
     </path>
     <path>
       <name>HLT_Photon160_.*</name>
+      <pt from="165" to="8000" />
+    </path>
+<!--    <path>
+      <name>HLT_Photon160_.*</name>
       <pt from="165" to="305" />
+    </path>
+-->
+<!--    <path>
+      <name>HLT_Photon250_.*</name>
+      <pt from="255" to="305" />
     </path>
     <path>
       <name>HLT_Photon300_.*</name>
       <pt from="305" to="8000" />
     </path>
+-->
+<!--    <path>
+      <name>HLT_Photon400_.*</name>
+      <pt from="405" to="8000" />
+    </path> -->
   </runs>
 </triggers>

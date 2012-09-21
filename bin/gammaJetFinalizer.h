@@ -24,7 +24,6 @@ namespace pat {
 }
 
 namespace edm {
-  class LumiReWeighting;
   class EventBase;
 }
 
@@ -46,6 +45,9 @@ template <typename T>
 struct ExtrapolationVectors {
     typedef std::vector<std::vector<std::vector<T*> > > type;
 };
+
+
+class PUReweighter;
 
 class GammaJetFinalizer
 {
@@ -179,8 +181,7 @@ class GammaJetFinalizer
     bool   mVerbose;
     bool   mUncutTrees;
 
-    edm::LumiReWeighting* mLumiReWeighter;
-    std::map<std::string, boost::shared_ptr<edm::LumiReWeighting>> mLumiReweighting;
+    std::map<std::string, boost::shared_ptr<PUReweighter>> mLumiReweighting;
     float mPUWeight;
 
     float respMPF;

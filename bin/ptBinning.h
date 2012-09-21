@@ -37,6 +37,14 @@ class PtBinning {
       return std::vector<std::pair<float, float> >(mPtBins.begin(), mPtBins.begin() + n);
     }
 
+    std::vector<std::pair<float, float> > getBinning(unsigned int from, unsigned int to) const {
+      if (from + to >= size()) {
+        to = size() - from;
+      }
+
+      return std::vector<std::pair<float, float> >(mPtBins.begin() + from, mPtBins.begin() + to);
+    }
+
   private:
     std::vector<std::pair<float, float> > mPtBins;
 

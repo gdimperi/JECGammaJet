@@ -76,7 +76,7 @@ class ExtrapBinning {
 
   private:
     PtBinning mPtBinning;
-    static const int mSize = 5;
+    static const int mSize = 10;
 
     std::vector<std::pair<float, float> > mMapping; // first is minPt, second is maxPt
 };

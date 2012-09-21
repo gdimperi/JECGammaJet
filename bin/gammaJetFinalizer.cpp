@@ -28,13 +28,13 @@
 #include <DataFormats/PatCandidates/interface/Photon.h>
 
 #include <PhysicsTools/FWLite/interface/TFileService.h>
-#include <PhysicsTools/Utilities/interface/LumiReWeighting.h>
 
 #include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
 #include "tclap/CmdLine.h"
 
 #include "gammaJetFinalizer.h"
+#include "PUReweighter.h"
 #include "JECReader.h"
 
 #include <boost/regex.hpp>
@@ -43,7 +43,7 @@
 #define MAKE_RED "\033[31m"
 #define MAKE_BLUE "\033[34m"
 
-#define ADD_TREES true
+#define ADD_TREES false
 
 #define DELTAPHI_CUT (M_PI - 1)
 
@@ -55,7 +55,6 @@ bool EXIT = false;
 
 GammaJetFinalizer::GammaJetFinalizer():
   mTriggers("triggers.xml") {
-  mLumiReWeighter = NULL;
   mPUWeight = 1.;
 
   mDoMCComparison = false;
@@ -470,6 +469,15 @@ void GammaJetFinalizer::runAnalysis() {
           rejectedEventsTriggerNotFound++;
           break;
         case TRIGGER_FOUND_BUT_PT_OUT:
+          /*bool contains250 = false;
+          size_t size = analysis.trigger_names->size();
+          for (size_t i = 0; i < size; i++) {
+            if (analysis.trigger_results->at(i) && TString(analysis.trigger_names->at(i)).Contains("HLT_Photon250")) {
+              contains250 = true;
+              break;
+            }
+          }*/
+          //if (contains250) {
           if (mVerbose) {
             std::cout << MAKE_RED << "[Run #" << analysis.run << ", pT: " << photon.pt << "] Event does pass required trigger, but pT is out of range. List of passed triggers: " << RESET_COLOR << std::endl;
             size_t size = analysis.trigger_names->size();
@@ -501,7 +509,7 @@ void GammaJetFinalizer::runAnalysis() {
       generatorWeight = 1.;
 
     double eventWeight = (mIsMC) ? mPUWeight * analysis.event_weight * generatorWeight : 1.;
-#ifdef ADD_TREES
+#if ADD_TREES
     analysis.event_weight = eventWeight;
 #endif
 
@@ -519,8 +527,8 @@ void GammaJetFinalizer::runAnalysis() {
     bool secondJetOK = !secondJet.is_present || (secondJet.pt < 5. || secondJet.pt < mAlphaCut * photon.pt);
 
     if (mDoMCComparison) {
-      // Lowest unprescaled trigger for 2011 if at 135 GeV
-      if (photon.pt < 155)
+      // Lowest unprescaled trigger for 2012 if at 150 GeV
+      if (photon.pt < 165)
         continue;
     }
 
@@ -626,7 +634,7 @@ void GammaJetFinalizer::runAnalysis() {
       } while (false);
     }
 
-#ifdef ADD_TREES
+#if ADD_TREES
     if (mUncutTrees) {
       photonTree->Fill();
       genPhotonTree->Fill();
@@ -815,25 +823,25 @@ std::string GammaJetFinalizer::cleanTriggerName(const std::string& trigger) {
 }
 
 void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger) {
-  static std::string puPrefix = "/gridgroup/cms/brochet/public/pu";
+  static std::string puPrefix = "/gridgroup/cms/brochet/CMSSW/CMSSW_5_3_3_patch3/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting";
   static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
-  std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_75bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
+  std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_750bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
 
   if (mNoPUReweighting)
     return;
 
   if (! mLumiReweighting.count(passedTrigger)) {
 
-    if (! boost::filesystem::exists(puMC)) {
+    /*if (! boost::filesystem::exists(puMC)) {
       std::cout << "Warning: " << MAKE_RED << "pileup histogram for MC was not found. No PU reweighting." << RESET_COLOR << std::endl;
       std::cout << "File missing: " << puMC << std::endl;
       mNoPUReweighting = true;
       mPUWeight = 1.;
       return;
-    } else {
+    } else {*/
       std::cout << MAKE_BLUE << "Create PU reweighting profile for " << passedTrigger << RESET_COLOR << std::endl;
-      mLumiReweighting[passedTrigger] = boost::shared_ptr<edm::LumiReWeighting>(new edm::LumiReWeighting(puMC, puData, "pileup", "pileup"));
-    }
+      mLumiReweighting[passedTrigger] = boost::shared_ptr<PUReweighter>(new PUReweighter(puData/*, puMC*/));
+    /*}*/
 
   }
 
@@ -881,12 +889,12 @@ int GammaJetFinalizer::checkTrigger(std::string& passedTrigger) {
       if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger.first)) {
         // The requested trigger is here and triggered, check pt range
         passedTrigger = mandatoryTrigger.first.str();
-        if (mIsMC) {
+        /*if (mIsMC) {
           return TRIGGER_OK;
-        } else {
+        } else {*/
           const Range<float>& ptRange = mandatoryTrigger.second;
           return ptRange.in(photon.pt) ? TRIGGER_OK : TRIGGER_FOUND_BUT_PT_OUT;
-        }
+        /*}*/
       }
     }
   }
