@@ -963,7 +963,7 @@ void GammaJetFilter::readCSVFile() {
 
 
   /* lumiCalc2 format :
-   * Run,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)
+   * Run:Fill,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub),avgPU
    * use 'lumiCalc2.py -i lumiSummary.json -o output.csv -b stable lumibyls' to generate file
    */
 
@@ -971,7 +971,7 @@ void GammaJetFilter::readCSVFile() {
   char buffer[1024];
   fgets(buffer, 1024, iff);
 
-  while (fscanf(iff, "%d:%d,%d:%d,%*[^,],%*[^,],%*f,%*f,%lf", &run, &fill, &lumiSection_left, &lumiSection_right, &lumiRecorded) > 0 ) {
+  while (fscanf(iff, "%d:%d,%d:%d,%*[^,],%*[^,],%*f,%*f,%lf,%*f", &run, &fill, &lumiSection_left, &lumiSection_right, &lumiRecorded) > 0 ) {
 
     if (lumiSection_right == 0)
       continue;
