@@ -47,6 +47,9 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   else:
     jetCorrections = ("%sPF" % algo, ['L1FastJet', 'L2Relative', 'L3Absolute'])
 
+  #if not runOnMC:
+  #  jetCorrections[1].append('L2L3Residual')
+
   p = postfix
 
   usePF2PAT(process, runPF2PAT=True, jetAlgo=jetAlgo, runOnMC=runOnMC, postfix=p, jetCorrections=jetCorrections, typeIMetCorrections = useTypeIMET)
@@ -75,7 +78,23 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   getattr(process, "selectedPatJets" + p).cut = "pt > 2";
 
   # Use a cone of 0.3 for photon isolation
-  adaptPFIsoPhotons(process, applyPostfix(process, "patPhotons", postfix), postfix, "03")
+  #adaptPFIsoPhotons(process, applyPostfix(process, "patPhotons", postfix), postfix, "03")
+
+  # 2012 Photon ID
+
+  # Electron conversion
+  setattr(process, "patConversions" + p, cms.EDProducer("PATConversionProducer",
+      # input collection
+      electronSource = cms.InputTag("selectedPatElectrons" + p)
+  ))
+
+  # Switch electron isolation to dR = 0.3, for PF2PAT
+  getattr(process, "pfElectrons" + p).isolationValueMapsCharged  = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFIdPFlow"))
+  getattr(process, "pfElectrons" + p).deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFIdPFlow" )
+  getattr(process, "pfElectrons" + p).isolationValueMapsNeutral  = cms.VInputTag(cms.InputTag( "elPFIsoValueNeutral03PFIdPFlow"), cms.InputTag("elPFIsoValueGamma03PFIdPFlow"))
+
+  # ... And for PAT
+  adaptPFIsoElectrons(process, getattr(process, "pfElectrons" + p), p, "03")
 
   if not runOnMC:
     if 'L2L3Residual' in jetCorrections:
@@ -90,10 +109,11 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
   adaptPVs(process, pvCollection = cms.InputTag("goodOfflinePrimaryVertices"), postfix = p)
 
+  getattr(process, "patDefaultSequence" + p).replace(getattr(process, "selectedPatElectrons" + p), getattr(process, "selectedPatElectrons" + p) + getattr(process, "patConversions" + p))
   return getattr(process, "patPF2PATSequence" + p)
 
 # Do we correct MET with Type1?
-#correctMETWithT1 = True
+correctMETWithT1 = True
 if correctMETWithT1:
   process.load("PhysicsTools.PatUtils.patPFMETCorrections_cff")
   from PhysicsTools.PatAlgos.tools.helpers import cloneProcessingSnippet
@@ -122,7 +142,7 @@ print "Calo jets" if processCaloJets else "No processing of calo jets"
 print "##########################"
 
 usePFIso(process, "")
-adaptPFIsoPhotons(process,  process.patPhotons, "", "03")
+#adaptPFIsoPhotons(process,  process.patPhotons, "", "03")
 
 if processCaloJets:
 
@@ -223,6 +243,7 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_goodOfflinePrimaryVertices*_*_*',
     'keep recoPFCandidates_particleFlow_*_*',
     'keep *_offlineBeamSpot_*_*',
+    # For 2012 PhotonID
     'keep *_allConversions_*_*',
     'keep *_gsfElectrons_*_*',
     # Content of *patEventContentNoCleaning
@@ -239,9 +260,11 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_reducedEcalRecHitsEB_*_*',
     'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*',
     # Trigger
-    'keep *_TriggerResults_*_HLT'
+    'keep *_TriggerResults_*_HLT',
     # Debug
     #'keep *_pf*_*_PAT'
+    # Photon ID
+    'keep *_patConversions*_*_*'
     )
 
 if runOnMC:
@@ -267,3 +290,4 @@ process.maxEvents.input = 2500
 process.out.fileName = 'patTuple_PF2PAT.root'
 #                                         ##
 #   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000

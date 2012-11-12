@@ -6,7 +6,10 @@ __builtin__.runCHS = True
 __builtin__.processCaloJets = False
 __builtin__.correctMETWithT1 = True
 
-__builtin__.GlobalTag = cms.string("START52_V11C::All")
+__builtin__.GlobalTag = cms.string("START53_V11::All")
+
+import sys
+sys.path.insert(0, '.')
 
 from produce_PAT_COMMON import *
 process.source.fileNames =  cms.untracked.vstring('file:input_mc.root')
