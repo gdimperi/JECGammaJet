@@ -16,6 +16,7 @@ addpkg DataFormats/ParticleFlowCandidate    V15-03-02
 addpkg DataFormats/TrackReco                V10-02-02      
 addpkg DataFormats/VertexReco               V02-00-04
 addpkg RecoParticleFlow/PFProducer          V15-01-11
+addpkg RecoVertex/AdaptiveVertexFinder      V02-02-06
 
 cd JetMETCorrections
 git clone git://madalynn.eu/GammaJetFilter.git
