@@ -94,6 +94,7 @@ void GammaJetFinalizer::runAnalysis() {
 
   // Initialization
   mExtrapBinning.initialize(mPtBinning, (mJetType == PF) ? "PFlow" : "Calo");
+  mNewExtrapBinning.initialize(mAlphaCut);
 
   std::cout << "Parsing triggers.xml ..." << std::endl;
   if (! mTriggers.parse()) {
@@ -275,6 +276,7 @@ void GammaJetFinalizer::runAnalysis() {
   TH1F* h_ptFirstJet_passedID = analysisDir.make<TH1F>("ptFirstJet_passedID", "ptFirstJet", 200, 5., 1000.);
   TH1F* h_ptSecondJet_passedID = analysisDir.make<TH1F>("ptSecondJet_passedID", "ptSecondJet", 60, 0., 100.);
   TH1F* h_MET_passedID = analysisDir.make<TH1F>("MET_passedID", "MET", 150, 0., 300.);
+  TH1F* h_rawMET_passedID = analysisDir.make<TH1F>("rawMET_passedID", "raw MET", 150, 0., 300.);
 
   TH2D* h_METvsfirstJet = analysisDir.make<TH2D>("METvsfirstJet", "MET vs firstJet", 150, 0., 300., 150, 0., 500.);
   TH2D* h_firstJetvsSecondJet = analysisDir.make<TH2D>("firstJetvsSecondJet", "firstJet vs secondJet", 60, 5., 100., 60, 5., 100.);
@@ -363,6 +365,18 @@ void GammaJetFinalizer::runAnalysis() {
     extrap_responseMPFGen = buildExtrapolationEtaVector<TH1F>(extrapDir, "extrap_resp_mpf_gen", extrapolationBins, extrapolationMin, extrapolationMax);
     extrap_responseMPFGenEta013 = buildExtrapolationVector<TH1F>(extrapDir, "extrap_resp_mpf_gen", "eta013", extrapolationBins, extrapolationMin, extrapolationMax);
   }
+  
+  // New extrapolation
+  TFileDirectory newExtrapDir = analysisDir.mkdir("new_extrapolation");
+  std::vector<std::shared_ptr<GaussianProfile>> new_extrap_responseBalancing = buildNewExtrapolationEtaVector(newExtrapDir, "extrap_resp_balancing", extrapolationBins, extrapolationMin, extrapolationMax);
+  std::vector<std::shared_ptr<GaussianProfile>> new_extrap_responseBalancingRaw = buildNewExtrapolationEtaVector(newExtrapDir, "extrap_resp_balancing_raw", extrapolationBins, extrapolationMin, extrapolationMax);  
+  std::shared_ptr<GaussianProfile> new_extrap_responseBalancingEta013 = buildNewExtrapolationVector(newExtrapDir, "extrap_resp_balancing", "eta013", extrapolationBins, extrapolationMin, extrapolationMax);
+  std::shared_ptr<GaussianProfile> new_extrap_responseBalancingRawEta013 = buildNewExtrapolationVector(newExtrapDir, "extrap_resp_balancing_raw", "eta013", extrapolationBins, extrapolationMin, extrapolationMax);
+
+  std::vector<std::shared_ptr<GaussianProfile>> new_extrap_responseMPF = buildNewExtrapolationEtaVector(newExtrapDir, "extrap_resp_mpf", extrapolationBins, extrapolationMin, extrapolationMax);
+  std::vector<std::shared_ptr<GaussianProfile>> new_extrap_responseMPFRaw = buildNewExtrapolationEtaVector(newExtrapDir, "extrap_resp_mpf_raw", extrapolationBins, extrapolationMin, extrapolationMax);
+  std::shared_ptr<GaussianProfile> new_extrap_responseMPFEta013 = buildNewExtrapolationVector(newExtrapDir, "extrap_resp_mpf", "eta013", extrapolationBins, extrapolationMin, extrapolationMax);
+  std::shared_ptr<GaussianProfile> new_extrap_responseMPFRawEta013 = buildNewExtrapolationVector(newExtrapDir, "extrap_resp_mpf_raw", "eta013", extrapolationBins, extrapolationMin, extrapolationMax);
 
   // Viola
   std::vector<TH1F*> ptFirstJetEta024 = buildVector<TH1F>(analysisDir, "ptFirstJet", "eta024", 500, 5., 1005.);
@@ -582,54 +596,108 @@ void GammaJetFinalizer::runAnalysis() {
     if (secondJet.is_present) {
       do {
         int extrapBin = mExtrapBinning.getBin(photon.pt, secondJet.pt, ptBin);
-
-        if (extrapBin < 0) {
-          //std::cout << "No bin found for extrapolation: " << secondJet.pt / photon.pt << std::endl;
-          break;
-        }
+        int rawExtrapBin = extrapBin; // mExtrapBinning.getBin(photon.pt, secondRawJet.pt, ptBin); // We don't want that
 
         float r_RecoPhot = firstJet.pt / photon.pt;
         float r_RecoGen  = firstJet.pt / firstGenJet.pt;
-        float r_RecoPhotRaw = firstRawJet.pt / photon.pt;
-        float r_RecoGenRaw  = firstRawJet.pt / firstGenJet.pt;
         float r_GenPhot  = firstGenJet.pt / photon.pt;
         float r_GenGamma  = firstGenJet.pt / genPhoton.pt;
         float r_PhotGamma  = photon.pt / genPhoton.pt;
 
-        // Special case
+        do {
+          if (extrapBin < 0) {
+            //std::cout << "No bin found for extrapolation: " << secondJet.pt / photon.pt << std::endl;
+            break;
+          }
 
-        if (fabs(firstJet.eta) < 1.3) {
-          extrap_responseBalancingEta013[ptBin][extrapBin]->Fill(r_RecoPhot, eventWeight);
-          extrap_responseBalancingRawEta013[ptBin][extrapBin]->Fill(r_RecoPhotRaw, eventWeight);
-          extrap_responseMPFEta013[ptBin][extrapBin]->Fill(respMPF, eventWeight);
-          extrap_responseMPFRawEta013[ptBin][extrapBin]->Fill(respMPFRaw, eventWeight);
+          // Special case
+
+          if (fabs(firstJet.eta) < 1.3) {
+            extrap_responseBalancingEta013[ptBin][extrapBin]->Fill(r_RecoPhot, eventWeight);
+            extrap_responseMPFEta013[ptBin][extrapBin]->Fill(respMPF, eventWeight);
+
+            if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
+              extrap_responseBalancingGenEta013[ptBinGen][extrapBin]->Fill(r_RecoGen, eventWeight);
+              extrap_responseBalancingGenPhotEta013[ptBinGen][extrapBin]->Fill(r_GenPhot, eventWeight);
+              extrap_responseBalancingGenGammaEta013[ptBinGen][extrapBin]->Fill(r_GenGamma, eventWeight);
+              extrap_responseBalancingPhotGammaEta013[ptBinGen][extrapBin]->Fill(r_PhotGamma, eventWeight);
+              extrap_responseMPFGenEta013[ptBinGen][extrapBin]->Fill(respMPFGen, eventWeight);
+            }
+          }
+
+          if (etaBin < 0)
+            break;
+
+          extrap_responseBalancing[etaBin][ptBin][extrapBin]->Fill(r_RecoPhot, eventWeight);
+          extrap_responseMPF[etaBin][ptBin][extrapBin]->Fill(respMPF, eventWeight);
 
           if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
-            extrap_responseBalancingGenEta013[ptBinGen][extrapBin]->Fill(r_RecoGen, eventWeight);
-            extrap_responseBalancingRawGenEta013[ptBinGen][extrapBin]->Fill(r_RecoGenRaw, eventWeight);
-            extrap_responseBalancingGenPhotEta013[ptBinGen][extrapBin]->Fill(r_GenPhot, eventWeight);
-            extrap_responseBalancingGenGammaEta013[ptBinGen][extrapBin]->Fill(r_GenGamma, eventWeight);
-            extrap_responseBalancingPhotGammaEta013[ptBinGen][extrapBin]->Fill(r_PhotGamma, eventWeight);
-            extrap_responseMPFGenEta013[ptBinGen][extrapBin]->Fill(respMPFGen, eventWeight);
+            extrap_responseBalancingGen[etaBinGen][ptBinGen][extrapBin]->Fill(r_RecoGen, eventWeight);
+            extrap_responseBalancingGenPhot[etaBinGen][ptBinGen][extrapBin]->Fill(r_GenPhot, eventWeight);
+            extrap_responseBalancingGenGamma[etaBinGen][ptBinGen][extrapBin]->Fill(r_GenGamma, eventWeight);
+            extrap_responseBalancingPhotGamma[etaBinGen][ptBinGen][extrapBin]->Fill(r_PhotGamma, eventWeight);
+            extrap_responseMPFGen[etaBinGen][ptBinGen][extrapBin]->Fill(respMPFGen, eventWeight);
           }
+        } while (false);
+
+        do {
+
+          if (rawExtrapBin < 0) {
+            //std::cout << "No bin found for extrapolation: " << secondJet.pt / photon.pt << std::endl;
+            break;
+          }
+
+          float r_RecoPhotRaw = firstRawJet.pt / photon.pt;
+          float r_RecoGenRaw  = firstRawJet.pt / firstGenJet.pt;
+
+          // Special case
+
+          if (fabs(firstJet.eta) < 1.3) {
+            extrap_responseBalancingRawEta013[ptBin][rawExtrapBin]->Fill(r_RecoPhotRaw, eventWeight);
+            extrap_responseMPFRawEta013[ptBin][rawExtrapBin]->Fill(respMPFRaw, eventWeight);
+
+            if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
+              extrap_responseBalancingRawGenEta013[ptBinGen][rawExtrapBin]->Fill(r_RecoGenRaw, eventWeight);
+            }
+          }
+
+          if (etaBin < 0)
+            break;
+
+          extrap_responseBalancingRaw[etaBin][ptBin][rawExtrapBin]->Fill(r_RecoPhotRaw, eventWeight);
+          extrap_responseMPFRaw[etaBin][ptBin][rawExtrapBin]->Fill(respMPFRaw, eventWeight);
+
+          if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
+            extrap_responseBalancingRawGen[etaBinGen][ptBinGen][rawExtrapBin]->Fill(r_RecoGenRaw, eventWeight);
+          }
+        } while (false);
+
+      } while (false);
+
+      // New extrapolation
+      do {
+
+        float r_RecoPhot = firstJet.pt / photon.pt;
+        float r_RecoPhotRaw = firstRawJet.pt / photon.pt;
+        float alpha = secondJet.pt / photon.pt;
+        float raw_alpha = alpha; // secondRawJet.pt / photon.pt; // We don't want that
+
+        // Special case
+        if (fabs(firstJet.eta) < 1.3) {
+          new_extrap_responseBalancingEta013->fill(alpha, r_RecoPhot, eventWeight);
+          new_extrap_responseBalancingRawEta013->fill(raw_alpha, r_RecoPhotRaw, eventWeight);
+          new_extrap_responseMPFEta013->fill(alpha, respMPF, eventWeight);
+          new_extrap_responseMPFRawEta013->fill(raw_alpha, respMPFRaw, eventWeight);
         }
 
         if (etaBin < 0)
           break;
 
-        extrap_responseBalancing[etaBin][ptBin][extrapBin]->Fill(r_RecoPhot, eventWeight);
-        extrap_responseBalancingRaw[etaBin][ptBin][extrapBin]->Fill(r_RecoPhotRaw, eventWeight);
-        extrap_responseMPF[etaBin][ptBin][extrapBin]->Fill(respMPF, eventWeight);
-        extrap_responseMPFRaw[etaBin][ptBin][extrapBin]->Fill(respMPFRaw, eventWeight);
+        new_extrap_responseBalancing[etaBin]->fill(alpha, r_RecoPhot, eventWeight);
+        new_extrap_responseBalancingRaw[etaBin]->fill(raw_alpha, r_RecoPhotRaw, eventWeight);
+        new_extrap_responseMPF[etaBin]->fill(alpha, respMPF, eventWeight);
+        new_extrap_responseMPFRaw[etaBin]->fill(raw_alpha, respMPFRaw, eventWeight);
 
-        if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
-          extrap_responseBalancingGen[etaBinGen][ptBinGen][extrapBin]->Fill(r_RecoGen, eventWeight);
-          extrap_responseBalancingRawGen[etaBinGen][ptBinGen][extrapBin]->Fill(r_RecoGenRaw, eventWeight);
-          extrap_responseBalancingGenPhot[etaBinGen][ptBinGen][extrapBin]->Fill(r_GenPhot, eventWeight);
-          extrap_responseBalancingGenGamma[etaBinGen][ptBinGen][extrapBin]->Fill(r_GenGamma, eventWeight);
-          extrap_responseBalancingPhotGamma[etaBinGen][ptBinGen][extrapBin]->Fill(r_PhotGamma, eventWeight);
-          extrap_responseMPFGen[etaBinGen][ptBinGen][extrapBin]->Fill(respMPFGen, eventWeight);
-        }
 
       } while (false);
     }
@@ -659,6 +727,7 @@ void GammaJetFinalizer::runAnalysis() {
         h_ptFirstJet_passedID->Fill(firstJet.pt, eventWeight);
         h_ptSecondJet_passedID->Fill(secondJet.pt, eventWeight);
         h_MET_passedID->Fill(MET.et, eventWeight);
+        h_rawMET_passedID->Fill(rawMET.et, eventWeight);
 
         h_METvsfirstJet->Fill(MET.et, firstJet.pt, eventWeight);
         h_firstJetvsSecondJet->Fill(firstJet.pt, secondJet.pt, eventWeight);
@@ -728,7 +797,6 @@ void GammaJetFinalizer::runAnalysis() {
       passedEvents++;
     }
   }
-
   std::cout << "Selection efficiency: " << MAKE_RED << (double) passedEvents / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
   std::cout << "Selection efficiency for trigger selection: " << MAKE_RED << (double) passedEventsFromTriggers / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
   std::cout << "Rejected events because trigger was not found: " << MAKE_RED << (double) rejectedEventsTriggerNotFound / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
@@ -817,13 +885,42 @@ std::vector<std::vector<std::vector<T*> > > GammaJetFinalizer::buildExtrapolatio
   return etaBinning;
 }
 
+std::shared_ptr<GaussianProfile> GammaJetFinalizer::buildNewExtrapolationVector(TFileDirectory dir, const std::string& branchName, const std::string& etaName, int nBins, double xMin, double xMax) {
+
+  std::stringstream ss;
+  ss << branchName << "_" << etaName;
+
+  std::shared_ptr<GaussianProfile> object(new GaussianProfile(ss.str(), mNewExtrapBinning.size(), 0, mNewExtrapBinning.size() * mNewExtrapBinning.getBinWidth(), nBins, xMin, xMax));
+  object->setPrefix("alpha");
+  object->initialize(dir);
+
+  return object;
+}
+
+std::vector<std::shared_ptr<GaussianProfile>> GammaJetFinalizer::buildNewExtrapolationEtaVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax) {
+
+  size_t etaBinningSize = mEtaBinning.size();
+  std::vector<std::shared_ptr<GaussianProfile>> etaBinning;
+
+  for (size_t i = 0; i < etaBinningSize; i++) {
+    const std::string etaName = mEtaBinning.getBinName(i);
+    
+
+    std::shared_ptr<GaussianProfile> object = buildNewExtrapolationVector(dir, branchName, etaName, nBins, xMin, xMax);
+    etaBinning.push_back(object);
+  }
+
+  return etaBinning;
+}
+
 std::string GammaJetFinalizer::cleanTriggerName(const std::string& trigger) {
   static boost::regex r(R"(_\.\*)");
   return boost::regex_replace(trigger, r, "");
 }
 
 void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger) {
-  static std::string puPrefix = "/gridgroup/cms/brochet/CMSSW/CMSSW_5_3_3_patch3/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting";
+  static std::string cmsswBase = getenv("CMSSW_BASE");
+  static std::string puPrefix = TString::Format("%s/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting", cmsswBase.c_str()).Data();
   static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
   std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_750bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
 
@@ -889,12 +986,12 @@ int GammaJetFinalizer::checkTrigger(std::string& passedTrigger) {
       if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger.first)) {
         // The requested trigger is here and triggered, check pt range
         passedTrigger = mandatoryTrigger.first.str();
-        /*if (mIsMC) {
+        if (mIsMC) {
           return TRIGGER_OK;
-        } else {*/
+        } else {
           const Range<float>& ptRange = mandatoryTrigger.second;
           return ptRange.in(photon.pt) ? TRIGGER_OK : TRIGGER_FOUND_BUT_PT_OUT;
-        /*}*/
+        }
       }
     }
   }

@@ -10,9 +10,12 @@
 #include "etaBinning.h"
 #include "ptBinning.h"
 #include "extrapBinning.h"
+#include "newExtrapBinning.h"
 #include "triggers.h"
+#include "GaussianProfile.h"
 
 #include <vector>
+#include <memory>
 
 namespace fwlite {
   class TFileService;
@@ -43,7 +46,7 @@ enum JetType {
 
 template <typename T>
 struct ExtrapolationVectors {
-    typedef std::vector<std::vector<std::vector<T*> > > type;
+  typedef std::vector<std::vector<std::vector<T*> > > type;
 };
 
 
@@ -63,7 +66,7 @@ class GammaJetFinalizer
     void setDatasetName(const std::string& name) {
       mDatasetName = name;
     }
-    
+
     void setJetAlgo(const std::string& jetType, const std::string& jetAlgo) {
       if (jetType == "pf") {
         mJetType = PF;
@@ -125,7 +128,7 @@ class GammaJetFinalizer
 
     std::string cleanTriggerName(const std::string& trigger);
     void computePUWeight(const std::string& passedTrigger);
- 
+
     template<typename T>
       std::vector<std::vector<T*> > buildEtaVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax);
     template<typename T>
@@ -134,6 +137,9 @@ class GammaJetFinalizer
       std::vector<std::vector<std::vector<T*> > > buildExtrapolationEtaVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax);
     template<typename T>
       std::vector<std::vector<T*> > buildExtrapolationVector(TFileDirectory dir, const std::string& branchName, const std::string& etaName, int nBins, double xMin, double xMax);
+
+    std::shared_ptr<GaussianProfile> buildNewExtrapolationVector(TFileDirectory dir, const std::string& branchName, const std::string& etaName, int nBins, double xMin, double xMax);
+    std::vector<std::shared_ptr<GaussianProfile>> buildNewExtrapolationEtaVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax);
 
     void cloneTree(TTree* from, TTree*& to);
 
@@ -163,6 +169,7 @@ class GammaJetFinalizer
     EtaBinning mEtaBinning;
     PtBinning mPtBinning;
     ExtrapBinning mExtrapBinning;
+    NewExtrapBinning mNewExtrapBinning;
 
     std::vector<std::string> mInputFiles;
     std::string mDatasetName;
