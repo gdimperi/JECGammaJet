@@ -136,6 +136,7 @@ class GammaJetFilter : public edm::EDFilter {
     std::map<std::pair<unsigned int, unsigned int>, double> mLumiByLS;
     bool mIsValidLumiBlock;
 
+    bool mRedoTypeI;
     bool mDoJEC;
     bool mJECFromRaw;
     std::string mCorrectorLabel;
@@ -229,7 +230,8 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   mJetsAK7PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7PFlow", edm::InputTag("selectedPatJetsPFlowAK7"));
   mJetsAK5CaloIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5Calo", edm::InputTag("selectedPatJets"));
   mJetsAK7CaloIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7Calo", edm::InputTag("selectedPatJetsCaloAK7"));
-  mDoJEC = iConfig.getUntrackedParameter<bool>("doJetCorrection", false);
+  mDoJEC         = iConfig.getUntrackedParameter<bool>("doJetCorrection", false);
+  mRedoTypeI     = iConfig.getUntrackedParameter<bool>("redoTypeIMETCorrection", false);
 
   if (mDoJEC) {
     mJECFromRaw = iConfig.getUntrackedParameter<bool>("correctJecFromRaw", false);
@@ -505,7 +507,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     pat::MET& met = mets[0];
     const pat::MET& rawMet = rawMets->at(0);
 
-    if (mDoJEC) {
+    if (mDoJEC || mRedoTypeI) {
       correctMETWithTypeI(rawMet, met, jets);
     }
 
@@ -641,6 +643,8 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
     // Store raw jet, it's not possible to get it after corrections
     pat::Jet rawJet = jet.correctedJet("Uncorrected");
     jet.addUserData("rawJet", rawJet, true); // Store raw jet inside our jet. This allow us to correctly sort the resulting collection
+    pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
 
     if (mJECFromRaw) {
       double toRaw = jet.jecFactor("Uncorrected");
@@ -657,7 +661,7 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
 
 void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
   double deltaPx = 0., deltaPy = 0.;
-  static StringCutObjectSelector<reco::Muon> skipMuonSelection("isGlobalMuon | isStandAloneMuon");
+  //static StringCutObjectSelector<reco::Muon> skipMuonSelection("isGlobalMuon | isStandAloneMuon");
 
   // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
   // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
@@ -667,12 +671,14 @@ void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, 
     if (jet.pt() > 10) {
 
       const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
+      const pat::Jet* L1Jet  = jet.userData<pat::Jet>("L1Jet");
 
       double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
       if (emEnergyFraction > 0.90)
         continue;
 
-      reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
+      //reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
+      reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
 
       // Skip muons
       /*std::vector<reco::PFCandidatePtr> cands = rawJet->getPFConstituents();
@@ -684,8 +690,8 @@ void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, 
       }*/
 
 
-      deltaPx += (jet.px() - rawJetP4.px());
-      deltaPy += (jet.py() - rawJetP4.py());
+      deltaPx += (jet.px() - L1JetP4.px());
+      deltaPy += (jet.py() - L1JetP4.py());
     }
   }
 
@@ -703,6 +709,8 @@ void GammaJetFilter::extractRawJets(pat::JetCollection& jets) {
 
     const pat::Jet rawJet = jet.correctedJet("Uncorrected");
     jet.addUserData("rawJet", rawJet, true);
+    const pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
   }
 
 }
