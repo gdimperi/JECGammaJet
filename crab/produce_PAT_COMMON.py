@@ -6,6 +6,8 @@ import __builtin__
 runOnMC = __builtin__.runOnMC
 runCHS  = __builtin__.runCHS
 processCaloJets = __builtin__.processCaloJets
+
+# Is this Data or MC ?
 correctMETWithT1 = __builtin__.correctMETWithT1
 
 # load the PAT config
@@ -22,8 +24,6 @@ process.ak5PFchsL1FastL2L3 = cms.ESProducer(
     correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute')
     )
 
-# Is this Data or MC ?
-#runOnMC = False
 
 from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
 
@@ -89,9 +89,13 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   ))
 
   # Switch electron isolation to dR = 0.3, for PF2PAT
-  getattr(process, "pfElectrons" + p).isolationValueMapsCharged  = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFIdPFlow"))
-  getattr(process, "pfElectrons" + p).deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFIdPFlow" )
-  getattr(process, "pfElectrons" + p).isolationValueMapsNeutral  = cms.VInputTag(cms.InputTag( "elPFIsoValueNeutral03PFIdPFlow"), cms.InputTag("elPFIsoValueGamma03PFIdPFlow"))
+  getattr(process, "pfIsolatedElectrons" + p).isolationValueMapsCharged = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFId" + p))
+  getattr(process, "pfIsolatedElectrons" + p).deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFId" + p)
+  getattr(process, "pfIsolatedElectrons" + p).isolationValueMapsNeutral = cms.VInputTag(cms.InputTag("elPFIsoValueNeutral03PFId" + p), cms.InputTag("elPFIsoValueGamma03PFId" + p))
+
+  getattr(process, "pfElectrons" + p).isolationValueMapsCharged  = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFId" + p))
+  getattr(process, "pfElectrons" + p).deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFId" + p)
+  getattr(process, "pfElectrons" + p).isolationValueMapsNeutral  = cms.VInputTag(cms.InputTag( "elPFIsoValueNeutral03PFId" + p), cms.InputTag("elPFIsoValueGamma03PFId" + p))
 
   # ... And for PAT
   adaptPFIsoElectrons(process, getattr(process, "pfElectrons" + p), p, "03")
@@ -112,8 +116,6 @@ def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
   getattr(process, "patDefaultSequence" + p).replace(getattr(process, "selectedPatElectrons" + p), getattr(process, "selectedPatElectrons" + p) + getattr(process, "patConversions" + p))
   return getattr(process, "patPF2PATSequence" + p)
 
-# Do we correct MET with Type1?
-correctMETWithT1 = True
 if correctMETWithT1:
   process.load("PhysicsTools.PatUtils.patPFMETCorrections_cff")
   from PhysicsTools.PatAlgos.tools.helpers import cloneProcessingSnippet
