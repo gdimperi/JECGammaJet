@@ -1,8 +1,10 @@
 #! /bin/env python
 # Launch crab for every datasets in mc_signal_datasets.list
 
-import os, shutil,datetime
+import os, shutil,datetime, re
 from optparse import OptionParser
+
+p = re.compile("(START\d{2})") # For Global tag
 
 isCastor = os.system("uname -n | grep cern &> /dev/null") == 0
 
@@ -33,14 +35,16 @@ date = now.strftime("%d%B%Y")
 
 # Copy common_dump_config.py and dump_MC.py
 shutil.copy2("produce_PAT_MC.py", "%s/produce_PAT_MC.py" % options.path)
+shutil.copy2("produce_PAT_COMMON.py", "%s/produce_PAT_COMMON.py" % options.path)
 
 for dataset in datasets:
 
+  globalTag = p.search(dataset).group()
   print "Processing entry %02d/%02d" % (i, len(datasets))
   i = i + 1
   dataset = dataset.rstrip()
   name = dataset.replace("/", "_")[1:dataset.lower().find('tunez2') - 1]
-  publish_name = "JetMet_PF2PAT_2012_%s_%s" % (date, options.mc)
+  publish_name = "JetMet_PF2PAT_%s_2012_%s_%s" % (globalTag, date, options.mc)
   print("Publish name: %s" % publish_name)
 
   if (isCastor):
@@ -48,7 +52,7 @@ for dataset in datasets:
     remoteOutputDir = "/user/s/sbrochet/JetMet/MC/%s/%s" % (options.mc, name)
   else:
     template = "crab_MC.cfg.template.ipnl"
-    remoteOutputDir = "JetMet/MC/%s/%s" % (options.mc, name)
+    remoteOutputDir = "JetMet/MC/%s/%s/%s" % (options.mc, date, name)
 
   outputConfigFile = "%s/crab_MC_%s.cfg" % (options.path, name)
 
