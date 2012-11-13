@@ -30,10 +30,10 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 readFiles = cms.untracked.vstring(
     #"/store/user/sbrochet/G_Pt-30to50_TuneZ2_7TeV_pythia6/JetMet_PF2PAT_01apr_Fall11/5105f901d1c8d136e9eaa25f22cecd3a/patTuple_PF2PAT_MC_54_3_zYV.root"
-    #"file:patTuple_PF2PAT_MC.root"
+    "file:patTuple_PF2PAT_MC.root"
     #"/store/user/sbrochet/G_Pt-170to300_TuneZ2_7TeV_pythia6/JetMet_PF2PAT_01apr_Fall11/5105f901d1c8d136e9eaa25f22cecd3a/patTuple_PF2PAT_MC_55_1_S8q.root"
     #"/store/user/sbrochet/G_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6/JetMet_PF2PAT_2012_27May_Summer12/fbe304f4e69d87969ac8d25e6b0621a8/patTuple_PF2PAT_MC_46_1_l65.root"
-    "/store/user/sbrochet/G_Pt-15to30_TuneZ2star_8TeV_pythia6/JetMet_PF2PAT_2012_11July2012_Summer12/a569afd3137dcbe87038077d06761aba/patTuple_PF2PAT_MC_51_1_BkA.root"
+    #"/store/user/sbrochet/G_Pt-470to800_TuneZ2star_8TeV_pythia6/JetMet_PF2PAT_START53_2012_27October2012_Summer12/60bf5f0ffd8e31ffea124a94be5aad95/patTuple_PF2PAT_MC_71_1_SU2.root"
     )
 process.source = cms.Source ("PoolSource", fileNames = readFiles)
 
@@ -90,8 +90,11 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     # JEC
     doJetCorrection = cms.untracked.bool(False),
     correctJecFromRaw = cms.untracked.bool(True),
-    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3")
+    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
     #correctorLabel = cms.untracked.string("ak5PFResidual")
+
+    # MET
+    redoTypeIMETCorrection = cms.untracked.bool(False)
     )
 
 process.p = cms.Path(process.gammaJet)

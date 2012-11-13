@@ -41,10 +41,10 @@ for dataset in datasets:
 
   if (isCastor):
     template = "crab_MC.cfg.template.castor"
-    remoteOutputDir = "/user/s/sbrochet/JetMet/MC/%s/%s/%s" % (options.mc, date, name)
+    remoteOutputDir = "/user/s/sbrochet/JetMet/MC/%s/5.3/%s/%s" % (options.mc, date, name)
   else:
     template = "crab_MC.cfg.template.ipnl"
-    remoteOutputDir = "JetMet/MC/%s/%s/%s" % (options.mc, date, name)
+    remoteOutputDir = "JetMet/MC/%s/5.3/%s/%s" % (options.mc, date, name)
 
   outputConfigFile = "%s/crab_MC_%s.cfg" % (options.path, name)
 
