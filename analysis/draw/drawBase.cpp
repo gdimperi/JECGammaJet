@@ -24,7 +24,6 @@ drawBase::drawBase(const std::string& analysisType, const std::string& recoType,
   style_->SetFrameBorderMode(0);
   style_->SetPadBottomMargin(0.12);
   style_->SetPadLeftMargin(0.12);
-  style_->cd();
 
   // For the canvas:
   style_->SetCanvasBorderMode(0);
@@ -164,6 +163,13 @@ drawBase::drawBase(const std::string& analysisType, const std::string& recoType,
 
 //  // Additional settings for QCD-10-011
 //  style_->SetLegendBorderSize(0);
+
+  // Legend
+  style_->SetLegendBorderSize(1);
+  style_->SetLegendFillColor(kWhite);
+  style_->SetLegendFont(42);
+
+  style_->cd();
 
   outputGraphs_ = outputGraphs;
   analysisType_ = analysisType;
