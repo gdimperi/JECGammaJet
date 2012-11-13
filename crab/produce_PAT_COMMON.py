@@ -244,10 +244,11 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep double_kt6*Jets*_rho_*',
     'keep *_goodOfflinePrimaryVertices*_*_*',
     'keep recoPFCandidates_particleFlow_*_*',
-    'keep *_offlineBeamSpot_*_*',
     # For 2012 PhotonID
+    'keep *_offlineBeamSpot_*_*',
     'keep *_allConversions_*_*',
     'keep *_gsfElectrons_*_*',
+    'keep *_gsfElectronCores_*_*',
     # Content of *patEventContentNoCleaning
     'keep *_selectedPatPhotons*_*_*', 'keep *_selectedPatElectrons*_*_*', 'keep *_selectedPatMuons*_*_*', 'keep *_selectedPatTaus*_*_*', 'keep *_selectedPatJets*_*_*', 'drop *_selectedPatJets_pfCandidates_*', 'drop *_*PF_caloTowers_*', 'drop *_*JPT_pfCandidates_*', 'drop *_*Calo_pfCandidates_*', 'keep *_patMETs*_*_*', 'keep *_selectedPatPFParticles*_*_*', 'keep *_selectedPatTrackCands*_*_*',
     'keep *_cleanPatPhotons*_*_*', 'keep *_cleanPatElectrons*_*_*', 'keep *_cleanPatMuons*_*_*', 'keep *_cleanPatTaus*_*_*',

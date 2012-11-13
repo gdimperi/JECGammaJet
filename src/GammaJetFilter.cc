@@ -64,7 +64,11 @@ Implementation:
 
 #include "PhysicsTools/SelectorUtils/interface/JetIDSelectionFunctor.h"
 
+#include "EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h"
+
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+
+#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
@@ -118,6 +122,7 @@ class GammaJetFilter : public edm::EDFilter {
 
     //const EcalRecHitCollection* getEcalRecHitCollection(const reco::BasicCluster& cluster);
     bool isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology);
+    bool isValidPhotonEB2012(const pat::Photon& photon, edm::Event& event);
     //bool isValidPhotonEE(const pat::Photon& photon, const double rho);
     //bool isValidPhotonEB(const pat::Photon& photon, const double rho);
     bool isValidJet(const pat::Jet& jet);
@@ -135,6 +140,9 @@ class GammaJetFilter : public edm::EDFilter {
     boost::shared_ptr<Json::Value> mCurrentRunValidLumis;
     std::map<std::pair<unsigned int, unsigned int>, double> mLumiByLS;
     bool mIsValidLumiBlock;
+
+    // Photon ID
+    PFIsolationEstimator mPFIsolator;
 
     bool mRedoTypeI;
     bool mDoJEC;
@@ -332,6 +340,9 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   }
 
   mDeltaPhi = fs->make<TH1F>("deltaPhi", "deltaPhi", 40, M_PI / 2., M_PI);
+
+  mPFIsolator.initializePhotonIsolation(true);
+  mPFIsolator.setConeSize(0.3);
 }
 
 
@@ -447,12 +458,14 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), pFlowRho); // For photon ID
 
   // Necesseray collection for calculate sigmaIPhiIPhi
+  /*
   edm::Handle<EcalRecHitCollection> recHits;
   iEvent.getByLabel(edm::InputTag("reducedEcalRecHitsEB"), recHits);
   const EcalRecHitCollection* pRecHits = (recHits.isValid()) ? recHits.product() : NULL;
 
   edm::ESHandle<CaloTopology> topology;
   iSetup.get<CaloTopologyRecord>().get(topology);
+  */
 
   edm::Handle<pat::PhotonCollection> photons;
   iEvent.getByLabel(mPhotonsIT, photons);
@@ -461,7 +474,8 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   pat::PhotonCollection::const_iterator it = photons->begin();
   for (; it != photons->end(); ++it) {
-    if (fabs(it->eta()) <= 1.3 && isValidPhotonEB(*it, *pFlowRho, pRecHits, *topology)) {
+    //if (fabs(it->eta()) <= 1.3 && isValidPhotonEB(*it, *pFlowRho, pRecHits, *topology)) {
+    if (fabs(it->eta()) <= 1.3 && isValidPhotonEB2012(*it, iEvent)) {
       photonsRef.push_back(*it);
     }
   }
@@ -891,6 +905,128 @@ bool GammaJetFilter::isValidJet(const pat::Jet& jet) {
   return false;
 }
 
+enum class IsolationType {
+  CHARGED_HADRONS,
+  NEUTRAL_HADRONS,
+  PHOTONS
+};
+
+float getEffectiveArea(float eta, IsolationType type) {
+  eta = fabs(eta);
+  switch (type) {
+    case IsolationType::CHARGED_HADRONS:
+      if (eta < 1.0)
+        return 0.012;
+      else if (eta < 1.479)
+        return 0.010;
+      else if (eta < 2.0)
+        return 0.014;
+      else if (eta < 2.2)
+        return 0.012;
+      else if (eta < 2.3)
+        return 0.016;
+      else if (eta < 2.4)
+        return 0.020;
+      else
+        return 0.012;
+      break;
+
+    case IsolationType::NEUTRAL_HADRONS:
+      if (eta < 1.0)
+        return 0.030;
+      else if (eta < 1.479)
+        return 0.057;
+      else if (eta < 2.0)
+        return 0.039;
+      else if (eta < 2.2)
+        return 0.015;
+      else if (eta < 2.3)
+        return 0.024;
+      else if (eta < 2.4)
+        return 0.039;
+      else
+        return 0.072;
+      break;
+
+    case IsolationType::PHOTONS:
+      if (eta < 1.0)
+        return 0.148;
+      else if (eta < 1.479)
+        return 0.130;
+      else if (eta < 2.0)
+        return 0.112;
+      else if (eta < 2.2)
+        return 0.216;
+      else if (eta < 2.3)
+        return 0.262;
+      else if (eta < 2.4)
+        return 0.260;
+      else
+        return 0.266;
+      break;
+  }
+
+  return -1;
+}
+
+double getCorrectedPFIsolation(double isolation, double rho, float eta, IsolationType type) {
+  float effectiveArea = getEffectiveArea(eta, type);
+
+  return std::max(isolation - rho * effectiveArea, 0.);
+}
+
+// See https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonID2012
+bool GammaJetFilter::isValidPhotonEB2012(const pat::Photon& photon, edm::Event& event) {
+  if (mIsMC && !photon.genPhoton())
+    return false;
+
+  // First, conversion safe electron veto
+  edm::Handle<reco::BeamSpot> bsHandle;
+  event.getByLabel("offlineBeamSpot", bsHandle);
+  const reco::BeamSpot &beamspot = *bsHandle;
+
+  edm::Handle<reco::ConversionCollection> hConversions;
+  event.getByLabel("allConversions", hConversions);
+
+  edm::Handle<reco::GsfElectronCollection> hElectrons;
+  event.getByLabel("gsfElectrons", hElectrons);
+
+  edm::Handle<reco::GsfElectronCoreCollection> hElectronsCore;
+  event.getByLabel("gsfElectronCores", hElectronsCore);
+
+  // On certain version of PAT tuples, "gstElectronCores" is missing. In this case, use the old "hasPixelSeed" method.
+  bool isValid = true;
+  if (hElectronsCore.isValid())
+    isValid = !ConversionTools::hasMatchedPromptElectron(photon.superCluster(), hElectrons, hConversions, beamspot.position());
+  else
+    isValid = !photon.hasPixelSeed();
+
+  isValid &= photon.hadTowOverEm() < 0.05;
+  isValid &= photon.sigmaIetaIeta() < 0.011;
+
+  if (! isValid)
+    return false;
+
+  edm::Handle<reco::PFCandidateCollection> hPFCandidates;
+  event.getByLabel("particleFlow", hPFCandidates);
+  const reco::PFCandidateCollection& pfCandidates = *hPFCandidates;
+
+  edm::Handle<reco::VertexCollection>  vertexCollection;
+  event.getByLabel("goodOfflinePrimaryVertices", vertexCollection);
+  reco::VertexRef vertexRef(vertexCollection, 0);
+
+  mPFIsolator.fGetIsolation(&photon, &pfCandidates, vertexRef, vertexCollection);
+
+  edm::Handle<double> rhos;
+  event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), rhos);
+  double rho = *rhos;
+
+  isValid &= getCorrectedPFIsolation(mPFIsolator.getIsolationCharged(), rho, photon.eta(), IsolationType::CHARGED_HADRONS) < (0.7);
+  isValid &= getCorrectedPFIsolation(mPFIsolator.getIsolationNeutral(), rho, photon.eta(), IsolationType::NEUTRAL_HADRONS) < (0.4 + 0.04 * photon.pt());
+  isValid &= getCorrectedPFIsolation(mPFIsolator.getIsolationPhoton(), rho, photon.eta(), IsolationType::PHOTONS) < (0.5 * 0.005 * photon.pt());
+
+  return isValid;
+}
 bool GammaJetFilter::isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology) {
   if (mIsMC && !photon.genPhoton())
     return false;

@@ -18,6 +18,11 @@ addpkg DataFormats/VertexReco               V02-00-04
 addpkg RecoParticleFlow/PFProducer          V15-01-11
 addpkg RecoVertex/AdaptiveVertexFinder      V02-02-06
 
+# Photon ID
+cvs co -r V00-00-21 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
+cvs up -r 1.13 EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h
+cvs up -r 1.20 EGamma/EGammaAnalysisTools/src/PFIsolationEstimator.cc
+
 cd JetMETCorrections
 git clone git://madalynn.eu/GammaJetFilter.git
 
