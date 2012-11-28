@@ -202,6 +202,21 @@ if runCHS:
 # This brings to life TcMET, Calo jets and Photons
 process.analysisSequence *= process.patDefaultSequence
 
+# Add our PhotonIsolationProducer to the analysisSequence. This producer compute pf isolations
+# for our photons
+process.photonPFIsolation = cms.EDProducer("PhotonIsolationProducer",
+    src = cms.InputTag("selectedPatPhotons")
+    )
+
+# Compute valuemap for photon isolation
+#process.load("EGamma.EGammaAnalysisTools.photonIsoProducer_cfi");
+#process.phoPFIso.photonTag = cms.InputTag("selectedPatPhotons")
+#process.phoPFIso.nameValueMapIsoCh = cms.string("chargedHadronsIsolation")
+#process.phoPFIso.nameValueMapIsoPh = cms.string("photonsIsolation")
+#process.phoPFIso.nameValueMapIsoNh = cms.string("neutralHadronsIsolation")
+
+process.analysisSequence += process.photonPFIsolation
+
 # Filtering
 
 # require physics declared
@@ -249,6 +264,7 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     'keep *_allConversions_*_*',
     'keep *_gsfElectrons_*_*',
     'keep *_gsfElectronCores_*_*',
+    'keep *_muons__*',
     # Content of *patEventContentNoCleaning
     'keep *_selectedPatPhotons*_*_*', 'keep *_selectedPatElectrons*_*_*', 'keep *_selectedPatMuons*_*_*', 'keep *_selectedPatTaus*_*_*', 'keep *_selectedPatJets*_*_*', 'drop *_selectedPatJets_pfCandidates_*', 'drop *_*PF_caloTowers_*', 'drop *_*JPT_pfCandidates_*', 'drop *_*Calo_pfCandidates_*', 'keep *_patMETs*_*_*', 'keep *_selectedPatPFParticles*_*_*', 'keep *_selectedPatTrackCands*_*_*',
     'keep *_cleanPatPhotons*_*_*', 'keep *_cleanPatElectrons*_*_*', 'keep *_cleanPatMuons*_*_*', 'keep *_cleanPatTaus*_*_*',
@@ -267,7 +283,8 @@ process.out.outputCommands = cms.untracked.vstring('drop *',
     # Debug
     #'keep *_pf*_*_PAT'
     # Photon ID
-    'keep *_patConversions*_*_*'
+    'keep *_patConversions*_*_*',
+    'keep *_photonPFIsolation*_*_*'
     )
 
 if runOnMC:
@@ -292,5 +309,5 @@ process.maxEvents.input = 2500
 #                                         ##
 process.out.fileName = 'patTuple_PF2PAT.root'
 #                                         ##
-#   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
+process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000

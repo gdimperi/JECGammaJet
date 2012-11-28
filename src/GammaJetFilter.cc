@@ -458,14 +458,12 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), pFlowRho); // For photon ID
 
   // Necesseray collection for calculate sigmaIPhiIPhi
-  /*
   edm::Handle<EcalRecHitCollection> recHits;
   iEvent.getByLabel(edm::InputTag("reducedEcalRecHitsEB"), recHits);
   const EcalRecHitCollection* pRecHits = (recHits.isValid()) ? recHits.product() : NULL;
 
   edm::ESHandle<CaloTopology> topology;
   iSetup.get<CaloTopologyRecord>().get(topology);
-  */
 
   edm::Handle<pat::PhotonCollection> photons;
   iEvent.getByLabel(mPhotonsIT, photons);
@@ -1007,6 +1005,12 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::Photon& photon, edm::Event& 
   if (! isValid)
     return false;
 
+  edm::Handle<double> rhos;
+  event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), rhos);
+  double rho = *rhos;
+
+  // Crash with a missing collection, but which ?!
+  
   edm::Handle<reco::PFCandidateCollection> hPFCandidates;
   event.getByLabel("particleFlow", hPFCandidates);
   const reco::PFCandidateCollection& pfCandidates = *hPFCandidates;
@@ -1017,13 +1021,15 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::Photon& photon, edm::Event& 
 
   mPFIsolator.fGetIsolation(&photon, &pfCandidates, vertexRef, vertexCollection);
 
-  edm::Handle<double> rhos;
-  event.getByLabel(edm::InputTag("kt6PFJets", "rho", "RECO"), rhos);
-  double rho = *rhos;
-
   isValid &= getCorrectedPFIsolation(mPFIsolator.getIsolationCharged(), rho, photon.eta(), IsolationType::CHARGED_HADRONS) < (0.7);
   isValid &= getCorrectedPFIsolation(mPFIsolator.getIsolationNeutral(), rho, photon.eta(), IsolationType::NEUTRAL_HADRONS) < (0.4 + 0.04 * photon.pt());
   isValid &= getCorrectedPFIsolation(mPFIsolator.getIsolationPhoton(), rho, photon.eta(), IsolationType::PHOTONS) < (0.5 * 0.005 * photon.pt());
+  
+  /*
+  isValid &= photon.trkSumPtHollowConeDR04() < (2.0 + 0.001 * photon.et() + 0.0167 * rho);
+  isValid &= photon.ecalRecHitSumEtConeDR04() < (4.2 + 0.006 * photon.et() + 0.183 * rho);
+  isValid &= photon.hcalTowerSumEtConeDR04() < (2.2 + 0.0025 * photon.et() + 0.062 * rho);
+  */
 
   return isValid;
 }
