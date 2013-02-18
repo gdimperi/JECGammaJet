@@ -20,7 +20,7 @@ output_file = patTuple_PF2PAT_MC.root
 
 [USER]
 
-eMail = sebastien.brochet@cern.ch
+eMail = @email@
 
 ui_working_dir = @uiworkingdir@
 
@@ -32,11 +32,6 @@ dbs_url_for_publication = https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02
 publish_data_name = @publish_data_name@
 
 storage_element = T3_FR_IPNL
-#storage_element = srm-cms.cern.ch
-#storage_path=/srm/managerv2?SFN=/castor/cern.ch
-
-#user_remote_dir = /user/s/sbrochet/JetMet/MC/Summer11/@outputdir@
-user_remote_dir = @outputdir@
 check_user_remote_dir = 0
 
 [GRID]
