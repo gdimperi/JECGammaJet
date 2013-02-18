@@ -14,9 +14,7 @@ addpkg FWCore/GuiBrowsers V00-00-70
 addpkg RecoParticleFlow/PFProducer V15-02-06
 
 # Photon ID
-cvs co -r V00-00-21 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
-cvs up -r 1.13 EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h
-cvs up -r 1.20 EGamma/EGammaAnalysisTools/src/PFIsolationEstimator.cc
+cvs co -r V00-00-30 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
 
 cd JetMETCorrections
 git clone git://madalynn.eu/GammaJetFilter.git

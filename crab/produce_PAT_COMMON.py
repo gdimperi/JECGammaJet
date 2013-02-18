@@ -204,13 +204,6 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       src = cms.InputTag("selectedPatPhotons")
       )
 
-  # Compute valuemap for photon isolation
-  #process.load("EGamma.EGammaAnalysisTools.photonIsoProducer_cfi");
-  #process.phoPFIso.photonTag = cms.InputTag("selectedPatPhotons")
-  #process.phoPFIso.nameValueMapIsoCh = cms.string("chargedHadronsIsolation")
-  #process.phoPFIso.nameValueMapIsoPh = cms.string("photonsIsolation")
-  #process.phoPFIso.nameValueMapIsoNh = cms.string("neutralHadronsIsolation")
-
   process.analysisSequence += process.photonPFIsolation
 
   # Filtering
@@ -258,12 +251,6 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       'keep double_kt6*Jets*_rho_*',
       'keep *_goodOfflinePrimaryVertices*_*_*',
       'keep recoPFCandidates_particleFlow_*_*',
-      # For 2012 PhotonID
-      'keep *_offlineBeamSpot_*_*',
-      'keep *_allConversions_*_*',
-      'keep *_gsfElectrons_*_*',
-      'keep *_gsfElectronCores_*_*',
-      'keep *_muons__*',
       # Content of *patEventContentNoCleaning
       'keep *_selectedPatPhotons*_*_*', 'keep *_selectedPatElectrons*_*_*', 'keep *_selectedPatMuons*_*_*', 'keep *_selectedPatTaus*_*_*', 'keep *_selectedPatJets*_*_*', 'drop *_selectedPatJets_pfCandidates_*', 'drop *_*PF_caloTowers_*', 'drop *_*JPT_pfCandidates_*', 'drop *_*Calo_pfCandidates_*', 'keep *_patMETs*_*_*', 'keep *_selectedPatPFParticles*_*_*', 'keep *_selectedPatTrackCands*_*_*',
       'keep *_cleanPatPhotons*_*_*', 'keep *_cleanPatElectrons*_*_*', 'keep *_cleanPatMuons*_*_*', 'keep *_cleanPatTaus*_*_*',
@@ -274,9 +261,6 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       # Type I residual
       'drop *_selectedPatJetsForMET*_*_PAT',
       'keep *_patPFMet*_*_PAT', # Keep raw met
-      # For Photon ID
-      'keep *_reducedEcalRecHitsEB_*_*',
-      'keep *_hybridSuperClusters_hybridBarrelBasicClusters_*',
       # Trigger
       'keep *_TriggerResults_*_HLT',
       # Debug

@@ -458,9 +458,12 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), pFlowRho); // For photon ID
 
   // Necesseray collection for calculate sigmaIPhiIPhi
+  // 2011 Photon ID
+  /*
   edm::Handle<EcalRecHitCollection> recHits;
   iEvent.getByLabel(edm::InputTag("reducedEcalRecHitsEB"), recHits);
   const EcalRecHitCollection* pRecHits = (recHits.isValid()) ? recHits.product() : NULL;
+  */
 
   edm::ESHandle<CaloTopology> topology;
   iSetup.get<CaloTopologyRecord>().get(topology);

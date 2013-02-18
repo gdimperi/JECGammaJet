@@ -84,9 +84,6 @@ void PhotonIsolationProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   edm::Handle<reco::GsfElectronCollection> hElectrons;
   iEvent.getByLabel("gsfElectrons", hElectrons);
 
-  edm::Handle<reco::GsfElectronCoreCollection> hElectronsCore;
-  iEvent.getByLabel("gsfElectronCores", hElectronsCore);
-
   edm::Handle<reco::PFCandidateCollection> hPFCandidates;
   iEvent.getByLabel("particleFlow", hPFCandidates);
   const reco::PFCandidateCollection& pfCandidates = *hPFCandidates;
@@ -94,6 +91,9 @@ void PhotonIsolationProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   edm::Handle<reco::VertexCollection>  vertexCollection;
   iEvent.getByLabel("goodOfflinePrimaryVertices", vertexCollection);
   reco::VertexRef vertexRef(vertexCollection, 0);
+
+  if (vertexCollection->empty())
+    return;
 
   std::vector<double> chIsoValues;
   std::vector<double> phIsoValues;
