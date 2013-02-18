@@ -15,6 +15,7 @@ if options.path is None or not os.path.isdir(options.path):
   parser.error("you must specify a valid path")
 
 crabFolders = [name for name in os.listdir(options.path) if os.path.isdir(os.path.join(options.path, name)) and name.startswith("crab_")]
+#crabFolders = [options.path]
 
 for crabFolder in crabFolders:
   dataset = crabFolder.replace("crab_", "")

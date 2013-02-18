@@ -1,137 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <triggers>
   <runs from="190450" to="193686"><!-- run 2012A, from 190456 to 193686 -->
-    <!--    <path>
-      <name>HLT_Photon20_.*</name>
-      <pt from="23" to="35" />
-    </path>-->
     <path>
       <name>HLT_Photon30_.*</name>
-      <pt from="35" to="58" />
+      <pt from="40" to="60" />
+      <weight value="0.0008246" />
     </path>
     <path>
       <name>HLT_Photon50_.*</name>
-      <pt from="58" to="87" />
-    </path>
-    <path>
-      <name>HLT_Photon75_.*</name>
-      <pt from="87" to="104" />
+      <pt from="60" to="95" />
+      <weight value="0.094927413" />
     </path>
     <path>
       <name>HLT_Photon90_.*</name>
-      <pt from="104" to="140" />
+      <pt from="95" to="155" />
+      <weight value="0.152963816" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
-      <pt from="140" to="8000" />
+      <pt from="155" to="8000" />
+      <weight value="0.98275075" />
     </path>
   </runs>
   <runs from="193752" to="200244"><!-- run 2012B, from 193752 to 196531 -->
-    <!--<path>
-      <name>HLT_Photon20_.*</name>
-      <pt from="23" to="35" />
-    </path>-->
     <path>
       <name>HLT_Photon30_.*</name>
-      <pt from="35" to="58" />
+      <pt from="40" to="60" />
+      <weight value="0.000258715" />
     </path>
     <path>
       <name>HLT_Photon50_.*</name>
-      <pt from="58" to="87" />
-    </path>
-    <path>
-      <name>HLT_Photon75_.*</name>
-      <pt from="87" to="104" />
+      <pt from="60" to="95" />
+      <weight value="0.012494442" />
     </path>
     <path>
       <name>HLT_Photon90_.*</name>
-      <pt from="104" to="140" />
+      <pt from="95" to="155" />
+      <weight value="0.090562432" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
-      <pt from="140" to="155" />
+      <pt from="155" to="180" />
+      <weight value="0.207923086" />
     </path>
     <path>
       <name>HLT_Photon150_.*</name>
-      <pt from="155" to="8000" />
+      <pt from="180" to="8000" />
+      <weight value="1." />
     </path>
   </runs>
   <runs from="200245" to="-1"><!-- run 2012C, from 200245 to ... -->
-    <!--<path>
-      <name>HLT_Photon20_.*</name>
-      <pt from="23" to="35" />
-    </path>-->
     <path>
       <name>HLT_Photon30_.*</name>
-      <pt from="35" to="58" />
+      <pt from="40" to="60" />
+      <weight value="0.000142958" />
     </path>
     <path>
       <name>HLT_Photon50_.*</name>
-      <pt from="58" to="87" />
-    </path>
-    <path>
-      <name>HLT_Photon75_.*</name>
-      <pt from="87" to="104" />
+      <pt from="60" to="95" />
+      <weight value="0.012502179" />
     </path>
     <path>
       <name>HLT_Photon90_.*</name>
-      <pt from="104" to="140" />
+      <pt from="95" to="155" />
+      <weight value="0.106944735" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
-      <pt from="140" to="8000" />
+      <pt from="155" to="8000" />
+      <weight value="1." />
     </path>
   </runs>
   <runs from="1" to="10"><!-- MC -->
-    <!--<path>
-      <name>HLT_Photon20_.*</name>
-      <pt from="23" to="35" />
-    </path>-->
     <path>
       <name>HLT_Photon30_.*</name>
-      <pt from="35" to="58" />
+      <pt from="40" to="60" />
+      <weight value="0.000293919674313261061" />
     </path>
     <path>
       <name>HLT_Photon50_.*</name>
-      <pt from="58" to="87" />
-    </path>
-    <path>
-      <name>HLT_Photon75_.*</name>
-      <pt from="87" to="104" />
+      <pt from="60" to="95" />
+      <weight value="0.0191198832448966939" />
     </path>
     <path>
       <name>HLT_Photon90_.*</name>
-      <pt from="104" to="140" />
+      <pt from="95" to="155" />
+      <weight value="0.10023421366933577" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
-      <pt from="140" to="155" />
+      <pt from="155" to="180" />
+      <weight value="0.51105018801594515" />
     </path>
     <path>
       <name>HLT_Photon150_.*</name>
-      <pt from="155" to="165" />
+      <pt from="180" to="210" />
+      <weight value="1." />
     </path>
     <path>
       <name>HLT_Photon160_.*</name>
-      <pt from="165" to="8000" />
+      <pt from="210" to="8000" />
+      <weight value="1." />
     </path>
-<!--    <path>
-      <name>HLT_Photon160_.*</name>
-      <pt from="165" to="305" />
-    </path>
--->
-<!--    <path>
-      <name>HLT_Photon250_.*</name>
-      <pt from="255" to="305" />
-    </path>
-    <path>
-      <name>HLT_Photon300_.*</name>
-      <pt from="305" to="8000" />
-    </path>
--->
-<!--    <path>
-      <name>HLT_Photon400_.*</name>
-      <pt from="405" to="8000" />
-    </path> -->
   </runs>
 </triggers>

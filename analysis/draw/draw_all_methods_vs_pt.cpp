@@ -250,12 +250,11 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   PtBinning ptBinning;
 
   std::vector<std::pair<float, float> > ptPhot_binning = ptBinning.getBinning();
-  float xMin = (resp_reso == "response") ? ptPhot_binning[1].first : ptPhot_binning[2].first;
-  //if( db->get_recoType()=="calo" ) xMin = ptPhot_binning[1];
-  //float xMax = ptPhot_binning[ ptPhot_binning.size()-3 ];
-  float xMax = (etaRegion == "eta013" && resp_reso == "response") ? ptPhot_binning[ptPhot_binning.size() - 2].first : ptPhot_binning[ptPhot_binning.size() - 3].first;
 
-  int markerSize = 2.;
+  float xMin = ptPhot_binning[3].first;
+  float xMax = ptPhot_binning[ptPhot_binning.size() - 2].second;
+
+  int markerSize = 1.85;
 
   /*std::string output = db->get_outputdir();
   TFile * outputFile = TFile::Open(TString::Format("%s/plots.root", output.c_str()).Data(), "update");

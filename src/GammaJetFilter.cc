@@ -981,7 +981,6 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::Photon& photon, edm::Event& 
   // First, conversion safe electron veto
   edm::Handle<reco::BeamSpot> bsHandle;
   event.getByLabel("offlineBeamSpot", bsHandle);
-  const reco::BeamSpot &beamspot = *bsHandle;
 
   edm::Handle<reco::ConversionCollection> hConversions;
   event.getByLabel("allConversions", hConversions);
@@ -992,12 +991,13 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::Photon& photon, edm::Event& 
   edm::Handle<reco::GsfElectronCoreCollection> hElectronsCore;
   event.getByLabel("gsfElectronCores", hElectronsCore);
 
-  // On certain version of PAT tuples, "gstElectronCores" is missing. In this case, use the old "hasPixelSeed" method.
   bool isValid = true;
-  if (hElectronsCore.isValid())
+  if (bsHandle.isValid() && hConversions.isValid() && hElectrons.isValid() && hElectronsCore.isValid()) {
+    const reco::BeamSpot &beamspot = *bsHandle;
     isValid = !ConversionTools::hasMatchedPromptElectron(photon.superCluster(), hElectrons, hConversions, beamspot.position());
-  else
-    isValid = !photon.hasPixelSeed();
+  } else {
+    return false;
+  }
 
   isValid &= photon.hadTowOverEm() < 0.05;
   isValid &= photon.sigmaIetaIeta() < 0.011;

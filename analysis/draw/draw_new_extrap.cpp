@@ -36,35 +36,38 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, const std::string& method,
   TF1* data_fct = nullptr;
   TF1* mc_fct = nullptr;
   if (method == "Balancing") {
-    data_fct = new TF1("data_fct", "[0] - x*x*[1]");
+    data_fct = new TF1("data_fct", "[0] - x*x*[1]", 0, 1);
     data_fct->SetLineColor(dataMarkerColor);
     data_fct->SetLineWidth(1);
     data_fct->SetLineStyle(2);
 
-    data->Fit(data_fct, "Q");
+    data->Fit(data_fct, "RQN");
 
-    mc_fct = new TF1("mc_fct", "[0] - x*x*[1]");
+    mc_fct = new TF1("mc_fct", "[0] - x*x*[1]", 0, 1);
     mc_fct->SetLineColor(mcMarkerColor);
     mc_fct->SetLineWidth(1);
     mc_fct->SetLineStyle(2);
 
-    mc->Fit(mc_fct, "Q");
+    mc->Fit(mc_fct, "RQN");
   } else {
-    data_fct = new TF1("data_fct", "[0] + x*[1]");
+    data_fct = new TF1("data_fct", "[0] + x*[1]", 0, 1);
     data_fct->SetLineColor(dataMarkerColor);
     data_fct->SetLineWidth(1);
     data_fct->SetLineStyle(2);
 
-    data->Fit(data_fct, "Q");
+    data->Fit(data_fct, "RQN");
 
-    mc_fct = new TF1("mc_fct", "[0] + x*[1]");
+    mc_fct = new TF1("mc_fct", "[0] + x*[1]", 0, 1);
     mc_fct->SetLineColor(mcMarkerColor);
     mc_fct->SetLineWidth(1);
     mc_fct->SetLineStyle(2);
 
-    mc->Fit(mc_fct, "Q");
+    mc->Fit(mc_fct, "RQN");
 
   }
+
+  data_fct->SetRange(0, 1);
+  mc_fct->SetRange(0, 1);
 
   TMultiGraph* mg = new TMultiGraph();
   mg->Add(data);
@@ -77,6 +80,10 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, const std::string& method,
 
   mg->Draw("ap");
 
+  data_fct->Draw("same");
+  mc_fct->Draw("same");
+
+
   TLegend* legend = new TLegend(0.18, 0.18, 0.55, 0.35);
   legend->SetTextFont(42);
   legend->SetFillColor(kWhite);
@@ -84,7 +91,9 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, const std::string& method,
   legend->SetTextSize(0.035);
   legend->SetBorderSize(1);
 
-  legend->SetHeader(legendTitle.c_str());
+  TString legendTitleWithPtCut = TString::Format("%s, p_{T}^{#gamma} #geq 170 GeV", legendTitle.c_str());
+
+  legend->SetHeader(legendTitleWithPtCut);
   legend->AddEntry(data, TString::Format("%s (data)", method.c_str()), "p");
   legend->AddEntry(mc, TString::Format("%s (MC)", method.c_str()), "p");
   legend->Draw();
@@ -129,33 +138,33 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
   mpfMC->SetMarkerColor(46);
   mpfMC->SetLineColor(46);
 
-  TF1* balancingData_fct = new TF1("balancingData_fct", "[0] - x*x*[1]");
+  TF1* balancingData_fct = new TF1("balancingData_fct", "[0] - x*x*[1]", 0, 1);
   balancingData_fct->SetLineColor(kBlack);
   balancingData_fct->SetLineWidth(1);
   balancingData_fct->SetLineStyle(2);
 
-  balancingData->Fit(balancingData_fct, "Q");
+  balancingData->Fit(balancingData_fct, "QRN");
 
-  TF1* balancingMC_fct = new TF1("mc_fct", "[0] - x*x*[1]");
+  TF1* balancingMC_fct = new TF1("mc_fct", "[0] - x*x*[1]", 0, 1);
   balancingMC_fct->SetLineColor(kBlue);
   balancingMC_fct->SetLineWidth(1);
   balancingMC_fct->SetLineStyle(2);
 
-  balancingMC->Fit(balancingMC_fct, "Q");
+  balancingMC->Fit(balancingMC_fct, "QRN");
 
-  TF1* mpfData_fct = new TF1("mpfData_fct", "[0] + x*[1]");
+  TF1* mpfData_fct = new TF1("mpfData_fct", "[0] + x*[1]", 0, 1);
   mpfData_fct->SetLineColor(kRed);
   mpfData_fct->SetLineWidth(1);
   mpfData_fct->SetLineStyle(2);
 
-  mpfData->Fit(mpfData_fct, "Q");
+  mpfData->Fit(mpfData_fct, "QRN");
 
-  TF1* mpfMC_fct = new TF1("mc_fct", "[0] + x*[1]");
+  TF1* mpfMC_fct = new TF1("mc_fct", "[0] + x*[1]", 0, 1);
   mpfMC_fct->SetLineColor(46);
   mpfMC_fct->SetLineWidth(1);
   mpfMC_fct->SetLineStyle(2);
 
-  mpfMC->Fit(mpfMC_fct, "Q");
+  mpfMC->Fit(mpfMC_fct, "QRN");
 
   TMultiGraph* mg = new TMultiGraph();
   mg->Add(balancingData);
@@ -170,6 +179,16 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
 
   mg->Draw("ap");
 
+  balancingData_fct->SetRange(0, 1);
+  balancingMC_fct->SetRange(0, 1);
+  mpfData_fct->SetRange(0, 1);
+  mpfMC_fct->SetRange(0, 1);
+
+  balancingData_fct->Draw("same");
+  balancingMC_fct->Draw("same");
+  mpfData_fct->Draw("same");
+  mpfMC_fct->Draw("same");
+
   TLegend* legend = new TLegend(0.18, 0.18, 0.55, 0.45);
   legend->SetTextFont(42);
   legend->SetFillColor(kWhite);
@@ -177,7 +196,9 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
   legend->SetTextSize(0.035);
   legend->SetBorderSize(1);
 
-  legend->SetHeader(legendTitle.c_str());
+  TString legendTitleWithPtCut = TString::Format("%s, p_{T}^{#gamma} #geq 170 GeV", legendTitle.c_str());
+
+  legend->SetHeader(legendTitleWithPtCut);
   legend->AddEntry(balancingData, "Balancing (data)", "p");
   legend->AddEntry(balancingMC, "Balancing (MC)", "p");
   legend->AddEntry(mpfData, "MPF (data)", "p");
@@ -215,20 +236,20 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
   mpf_ratio->SetLineColor(kRed);
   mpf_ratio->SetMarkerStyle(20);
 
-  TF1* balancingRatio_fct = new TF1("balancingRatio_fct", "[0] - x*x*[1]");
+  TF1* balancingRatio_fct = new TF1("balancingRatio_fct", "[0] + x*[1]", 0, 1);
   balancingRatio_fct->SetLineColor(kBlue);
   balancingRatio_fct->SetLineWidth(1);
   balancingRatio_fct->SetLineStyle(2);
 
-  balancing_ratio->Fit(balancingRatio_fct, "Q");
+  balancing_ratio->Fit(balancingRatio_fct, "QRN");
   TString balancing_ratio_legend = TString::Format("#color[4]{#splitline{#scale[1.2]{r = %.03f #pm %.03f}}{#scale[0.8]{#chi^{2} / NDF: %.02f / %d}}}", balancingRatio_fct->GetParameter(0), balancingRatio_fct->GetParError(0), balancingRatio_fct->GetChisquare(), balancingRatio_fct->GetNDF());
 
-  TF1* mpfRatio_fct = new TF1("mpfRatio_fct", "[0] + x*[1]");
+  TF1* mpfRatio_fct = new TF1("mpfRatio_fct", "[0] + x*[1]", 0, 1);
   mpfRatio_fct->SetLineColor(kRed);
   mpfRatio_fct->SetLineWidth(1);
   mpfRatio_fct->SetLineStyle(2);
 
-  mpf_ratio->Fit(mpfRatio_fct, "Q");
+  mpf_ratio->Fit(mpfRatio_fct, "QRN");
   TString mpf_ratio_legend = TString::Format("#color[2]{#splitline{#scale[1.2]{r = %.03f #pm %.03f}}{#scale[0.8]{#chi^{2} / NDF: %.02f / %d}}}", mpfRatio_fct->GetParameter(0), mpfRatio_fct->GetParError(0), mpfRatio_fct->GetChisquare(), mpfRatio_fct->GetNDF());
 
   TMultiGraph* mg2 = new TMultiGraph();
@@ -242,6 +263,12 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
 
   mg2->Draw("ap");
 
+  balancingRatio_fct->SetRange(0, 1);
+  mpfRatio_fct->SetRange(0, 1);
+
+  balancingRatio_fct->Draw("same");
+  mpfRatio_fct->Draw("same");
+
   legend = new TLegend(0.18, 0.18, 0.50, 0.35);
   legend->SetTextFont(42);
   legend->SetFillColor(kWhite);
@@ -249,7 +276,7 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
   legend->SetTextSize(0.035);
   legend->SetBorderSize(1);
 
-  legend->SetHeader(legendTitle.c_str());
+  legend->SetHeader(legendTitleWithPtCut);
   legend->AddEntry(balancing_ratio, "Balancing", "p");
   legend->AddEntry(mpf_ratio, "MPF", "p");
   legend->Draw();
@@ -403,6 +430,40 @@ int main(int argc, char* argv[]) {
     drawGraphs(data, mc, "MPF", "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response (raw #slashed{E_{t}})", etaBinning.getBinTitle(i), lumi, outputName.Data());
   }
   // Special case eta < 1.3
+  {
+    const std::string& etaName = "eta013";
+    std::cout << "Processing " << etaName << std::endl;
+    
+    TString responseName = TString::Format("%s/extrap_resp_balancing_%s_graph", rootFolder.Data(), etaName.c_str());
+    TString outputName = TString::Format("%s/extrap_resp_balancing_%s.pdf", directoryName.Data(), etaName.c_str());
+    TGraphErrors* data = (TGraphErrors*) dataFile->Get(responseName);
+    TGraphErrors* mc = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    drawGraphs(data, mc, "Balancing", "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response", "#eta #leq 1.3", lumi, outputName.Data());
+
+    // Raw jets
+    responseName = TString::Format("%s/extrap_resp_balancing_raw_%s_graph", rootFolder.Data(), etaName.c_str());
+    outputName = TString::Format("%s/extrap_resp_balancing_raw_%s.pdf", directoryName.Data(), etaName.c_str());
+    data = (TGraphErrors*) dataFile->Get(responseName);
+    mc = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    drawGraphs(data, mc, "Balancing", "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response (raw jets)", "#eta #leq 1.3", lumi, outputName.Data());
+
+    responseName = TString::Format("%s/extrap_resp_mpf_%s_graph", rootFolder.Data(), etaName.c_str());
+    outputName = TString::Format("%s/extrap_resp_mpf_%s.pdf", directoryName.Data(), etaName.c_str());
+    data = (TGraphErrors*) dataFile->Get(responseName);
+    mc = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    drawGraphs(data, mc, "MPF", "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response", "#eta #leq 1.3", lumi, outputName.Data());
+
+    // Raw jets
+    responseName = TString::Format("%s/extrap_resp_mpf_raw_%s_graph", rootFolder.Data(), etaName.c_str());
+    outputName = TString::Format("%s/extrap_resp_mpf_raw_%s.pdf", directoryName.Data(), etaName.c_str());
+    data = (TGraphErrors*) dataFile->Get(responseName);
+    mc = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    drawGraphs(data, mc, "MPF", "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response (raw #slashed{E_{t}})", "#eta #leq 1.3", lumi, outputName.Data());
+  }
 
   //db->set_legendTitle("|#eta| < 1.3");
   //db->drawHisto_vs_pt(ptBins, "resp_mpf_eta013", "MPF Response", "", "Events", log);
@@ -434,6 +495,34 @@ int main(int argc, char* argv[]) {
 
     drawCombinedGraphs(balancingData, balancingMC, mpfData, mpfMC, "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response (raw objects)", etaBinning.getBinTitle(i), lumi, outputName.Data());
 
+  }
+
+  // Eta < 1.3
+  {
+    const std::string& etaName = "eta013";
+    std::cout << "Processing " << etaName << std::endl;
+    
+    TString responseName = TString::Format("%s/extrap_resp_balancing_%s_graph", rootFolder.Data(), etaName.c_str());
+    TString outputName = TString::Format("%s/extrap_resp_combined_%s", directoryName.Data(), etaName.c_str());
+    TGraphErrors* balancingData = (TGraphErrors*) dataFile->Get(responseName);
+    TGraphErrors* balancingMC = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    responseName = TString::Format("%s/extrap_resp_mpf_%s_graph", rootFolder.Data(), etaName.c_str());
+    TGraphErrors* mpfData = (TGraphErrors*) dataFile->Get(responseName);
+    TGraphErrors* mpfMC = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    drawCombinedGraphs(balancingData, balancingMC, mpfData, mpfMC, "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response", "#eta #leq 1.3", lumi, outputName.Data());
+
+    responseName = TString::Format("%s/extrap_resp_balancing_raw_%s_graph", rootFolder.Data(), etaName.c_str());
+    outputName = TString::Format("%s/extrap_resp_combined_raw_%s", directoryName.Data(), etaName.c_str());
+    balancingData = (TGraphErrors*) dataFile->Get(responseName);
+    balancingMC = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    responseName = TString::Format("%s/extrap_resp_mpf_raw_%s_graph", rootFolder.Data(), etaName.c_str());
+    mpfData = (TGraphErrors*) dataFile->Get(responseName);
+    mpfMC = (TGraphErrors*) mcPhotonJetFile->Get(responseName);
+
+    drawCombinedGraphs(balancingData, balancingMC, mpfData, mpfMC, "p_{t}^{2^{nd} jet} / p_{t}^{#gamma}", "Jet response (raw objects)", "#eta #leq 1.3", lumi, outputName.Data());
   }
 
   return 0;

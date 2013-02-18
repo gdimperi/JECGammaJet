@@ -260,7 +260,7 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
   TPaveText* fitlabel = new TPaveText(0.55, 0.77, 0.88, 0.83, "brNDC");
   fitlabel->SetTextSize(0.08);
   fitlabel->SetFillColor(0);
-  TString fitLabelText = TString::Format("Fit: %.3f #pm %.3f", fitValue, fitError);
+  TString fitLabelText = TString::Format("Fit: %.4f #pm %.4f", fitValue, fitError);
   fitlabel->AddText(fitLabelText);
 
   if (showErrors)
@@ -424,8 +424,8 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   PtBinning ptBinning;
 
   std::vector<std::pair<float, float> > ptPhot_binning = ptBinning.getBinning();
-  float xMin = ptPhot_binning[2].first;
-  float xMax = ptPhot_binning[ptPhot_binning.size() - 2].first;
+  float xMin = ptPhot_binning[0].first;
+  float xMax = ptPhot_binning[ptPhot_binning.size() - 1].second;
 
   int markerSize = 2.;
 

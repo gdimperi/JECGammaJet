@@ -4,13 +4,14 @@
 
 enum class PUProfile : uint8_t {
   S6,
-  S7
+  S7,
+  S10
 };
 
 class PUReweighter {
   public:
     PUReweighter(const std::string& dataFile, const std::string& mcFile);
-    PUReweighter(const std::string& dataFile, PUProfile profile = PUProfile::S7);
+    PUReweighter(const std::string& dataFile, PUProfile profile = PUProfile::S10);
 
     ~PUReweighter() {
       delete puHisto;

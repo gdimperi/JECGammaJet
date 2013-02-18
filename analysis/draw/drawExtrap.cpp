@@ -299,7 +299,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   TFile* graphFile = new TFile(graphFileName.c_str(), "recreate");
   graphFile->cd();
 
-  for (uint32_t iPtBin = 0; iPtBin < (ptPhot_binning.size() - 2); //-3 instead of -1 (extrap reaches up to ~2 less bins in pt wrt balancing)
+  for (uint32_t iPtBin = 0; iPtBin < (ptPhot_binning.size() - 1); //-3 instead of -1 (extrap reaches up to ~2 less bins in pt wrt balancing)
        ++iPtBin) {
 
     std::pair<float, float> currentBin = mPtBinning.getBinValue(iPtBin);
@@ -1100,7 +1100,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     sprintf(canvasName_resp_eps, "%s/response%s_%s_ptPhot_%d_%d.eps", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
     sprintf(canvasName_resp_png, "%s/response%s_%s_ptPhot_%d_%d.png", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
 
-    if (OUTPUT_GRAPHS || ptMin == 150) {
+    if (OUTPUT_GRAPHS || ptMin == 155) {
       c1_resp->SaveAs(canvasName_resp_eps);
       c1_resp->SaveAs(canvasName_resp_png);
     }
@@ -1159,7 +1159,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     sprintf(canvasName_resp_eps, "%s/response%s%s_%s_ptPhot_%d_%d.eps", get_outputdir().c_str(), MPF.c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
     sprintf(canvasName_resp_png, "%s/response%s%s_%s_ptPhot_%d_%d.png", get_outputdir().c_str(), MPF.c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
 
-    if (OUTPUT_GRAPHS || ptMin == 150) {
+    if (OUTPUT_GRAPHS || ptMin == 155) {
       c1_resp->SaveAs(canvasName_resp_eps);
       c1_resp->SaveAs(canvasName_resp_png);
     }
@@ -1338,7 +1338,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
 
   gr_mcRatio->Draw("Psame");
 
-  if (OUTPUT_GRAPHS || ptMin == 150) {
+  if (OUTPUT_GRAPHS || ptMin == 155) {
     sprintf(canvasName_resp_eps, "%s/dataMC_ratio_%s_%s_ptPhot_%d_%d.pdf", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
     c1_resp->SaveAs(canvasName_resp_eps);
   }
@@ -1773,7 +1773,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   std::string canvasName_reso_str(canvasName_reso);
   std::string canvasName_reso_eps = canvasName_reso_str + ".eps";
   std::string canvasName_reso_png = canvasName_reso_str + ".png";
-  if (OUTPUT_GRAPHS || ptMin == 150) {
+  if (OUTPUT_GRAPHS || ptMin == 155) {
     c1_reso->SaveAs(canvasName_reso_eps.c_str());
     c1_reso->SaveAs(canvasName_reso_png.c_str());
   }
@@ -1835,7 +1835,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   canvasName_reso_str = canvasName_reso;
   canvasName_reso_eps = canvasName_reso_str + ".eps";
   canvasName_reso_png = canvasName_reso_str + ".png";
-  if (OUTPUT_GRAPHS || ptMin == 150) {
+  if (OUTPUT_GRAPHS || ptMin == 155) {
     c1_reso->SaveAs(canvasName_reso_eps.c_str());
     c1_reso->SaveAs(canvasName_reso_png.c_str());
   }
@@ -1957,7 +1957,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
 
   gr_mcRatioReso->Draw("Psame");
 
-  if (OUTPUT_GRAPHS || ptMin == 150) {
+  if (OUTPUT_GRAPHS || ptMin == 155) {
     char output_name[500];
     sprintf(output_name, "%s/reso_dataMC_ratio_%s_%s_ptPhot_%d_%d.pdf", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
     std::cout << output_name << std::endl;

@@ -45,7 +45,7 @@
 
 #define ADD_TREES false
 
-#define DELTAPHI_CUT (M_PI - 1)
+#define DELTAPHI_CUT (2.8)
 
 #define TRIGGER_OK                    0
 #define TRIGGER_NOT_FOUND            -1
@@ -267,11 +267,11 @@ void GammaJetFinalizer::runAnalysis() {
   TH1F* h_nvertex = analysisDir.make<TH1F>("nvertex", "nvertex", 50, 0., 50.);
   TH1F* h_nvertex_reweighted = analysisDir.make<TH1F>("nvertex_reweighted", "nvertex_reweighted", 50, 0., 50.);
 
-  TH1F* h_deltaPhi = analysisDir.make<TH1F>("deltaPhi", "deltaPhi", 60, M_PI / 2., M_PI);
+  TH1F* h_deltaPhi = analysisDir.make<TH1F>("deltaPhi", "deltaPhi", 60, 2.8, M_PI);
   TH1F* h_deltaPhi_2ndJet = analysisDir.make<TH1F>("deltaPhi_2ndjet", "deltaPhi of 2nd jet", 60, M_PI / 2., M_PI);
   TH1F* h_ptPhoton = analysisDir.make<TH1F>("ptPhoton", "ptPhoton", 200, 5., 1000.);
 
-  TH1F* h_deltaPhi_passedID = analysisDir.make<TH1F>("deltaPhi_passedID", "deltaPhi", 60, M_PI / 2., M_PI);
+  TH1F* h_deltaPhi_passedID = analysisDir.make<TH1F>("deltaPhi_passedID", "deltaPhi", 60, 2.8, M_PI);
   TH1F* h_ptPhoton_passedID = analysisDir.make<TH1F>("ptPhoton_passedID", "ptPhoton", 200, 5., 1000.);
   TH1F* h_ptFirstJet_passedID = analysisDir.make<TH1F>("ptFirstJet_passedID", "ptFirstJet", 200, 5., 1000.);
   TH1F* h_ptSecondJet_passedID = analysisDir.make<TH1F>("ptSecondJet_passedID", "ptSecondJet", 60, 0., 100.);
@@ -468,7 +468,8 @@ void GammaJetFinalizer::runAnalysis() {
 
     int checkTriggerResult = 0;
     std::string passedTrigger;
-    if ((checkTriggerResult = checkTrigger(passedTrigger)) != TRIGGER_OK) {
+    float triggerWeight = 1.;
+    if ((checkTriggerResult = checkTrigger(passedTrigger, triggerWeight)) != TRIGGER_OK) {
       switch (checkTriggerResult) {
         case TRIGGER_NOT_FOUND:
           if (mVerbose) {
@@ -516,18 +517,41 @@ void GammaJetFinalizer::runAnalysis() {
     if (mIsMC) {
       passedTrigger = cleanTriggerName(passedTrigger);
       computePUWeight(passedTrigger);
+    } else {
+      triggerWeight = 1.;
     }
+
+    triggerWeight = 1.;
 
     double generatorWeight = (mIsMC) ? analysis.generator_weight : 1.;
     if (generatorWeight == 0.)
       generatorWeight = 1.;
 
+    /*
+    //FIXME. Recompute event weight
+    if (genPhoton.pt >= 50 && genPhoton.pt <= 80) {
+      analysis.event_weight = 1.665266042e-3;
+    } else if (genPhoton.pt >= 80 && genPhoton.pt <= 120) {
+      analysis.event_weight = 2.801761193e-4;
+    } else if (genPhoton.pt >= 120 && genPhoton.pt <= 170) {
+      analysis.event_weight = 5.400223895e-5;
+    } else if (genPhoton.pt >= 170 && genPhoton.pt <= 300) {
+      analysis.event_weight = 1.506051541e-5;
+    } else if (genPhoton.pt >= 300 && genPhoton.pt <= 470) {
+      analysis.event_weight = 1.069246499e-6; 
+    } else if (genPhoton.pt >= 470 && genPhoton.pt <= 800) {
+      analysis.event_weight = 1.072909447e-7;
+    } else if (genPhoton.pt >= 800 && genPhoton.pt <= 1400) {
+      analysis.event_weight = 3.586436612e-9;
+    }
+    */
+
+    //analysis.event_weight = 1.069246499e-6; 
+    
     double eventWeight = (mIsMC) ? mPUWeight * analysis.event_weight * generatorWeight : 1.;
 #if ADD_TREES
     analysis.event_weight = eventWeight;
 #endif
-
-    //TODO: On-the-fly JEC
 
     // Event selection
     // The photon is good from previous step
@@ -537,6 +561,9 @@ void GammaJetFinalizer::runAnalysis() {
     if (! isBack2Back) {
       continue;
     }
+
+    if (firstJet.pt < 12)
+      continue;
 
     bool secondJetOK = !secondJet.is_present || (secondJet.pt < 5. || secondJet.pt < mAlphaCut * photon.pt);
 
@@ -552,7 +579,7 @@ void GammaJetFinalizer::runAnalysis() {
     double deltaPhi_2ndJet = fabs(reco::deltaPhi(secondJet.phi, photon.phi));
     h_deltaPhi->Fill(deltaPhi, eventWeight);
     h_deltaPhi_2ndJet->Fill(deltaPhi_2ndJet, eventWeight); 
-    h_ptPhoton->Fill(photon.pt, eventWeight);
+    h_ptPhoton->Fill(photon.pt, eventWeight * triggerWeight);
 
     // Dump to Tree
     /*photonToTree(photon);
@@ -677,6 +704,10 @@ void GammaJetFinalizer::runAnalysis() {
       // New extrapolation
       do {
 
+        // Cut on photon pt. The first two bins are too low stats for beeing usefull
+        if (photon.pt < 165)
+          break;
+
         float r_RecoPhot = firstJet.pt / photon.pt;
         float r_RecoPhotRaw = firstRawJet.pt / photon.pt;
         float alpha = secondJet.pt / photon.pt;
@@ -723,7 +754,7 @@ void GammaJetFinalizer::runAnalysis() {
 
       do {
         h_deltaPhi_passedID->Fill(deltaPhi, eventWeight);
-        h_ptPhoton_passedID->Fill(photon.pt, eventWeight);
+        h_ptPhoton_passedID->Fill(photon.pt, eventWeight * triggerWeight);
         h_ptFirstJet_passedID->Fill(firstJet.pt, eventWeight);
         h_ptSecondJet_passedID->Fill(secondJet.pt, eventWeight);
         h_MET_passedID->Fill(MET.et, eventWeight);
@@ -922,7 +953,8 @@ void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger) {
   static std::string cmsswBase = getenv("CMSSW_BASE");
   static std::string puPrefix = TString::Format("%s/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting", cmsswBase.c_str()).Data();
   static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
-  std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_750bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
+  std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_75bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
+  //std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_75bins.root", puPrefix.c_str()).Data();
 
   if (mNoPUReweighting)
     return;
@@ -972,29 +1004,64 @@ void GammaJetFinalizer::checkInputFiles() {
   }
 }
 
-int GammaJetFinalizer::checkTrigger(std::string& passedTrigger) {
+int GammaJetFinalizer::checkTrigger(std::string& passedTrigger, float& weight) {
 
   const PathVector& mandatoryTriggers = mTriggers.getTriggers(analysis.run);
 
-  size_t size = analysis.trigger_names->size();
-  for (int i = size - 1; i >= 0; i--) {
-    bool passed = analysis.trigger_results->at(i);
-    if (! passed)
-      continue;
+  // Method 2:
+  // - With the photon p_t, find the trigger it should pass
+  // - Then, look on trigger list if it pass it or not (only for data)
 
-    for (const PathData& mandatoryTrigger: mandatoryTriggers) {
-      if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger.first)) {
-        // The requested trigger is here and triggered, check pt range
-        passedTrigger = mandatoryTrigger.first.str();
-        if (mIsMC) {
-          return TRIGGER_OK;
-        } else {
-          const Range<float>& ptRange = mandatoryTrigger.second;
-          return ptRange.in(photon.pt) ? TRIGGER_OK : TRIGGER_FOUND_BUT_PT_OUT;
-        }
+  //if (! mIsMC) {
+
+    const PathData* mandatoryTrigger = nullptr;
+    for (auto& path: mandatoryTriggers) {
+      if (path.second.range.in(photon.pt)) {
+        mandatoryTrigger = &path;
       }
     }
-  }
+
+    if (!mandatoryTrigger)
+      return TRIGGER_NOT_FOUND;
+
+    weight = mandatoryTrigger->second.weight;
+
+    if (mIsMC) {
+      passedTrigger = mandatoryTrigger->first.str();
+      return TRIGGER_OK;
+    }
+
+    // This photon must pass mandatoryTrigger.first
+    size_t size = analysis.trigger_names->size();
+    for (int i = size - 1; i >= 0; i--) {
+      bool passed = analysis.trigger_results->at(i);
+      if (! passed)
+        continue;
+
+      if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger->first)) {
+        passedTrigger = mandatoryTrigger->first.str();
+        return TRIGGER_OK;
+      }
+    }
+
+  //} else {
+
+    //// Method 1
+    //size_t size = analysis.trigger_names->size();
+    //for (int i = size - 1; i >= 0; i--) {
+      //bool passed = analysis.trigger_results->at(i);
+      //if (! passed)
+        //continue;
+
+      //for (const PathData& mandatoryTrigger: mandatoryTriggers) {
+        //if (boost::regex_match(analysis.trigger_names->at(i), mandatoryTrigger.first)) {
+          //passedTrigger = mandatoryTrigger.first.str();
+          //weight = mandatoryTrigger.second.weight;
+          //return TRIGGER_OK;
+        //}
+      //}
+    //}
+  //}
 
   return TRIGGER_NOT_FOUND;
 }

@@ -45,6 +45,11 @@ class Range {
     T mTo;
 };
 
+struct Trigger {
+  Range<float> range;
+  float weight;
+};
+
 template<typename T>
 std::ostream& operator<<(std::ostream& stream, const Range<T>& range)
 {
@@ -53,7 +58,7 @@ std::ostream& operator<<(std::ostream& stream, const Range<T>& range)
   return stream;
 }
 
-typedef std::pair<boost::regex, Range<float>> PathData;
+typedef std::pair<boost::regex, Trigger> PathData;
 typedef std::vector<PathData> PathVector;
 
 class Triggers {

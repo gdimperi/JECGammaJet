@@ -38,8 +38,8 @@ class PtBinning {
     }
 
     std::vector<std::pair<float, float> > getBinning(unsigned int from, unsigned int to) const {
-      if (from + to >= size()) {
-        to = size() - from;
+      if (to > size()) {
+        to = size();
       }
 
       return std::vector<std::pair<float, float> >(mPtBins.begin() + from, mPtBins.begin() + to);
@@ -49,17 +49,21 @@ class PtBinning {
     std::vector<std::pair<float, float> > mPtBins;
 
     void fillPtBins() {
-      mPtBins.push_back(std::make_pair(15., 22.));
-      mPtBins.push_back(std::make_pair(22., 32.));
-      mPtBins.push_back(std::make_pair(32., 53.));
-      mPtBins.push_back(std::make_pair(53., 80.));
-      mPtBins.push_back(std::make_pair(80., 100.));
-      mPtBins.push_back(std::make_pair(100., 150.));
-      mPtBins.push_back(std::make_pair(150., 220.));
-      mPtBins.push_back(std::make_pair(220., 320.));
-      mPtBins.push_back(std::make_pair(320., 470.));
-      mPtBins.push_back(std::make_pair(470., 3500.));
-      mPtBins.push_back(std::make_pair(3500., 10000.));
+      mPtBins.push_back(std::make_pair(40., 50.));
+      mPtBins.push_back(std::make_pair(50., 60.));
+      mPtBins.push_back(std::make_pair(60., 75.));
+      mPtBins.push_back(std::make_pair(75., 95.));
+      mPtBins.push_back(std::make_pair(95., 125.));
+      mPtBins.push_back(std::make_pair(125., 155.));
+      mPtBins.push_back(std::make_pair(155., 180.));
+      mPtBins.push_back(std::make_pair(180., 210.));
+      mPtBins.push_back(std::make_pair(210., 250.));
+      mPtBins.push_back(std::make_pair(250., 300.));
+      mPtBins.push_back(std::make_pair(300., 350.));
+      mPtBins.push_back(std::make_pair(350., 400.));
+      mPtBins.push_back(std::make_pair(400., 500.));
+      mPtBins.push_back(std::make_pair(500., 600.));
+      mPtBins.push_back(std::make_pair(600., 800.));
     }
 
 };

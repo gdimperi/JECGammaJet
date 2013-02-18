@@ -74,9 +74,11 @@ int main(int argc, char* argv[]) {
   }
 
   TFile* dataFile = TFile::Open(dataFileName);
-  std::cout << "Opened data file '" << dataFileName << "'." << std::endl;
 
-  db->add_dataFile(dataFile, data_dataset);
+  if (dataFile) {
+    std::cout << "Opened data file '" << dataFileName << "'." << std::endl;
+    db->add_dataFile(dataFile, data_dataset);
+  }
 
   TString mc1FileName;
   if (flags.length() > 0) {
@@ -108,8 +110,14 @@ int main(int argc, char* argv[]) {
 
   // MC should already be normalized to a lumi of 1 pb-1
   // Read luminosity
-  TParameter<double>* lumi = static_cast<TParameter<double>*>(dataFile->Get("analysis/luminosity"));
-  db->set_lumi(lumi->GetVal() * 1e-6);
+  double dLumi = 1e6;
+  if (dataFile) {
+    TParameter<double>* lumi = static_cast<TParameter<double>*>(dataFile->Get("analysis/luminosity"));
+    dLumi = lumi->GetVal();
+  }
+
+  db->set_lumi(dLumi * 1e-6);
+  //db->set_lumi(3000);
   if (norm == "LUMI") {
     db->set_lumiNormalization();
   } else {
@@ -147,7 +155,7 @@ int main(int argc, char* argv[]) {
   db->setOutputGraphs(OUTPUT_GRAPHS);
 
   PtBinning ptBinning;
-  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning(2, ptBinning.size() - 1);
+  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning();
 
   EtaBinning etaBinning;
   size_t etaBinningSize = etaBinning.size();

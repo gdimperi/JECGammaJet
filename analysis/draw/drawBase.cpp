@@ -238,22 +238,11 @@ drawBase::~drawBase() {
 void drawBase::set_lumiNormalization(float givenLumi) {
 
   if (givenLumi == -1.) {
-
-    if (dataFiles_.size() == 0) {
-      std::cout << "Data/MC files not properly initialized. Cannot compute scale factor. Exiting." << std::endl;
-      exit(132);
-    }
-
-    //scaleFactor_ = lumi_/1000000.; //eventweights are set so that histos are number of expected evets @ 1 pb-1. lumi is in mub-1
     scaleFactor_ = lumi_; //eventweights are set so that histos are number of expected evets @ 1 pb-1. lumi is now also in pb-1
-
   } else {
-
     scaleFactor_ = givenLumi; //this is set to normalize MC histograms to a given int luminosity (if plotted with no data)
     lumi_ = givenLumi; //givenlumi is in pb-1
-
   }
-
 }
 
 void drawBase::set_shapeNormalization() {

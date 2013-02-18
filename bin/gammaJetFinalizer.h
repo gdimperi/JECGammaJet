@@ -124,7 +124,7 @@ class GammaJetFinalizer
     void doSecondJetExtrapolation();
 
     //bool passTrigger(const TRegexp& regexp) const;
-    int checkTrigger(std::string& passedTrigger);
+    int checkTrigger(std::string& passedTrigger, float& weight);
 
     std::string cleanTriggerName(const std::string& trigger);
     void computePUWeight(const std::string& passedTrigger);

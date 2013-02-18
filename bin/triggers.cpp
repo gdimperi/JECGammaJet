@@ -39,7 +39,13 @@ bool Triggers::parseRunsElement(const XMLElement* runs) {
     const XMLElement* pt = paths->FirstChildElement("pt");
 
     Range<float> ptRange(pt->FloatAttribute("from"), pt->FloatAttribute("to"));
-    runPaths.push_back(std::make_pair(boost::regex(name, boost::regex_constants::icase), ptRange));
+
+    const XMLElement* weightElement = paths->FirstChildElement("weight");
+    float weight = weightElement->FloatAttribute("value");
+
+    Trigger t { ptRange, weight };
+
+    runPaths.push_back(std::make_pair(boost::regex(name, boost::regex_constants::icase), t));
   }
 
   mTriggers[runRange] = runPaths;
@@ -106,7 +112,7 @@ void Triggers::print() {
 
     std::cout << "Runs: " << runRange << std::endl;
     for (auto& path: paths) {
-      std::cout << path.first << " -> " << path.second << std::endl;
+      std::cout << path.first << " -> " << path.second.range << "; weight: " << path.second.weight << std::endl;
     }
   }
 }
