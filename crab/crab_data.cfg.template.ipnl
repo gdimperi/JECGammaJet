@@ -1,0 +1,44 @@
+[CRAB]
+jobtype = cmssw
+scheduler = remoteGlideIn
+use_server = 0
+
+[CMSSW]
+
+datasetpath = @datasetname@
+
+pset = produce_PAT_DATA.py
+pycfg_params = globalTag=@globaltag@
+
+lumi_mask = @lumi_mask@
+@runselection@
+
+total_number_of_lumis = -1
+
+### Number of events to be processed per job
+lumis_per_job = 80
+
+### The output files produced by your application (comma separated list)
+output_file = patTuple_PF2PAT.root
+
+[USER]
+
+eMail = @email@
+
+ui_working_dir = @uiworkingdir@
+
+return_data = 0
+copy_data = 1
+
+storage_element = T3_FR_IPNL
+
+check_user_remote_dir = 0
+
+publish_data = 1
+dbs_url_for_publication = https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet
+publish_data_name = @publish_data_name@
+
+[GRID]
+rb = CERN
+virtual_organization = cms
+#ce_white_list=T3_FR_IPNL
