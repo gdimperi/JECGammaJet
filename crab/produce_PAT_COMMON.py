@@ -22,6 +22,15 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
 
   from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
 
+  ## The good primary vertex filter ____________________________________________||
+  ## This filter throw events with no primary vertex
+  process.primaryVertexFilter = cms.EDFilter(
+      "VertexSelector",
+      src = cms.InputTag("offlinePrimaryVertices"),
+      cut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.Rho <= 2"),
+      filter = cms.bool(True)
+      )
+
   process.goodOfflinePrimaryVertices = cms.EDFilter("PrimaryVertexObjectFilter",
       filterParams = pvSelector.clone( minNdof = cms.double(4.0), maxZ = cms.double(24.0) ),
       src = cms.InputTag('offlinePrimaryVertices')
@@ -96,6 +105,18 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     # ... And for PAT
     adaptPFIsoElectrons(process, getattr(process, "pfElectrons" + p), p, "03")
 
+
+    # Setup quark gluon tagger
+    #process.load('QuarkGluonTagger.EightTeV.QGTagger_RecoJets_cff')
+    #cloneProcessingSnippet(process, process.QuarkGluonTagger, p)
+    #getattr(process, "QGTagger" + p).srcJets = cms.InputTag("selectedPatJets" + p)
+    #getattr(process, "QGTagger" + p).isPatJet = cms.untracked.bool(True)
+    #getattr(process, "QGTagger" + p).useCHS = cms.untracked.bool(usePFNoPU)
+
+    ## Remove the processing of primary vertices, as it's already what we do here
+    #getattr(process, 'QGTagger' + p).srcPV = cms.InputTag('goodOfflinePrimaryVertices')
+    #getattr(process, 'QuarkGluonTagger' + p).remove(getattr(process, 'goodOfflinePrimaryVerticesQG' + p))
+
     if not runOnMC:
       if 'L2L3Residual' in jetCorrections:
         getattr(process, 'patPFJetMETtype1p2Corr' + p).jetCorrLabel = 'L2L3Residual'
@@ -110,6 +131,9 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     adaptPVs(process, pvCollection = cms.InputTag("goodOfflinePrimaryVertices"), postfix = p)
 
     getattr(process, "patDefaultSequence" + p).replace(getattr(process, "selectedPatElectrons" + p), getattr(process, "selectedPatElectrons" + p) + getattr(process, "patConversions" + p))
+
+    #getattr(process, "patDefaultSequence" + p).replace(getattr(process, "selectedPatJets" + p), getattr(process, "selectedPatJets" + p) + getattr(process, "QuarkGluonTagger" + p))
+
     return getattr(process, "patPF2PATSequence" + p)
 
   if correctMETWithT1:
@@ -126,6 +150,9 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   #postfixes = {'PFlowAK5': 'AK5', 'PFlowAK7': 'AK7'}
   postfixes = {'PFlowAK5': 'AK5'}
 
+  # Setup quark gluon tagger
+  process.load('QuarkGluonTagger.EightTeV.QGTagger_RecoJets_cff')
+
   process.sequence_chs = cms.Sequence()
   process.sequence_nochs = cms.Sequence()
   for p, algo in postfixes.items():
@@ -133,7 +160,22 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     if runCHS:
       process.sequence_chs   += usePF2PATForAnalysis(jetAlgo=algo, postfix=p, usePFNoPU=True, useTypeIMET=correctMETWithT1)
 
-  #processCaloJets = False
+    setattr(process, 'QGTagger' + p, process.QGTagger.clone())
+    getattr(process, "QGTagger" + p).srcJets = cms.InputTag("selectedPatJets" + p)
+    getattr(process, "QGTagger" + p).isPatJet = cms.untracked.bool(True)
+    getattr(process, "QGTagger" + p).useCHS = cms.untracked.bool(False)
+
+    process.QuarkGluonTagger.replace(process.QGTagger, getattr(process, 'QGTagger' + p))
+
+    if runCHS:
+      chsP = p + "chs"
+
+      setattr(process, 'QGTagger' + chsP, process.QGTagger.clone())
+      getattr(process, "QGTagger" + chsP).srcJets = cms.InputTag("selectedPatJets" + chsP)
+      getattr(process, "QGTagger" + chsP).isPatJet = cms.untracked.bool(True)
+      getattr(process, "QGTagger" + chsP).useCHS = cms.untracked.bool(True)
+
+      process.QuarkGluonTagger.replace(getattr(process, 'QGTagger' + p), getattr(process, 'QGTagger' + p) + getattr(process, 'QGTagger' + chsP))
 
   print "##########################"
   print "Calo jets" if processCaloJets else "No processing of calo jets"
@@ -194,6 +236,9 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   if runCHS:
     process.analysisSequence *= process.sequence_chs
 
+  # Quark Gluon tagging
+  process.analysisSequence *= process.QuarkGluonTagger
+
   # Add default pat sequence to our path
   # This brings to life TcMET, Calo jets and Photons
   process.analysisSequence *= process.patDefaultSequence
@@ -204,7 +249,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       src = cms.InputTag("selectedPatPhotons")
       )
 
-  process.analysisSequence += process.photonPFIsolation
+  process.analysisSequence *= process.photonPFIsolation
 
   # Filtering
 
@@ -217,14 +262,40 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       applyfilter = cms.untracked.bool(True),
       debugOn = cms.untracked.bool(False),
       numtrack = cms.untracked.uint32(10),
-      thresh = cms.untracked.double(0.2)
+      thresh = cms.untracked.double(0.25)
       )
 
-  # HB + HE noise filtering
-  process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
-  process.HBHENoiseFilter.minIsolatedNoiseSumE        = 999999.
-  process.HBHENoiseFilter.minNumIsolatedNoiseChannels = 999999
-  process.HBHENoiseFilter.minIsolatedNoiseSumEt       = 999999
+  ## The iso-based HBHE noise filter ___________________________________________||
+  process.load('CommonTools.RecoAlgos.HBHENoiseFilter_cfi')
+
+  ## The CSC beam halo tight filter ____________________________________________||
+  process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
+
+  ## The HCAL laser filter _____________________________________________________||
+  process.load("RecoMET.METFilters.hcalLaserEventFilter_cfi")
+
+  ## The ECAL dead cell trigger primitive filter _______________________________||
+  process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
+
+  ## The EE bad SuperCrystal filter ____________________________________________||
+  process.load('RecoMET.METFilters.eeBadScFilter_cfi')
+
+  ## The ECAL laser correction filter
+  process.load('RecoMET.METFilters.ecalLaserCorrFilter_cfi')
+
+  ## The Good vertices collection needed by the tracking failure filter ________||
+  process.goodVertices = cms.EDFilter(
+      "VertexSelector",
+      filter = cms.bool(False),
+      src = cms.InputTag("offlinePrimaryVertices"),
+      cut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.rho < 2")
+      )
+
+  ## The tracking failure filter _______________________________________________||
+  process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+
+  ## The tracking POG filters __________________________________________________||
+  process.load('RecoMET.METFilters.trackingPOGFilters_cff')
 
   # Count events
   process.nEventsTotal    = cms.EDProducer("EventCountProducer")
@@ -233,10 +304,24 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   # Let it run
   process.p = cms.Path(
       process.nEventsTotal +
+
+      # Filters
+      process.primaryVertexFilter +
       process.scrapingVeto +
-      process.goodOfflinePrimaryVertices +
       process.HBHENoiseFilter +
+      process.CSCTightHaloFilter +
+      process.hcalLaserEventFilter +
+      process.EcalDeadCellTriggerPrimitiveFilter +
+      process.goodVertices + process.trackingFailureFilter +
+      process.eeBadScFilter +
+      process.ecalLaserCorrFilter +
+      process.trkPOGFilters +
+
+      process.goodOfflinePrimaryVertices +
+
+      # Physics
       process.analysisSequence +
+
       process.nEventsFiltered
       )
 
@@ -249,7 +334,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   process.out.outputCommands = cms.untracked.vstring('drop *',
       'keep *_photonCore_*_*',
       'keep double_kt6*Jets*_rho_*',
-      'keep *_goodOfflinePrimaryVertices*_*_*',
+      'keep *_goodOfflinePrimaryVertices_*_*',
       'keep recoPFCandidates_particleFlow_*_*',
       # Content of *patEventContentNoCleaning
       'keep *_selectedPatPhotons*_*_*', 'keep *_selectedPatElectrons*_*_*', 'keep *_selectedPatMuons*_*_*', 'keep *_selectedPatTaus*_*_*', 'keep *_selectedPatJets*_*_*', 'drop *_selectedPatJets_pfCandidates_*', 'drop *_*PF_caloTowers_*', 'drop *_*JPT_pfCandidates_*', 'drop *_*Calo_pfCandidates_*', 'keep *_patMETs*_*_*', 'keep *_selectedPatPFParticles*_*_*', 'keep *_selectedPatTrackCands*_*_*',
@@ -267,7 +352,13 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       #'keep *_pf*_*_PAT'
       # Photon ID
       'keep *_patConversions*_*_*',
-      'keep *_photonPFIsolation*_*_*'
+      'keep *_photonPFIsolation*_*_*',
+      # Quark Gluon tagging
+      'keep *_QGTagger*_*_*',
+      'drop *_kt6PFJetsIsoQG_*_PAT',
+      'drop *_kt6PFJetsQG_*_PAT',
+      # MC truth
+      'keep *_genParticles_*_*'
       )
 
   if runOnMC:
@@ -291,6 +382,9 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
   #                                         ##
   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
-  process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+  process.MessageLogger.cerr.FwkReport.reportEvery = 1
+
+  # Remove annoying ecalLaser messages
+  process.MessageLogger.suppressError = cms.untracked.vstring ('ecalLaserCorrFilter')
 
   return process

@@ -6,7 +6,7 @@ cmsrel CMSSW_5_3_7_patch4
 cd CMSSW_5_3_7_patch4/src/
 cmsenv
 
-ddpkg DataFormats/PatCandidates V06-05-06-06
+addpkg DataFormats/PatCandidates V06-05-06-06
 addpkg PhysicsTools/PatAlgos     V08-09-52
 addpkg DataFormats/StdDictionaries V00-02-14
 addpkg FWCore/GuiBrowsers V00-00-70
@@ -15,6 +15,18 @@ addpkg RecoParticleFlow/PFProducer V15-02-06
 
 # Photon ID
 cvs co -r V00-00-30 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
+
+# Quark / Gluon tagging
+cvs co -r v1-2-3 -d QuarkGluonTagger/EightTeV UserCode/tomc/QuarkGluonTagger/EightTeV
+
+# Filters
+
+cvs co -r V00-00-13 RecoMET/METFilters
+cvs co -r V00-00-08 RecoMET/METAnalyzers
+cvs co -r V01-00-11-01 DPGAnalysis/Skims
+cvs co -r V00-11-17 DPGAnalysis/SiStripTools
+cvs co -r V00-00-08 DataFormats/TrackerCommon
+cvs co -r V01-09-05 RecoLocalTracker/SubCollectionProducers
 
 cd JetMETCorrections
 git clone git://madalynn.eu/GammaJetFilter.git
