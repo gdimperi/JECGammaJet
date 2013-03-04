@@ -43,7 +43,7 @@
 #define MAKE_RED "\033[31m"
 #define MAKE_BLUE "\033[34m"
 
-#define ADD_TREES false
+#define ADD_TREES true
 
 #define DELTAPHI_CUT (2.8)
 
@@ -109,6 +109,9 @@ void GammaJetFinalizer::runAnalysis() {
 
   const std::string postFix = buildPostfix();
 
+#if ADD_TREES
+  TChain genParticlesChain("gammaJet/gen_particles");
+#endif
   TChain analysisChain("gammaJet/analysis");
   TChain photonChain("gammaJet/photon");
   TChain genPhotonChain("gammaJet/photon_gen");
@@ -139,6 +142,9 @@ void GammaJetFinalizer::runAnalysis() {
   treeName = TString::Format("gammaJet/%s/misc", postFix.c_str());
   TChain miscChain(treeName);
 
+#if ADD_TREES
+  loadFiles(genParticlesChain);
+#endif
   loadFiles(analysisChain);
   loadFiles(photonChain);
   loadFiles(genPhotonChain);
@@ -158,6 +164,10 @@ void GammaJetFinalizer::runAnalysis() {
   loadFiles(rawMetChain);
 
   loadFiles(miscChain);
+
+#if ADD_TREES
+  genParticles.Init(&genParticlesChain);
+#endif
 
   analysis.Init(&analysisChain);
   photon.Init(&photonChain);
@@ -207,6 +217,9 @@ void GammaJetFinalizer::runAnalysis() {
   fwlite::TFileService fs(outputFile);
 
 #if ADD_TREES
+  TTree* genParticlesTree = NULL;
+  cloneTree(genParticles.fChain, genParticlesTree);
+
   TTree* photonTree = NULL;
   cloneTree(photon.fChain, photonTree);
 
@@ -536,27 +549,6 @@ void GammaJetFinalizer::runAnalysis() {
     double generatorWeight = (mIsMC) ? analysis.generator_weight : 1.;
     if (generatorWeight == 0.)
       generatorWeight = 1.;
-
-    /*
-    //FIXME. Recompute event weight
-    if (genPhoton.pt >= 50 && genPhoton.pt <= 80) {
-      analysis.event_weight = 1.665266042e-3;
-    } else if (genPhoton.pt >= 80 && genPhoton.pt <= 120) {
-      analysis.event_weight = 2.801761193e-4;
-    } else if (genPhoton.pt >= 120 && genPhoton.pt <= 170) {
-      analysis.event_weight = 5.400223895e-5;
-    } else if (genPhoton.pt >= 170 && genPhoton.pt <= 300) {
-      analysis.event_weight = 1.506051541e-5;
-    } else if (genPhoton.pt >= 300 && genPhoton.pt <= 470) {
-      analysis.event_weight = 1.069246499e-6; 
-    } else if (genPhoton.pt >= 470 && genPhoton.pt <= 800) {
-      analysis.event_weight = 1.072909447e-7;
-    } else if (genPhoton.pt >= 800 && genPhoton.pt <= 1400) {
-      analysis.event_weight = 3.586436612e-9;
-    }
-    */
-
-    //analysis.event_weight = 1.069246499e-6; 
     
     double eventWeight = (mIsMC) ? mPUWeight * analysis.event_weight * generatorWeight : 1.;
 #if ADD_TREES
@@ -745,6 +737,7 @@ void GammaJetFinalizer::runAnalysis() {
 
 #if ADD_TREES
     if (mUncutTrees) {
+      genParticlesTree->Fill();
       photonTree->Fill();
       genPhotonTree->Fill();
       firstJetTree->Fill();
@@ -820,6 +813,7 @@ void GammaJetFinalizer::runAnalysis() {
 
 #if ADD_TREES
       if (! mUncutTrees) {
+        genParticlesTree->Fill();
         photonTree->Fill();
         genPhotonTree->Fill();
         firstJetTree->Fill();

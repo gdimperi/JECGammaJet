@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Tree/GenParticlesTree.h"
 #include "Tree/AnalysisTree.h"
 #include "Tree/PhotonTree.h"
 #include "Tree/LeptonTree.h"
@@ -146,6 +147,7 @@ class GammaJetFinalizer
     std::string buildPostfix();
 
     // Datas from step 2
+    GenParticlesTree genParticles;
     AnalysisTree analysis;
     PhotonTree photon;
     GenTree genPhoton;
