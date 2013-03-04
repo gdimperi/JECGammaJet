@@ -10,7 +10,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
-process.GlobalTag.globaltag = cms.string("START53_V11::All")
+process.GlobalTag.globaltag = cms.string("START53_V7G::All")
 
 process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
 
@@ -24,16 +24,12 @@ process.ak5PFchsL1FastL2L3 = cms.ESProducer(
     correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute')
     )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(2000) )
 
 from FWCore.ParameterSet.VarParsing import VarParsing
-maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 readFiles = cms.untracked.vstring(
-    #"/store/user/sbrochet/G_Pt-30to50_TuneZ2_7TeV_pythia6/JetMet_PF2PAT_01apr_Fall11/5105f901d1c8d136e9eaa25f22cecd3a/patTuple_PF2PAT_MC_54_3_zYV.root"
-    "file:patTuple_PF2PAT_MC.root"
-    #"/store/user/sbrochet/G_Pt-170to300_TuneZ2_7TeV_pythia6/JetMet_PF2PAT_01apr_Fall11/5105f901d1c8d136e9eaa25f22cecd3a/patTuple_PF2PAT_MC_55_1_S8q.root"
-    #"/store/user/sbrochet/G_Pt-15to3000_TuneZ2_Flat_8TeV_pythia6/JetMet_PF2PAT_2012_27May_Summer12/fbe304f4e69d87969ac8d25e6b0621a8/patTuple_PF2PAT_MC_46_1_l65.root"
-    #"/store/user/sbrochet/G_Pt-470to800_TuneZ2star_8TeV_pythia6/JetMet_PF2PAT_START53_2012_27October2012_Summer12/60bf5f0ffd8e31ffea124a94be5aad95/patTuple_PF2PAT_MC_71_1_SU2.root"
+    #"file:patTuple_PF2PAT_MC.root"
+    "/store/user/sbrochet/G_Pt-30to50_TuneZ2star_8TeV_pythia6/G_Pt-30to50_START53_V7A_22Feb13-v1/31346b79deb97ac1b786d692cd650a21/patTuple_PF2PAT_MC_6_3_XDO.root"
     )
 process.source = cms.Source ("PoolSource", fileNames = readFiles)
 
