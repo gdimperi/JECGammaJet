@@ -382,7 +382,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
   #                                         ##
   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
-  process.MessageLogger.cerr.FwkReport.reportEvery = 1
+  process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
   # Remove annoying ecalLaser messages
   process.MessageLogger.suppressError = cms.untracked.vstring ('ecalLaserCorrFilter')

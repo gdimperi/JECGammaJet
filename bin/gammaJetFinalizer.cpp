@@ -169,9 +169,19 @@ void GammaJetFinalizer::runAnalysis() {
   firstRawJet.Init(&firstRawJetChain);
   firstGenJet.Init(&firstGenJetChain);
 
+#if !ADD_TREES
+  firstJet.DisableUnrelatedBranches();
+  firstRawJet.DisableUnrelatedBranches();
+#endif
+
   secondJet.Init(&secondJetChain);
   secondRawJet.Init(&secondRawJetChain);
   secondGenJet.Init(&secondGenJetChain);
+
+#if !ADD_TREES
+  secondJet.DisableUnrelatedBranches();
+  secondRawJet.DisableUnrelatedBranches();
+#endif
 
   MET.Init(&metChain);
   genMET.Init(&genMetChain);
