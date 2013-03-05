@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# Launch crab for every datasets in mc_signal_datasets.list
 
 import os, shutil, subprocess
 from optparse import OptionParser
@@ -14,14 +13,13 @@ parser.add_option("-p", "--path", dest="path", type="string", help="where to sto
 if options.path is None or not os.path.isdir(options.path):
   parser.error("you must specify a valid path")
 
-crabFolders = [name for name in os.listdir(options.path) if os.path.isdir(os.path.join(options.path, name)) and name.startswith("crab_")]
-#crabFolders = [options.path]
+crabFolders = [name for name in os.listdir(options.path) if os.path.isdir(os.path.join(options.path, name)) and name.startswith("crab_MC_")]
 
 for crabFolder in crabFolders:
-  dataset = crabFolder.replace("crab_", "")
+  dataset = crabFolder.rstrip("/").replace("crab_MC_", "")
   print("Processing %s" % dataset)
-  outputName = "PhotonJet_2ndLevel_%s.root" % dataset
-  fullPath = "%s/%s" % (options.path, crabFolder)
+  outputName = "PhotonJet_2ndLevel_%s.root" % (dataset)
+  fullPath = "%s" % (crabFolder)
   if os.path.exists(outputName):
     print("'%s' already exists. Skipping." % outputName)
     continue
@@ -39,4 +37,3 @@ for crabFolder in crabFolders:
     singleLineFiles = "%s%s " % (singleLineFiles, f)
 
   os.system("hadd %s %s" % (outputName, singleLineFiles))
-  #print("hadd %s %s" % (outputName, singleLineFiles))
