@@ -36,30 +36,39 @@ process.source = cms.Source ("PoolSource", fileNames = readFiles)
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing()
 
-options.register ('datasetName',
+options.register ('processedEvents',
 				  '',
 				  VarParsing.multiplicity.singleton,
-				  VarParsing.varType.string,
-				  "The dataset currently processed. A folder named 'datasetName' must exists")
+				  VarParsing.varType.int,
+				  "The number of processed events")
+
+options.register ('crossSection',
+				  '',
+				  VarParsing.multiplicity.singleton,
+				  VarParsing.varType.float,
+				  "Dataset cross section")
+
+options.register ('lowPtHat',
+				  '',
+				  VarParsing.multiplicity.singleton,
+				  VarParsing.varType.float,
+				  "Min. generated pt (-1 if the sample is unbinned)")
+
+options.register ('highPtHat',
+				  '',
+				  VarParsing.multiplicity.singleton,
+				  VarParsing.varType.float,
+				  "Max. generated pt (-1 if the sample is unbinned)")
 
 options.parseArguments()
 
-# Extract number of generated events, cross section, and pt hat
-if os.path.exists(options.datasetName): 
-  file = os.path.join(options.datasetName, "xsection");
-  f = open(file, "r");
-  (generatedEvents, crossSection, ptHatMax, ptHatMin) = f.read().split()
-  f.close()
-else:
-  raise IOError("A folder named '%s' must exists", options.datasetName)
-
-generatedEvents = int(generatedEvents)
-crossSection = float(crossSection)
-ptHatMax = float(ptHatMax)
-ptHatMin = float(ptHatMin)
+processedEvents = int(options.processedEvents) if isinstance(options.processedEvents, int) and int(options.processedEvents) != 0 else 1
+crossSection = float(options.crossSection) if isinstance(options.crossSection, float) and float(options.crossSection) != 0 else 1
+ptHatMin = options.lowPtHat if isinstance(options.lowPtHat, float) else -1
+ptHatMax = options.highPtHat if isinstance(options.highPtHat, float) else -1
 
 print("Running on sample with:")
-print("\tNumber of generated events: %d" % generatedEvents)
+print("\tNumber of processed events: %d" % processedEvents)
 print("\tCross-section: %f" % crossSection)
 print("\tPt hat min: %f" % ptHatMin)
 print("\tPt hat max: %f" % ptHatMax)
@@ -70,7 +79,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     firstJetPtCut = cms.untracked.bool(False),
 
     crossSection = cms.double(crossSection),
-    generatedEvents = cms.uint64(int(generatedEvents)),
+    generatedEvents = cms.uint64(processedEvents),
     ptHatMin = cms.untracked.double(ptHatMin),
     ptHatMax = cms.untracked.double(ptHatMax),
 

@@ -10,8 +10,6 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
-process.GlobalTag.globaltag = cms.string("GR_R_53_V14::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
-
 process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
 
 # Do some CHS stuff
@@ -29,9 +27,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        #'file:patTuple_PF2PAT.root'
-        #'/store/user/sbrochet/Photon/JetMet_PF2PAT_Run2012A_PromptReco_09June/292d73a6795d0a493723b2d3a624156c/patTuple_PF2PAT_84_2_tpP.root'        
-        '/store/user/sbrochet/SinglePhoton/JetMet_PF2PAT_Run2012C_PromptReco_v1_14August2012/6eb44b0773a87f5608d57e6dc7821956/patTuple_PF2PAT_3_1_rpC.root'
+      #'/store/user/sbrochet/Photon/Photon_Run2012A-recover-06Aug2012_18Feb13-v1/298629d7efe53cfa022ca63c838ed612/patTuple_PF2PAT_16_1_Z3z.root'
+      'file:patTuple_PF2PAT.root'
     )
 )
 
@@ -39,12 +36,22 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing()
 
 options.register ('datasetName',
-				  '',
-				  VarParsing.multiplicity.singleton,
-				  VarParsing.varType.string,
-				  "The dataset currently processed. A folder named 'datasetName' must exists")
+    '',
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "The dataset currently processed. A folder named 'datasetName' must exists")
+
+options.register ('globalTag',
+    '',
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "The globaltag to use")
 
 options.parseArguments()
+if len(options.globalTag) == 0:
+  raise Exception("You _must_ pass a globalTag options to this script. Use --help for more informations")
+
+process.GlobalTag.globaltag = cms.string("%s::All" % options.globalTag) ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
 
 fullPath = os.path.join(os.getcwd(), options.datasetName)
 
@@ -78,25 +85,8 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
 
 process.p = cms.Path(process.gammaJet)
 
-#process.out = cms.OutputModule("PoolOutputModule",
-#    fileName = cms.untracked.string("output.root"),
-#    SelectEvents = cms.untracked.PSet(
-#      SelectEvents = cms.vstring('p')
-#      )
-#    )
-
-#process.out.outputCommands = cms.untracked.vstring('keep *',
-#    'drop *_selectedPatJets*_*_*',
-#    'drop *_selectedPatPhotons*_*_*',
-#    #'keep *_selectedPatJets*_genJets_*',
-#    'keep *_selectedPatJets*_caloTowers_*',
-#    # Drop CHS
-#    'drop *_*chs*_*_*'
-#)
-
 process.TFileService = cms.Service("TFileService",
      fileName = cms.string("output.root")
      )
 
-#process.out.fileName = 'patTuple_cleaned.root'
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
