@@ -143,7 +143,8 @@ void GammaJetFinalizer::runAnalysis() {
   TChain miscChain(treeName);
 
 #if ADD_TREES
-  loadFiles(genParticlesChain);
+  if (mIsMC)
+    loadFiles(genParticlesChain);
 #endif
   loadFiles(analysisChain);
   loadFiles(photonChain);
@@ -166,7 +167,8 @@ void GammaJetFinalizer::runAnalysis() {
   loadFiles(miscChain);
 
 #if ADD_TREES
-  genParticles.Init(&genParticlesChain);
+  if (mIsMC)
+    genParticles.Init(&genParticlesChain);
 #endif
 
   analysis.Init(&analysisChain);
@@ -218,7 +220,8 @@ void GammaJetFinalizer::runAnalysis() {
 
 #if ADD_TREES
   TTree* genParticlesTree = NULL;
-  cloneTree(genParticles.fChain, genParticlesTree);
+  if (mIsMC)
+    cloneTree(genParticles.fChain, genParticlesTree);
 
   TTree* photonTree = NULL;
   cloneTree(photon.fChain, photonTree);
@@ -555,6 +558,26 @@ void GammaJetFinalizer::runAnalysis() {
     analysis.event_weight = eventWeight;
 #endif
 
+#if ADD_TREES
+    if (mUncutTrees) {
+      if (genParticlesTree)
+        genParticlesTree->Fill();
+      photonTree->Fill();
+      genPhotonTree->Fill();
+      firstJetTree->Fill();
+      firstGenJetTree->Fill();
+      firstRawJetTree->Fill();
+      secondJetTree->Fill();
+      secondGenJetTree->Fill();
+      secondRawJetTree->Fill();
+      metTree->Fill();
+      electronsTree->Fill();
+      muonsTree->Fill();
+      analysisTree->Fill();
+    }
+#endif
+
+
     // Event selection
     // The photon is good from previous step
     // From previous step, we have fabs(deltaPhi(photon, firstJet)) > PI/2
@@ -564,8 +587,10 @@ void GammaJetFinalizer::runAnalysis() {
       continue;
     }
 
+    /*
     if (firstJet.pt < 12)
       continue;
+    */
 
     bool secondJetOK = !secondJet.is_present || (secondJet.pt < 5. || secondJet.pt < mAlphaCut * photon.pt);
 
@@ -735,24 +760,6 @@ void GammaJetFinalizer::runAnalysis() {
       } while (false);
     }
 
-#if ADD_TREES
-    if (mUncutTrees) {
-      genParticlesTree->Fill();
-      photonTree->Fill();
-      genPhotonTree->Fill();
-      firstJetTree->Fill();
-      firstGenJetTree->Fill();
-      firstRawJetTree->Fill();
-      secondJetTree->Fill();
-      secondGenJetTree->Fill();
-      secondRawJetTree->Fill();
-      metTree->Fill();
-      electronsTree->Fill();
-      muonsTree->Fill();
-      analysisTree->Fill();
-    }
-#endif
-
     if (secondJetOK) {
 
       do {
@@ -813,7 +820,8 @@ void GammaJetFinalizer::runAnalysis() {
 
 #if ADD_TREES
       if (! mUncutTrees) {
-        genParticlesTree->Fill();
+        if (genParticlesTree)
+          genParticlesTree->Fill();
         photonTree->Fill();
         genPhotonTree->Fill();
         firstJetTree->Fill();
