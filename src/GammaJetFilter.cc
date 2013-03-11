@@ -668,11 +668,13 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel("selectedPatMuonsPFlowAK5chs", muons);
   muonsToTree(muons, primaryVertex);
 
-  // Gen particles
-  edm::Handle<reco::GenParticleCollection> genParticles;
-  iEvent.getByLabel("genParticles", genParticles);
-  genParticlesToTree(genParticles);
-
+  if (mIsMC) {
+    // Gen particles
+    edm::Handle<reco::GenParticleCollection> genParticles;
+    iEvent.getByLabel("genParticles", genParticles);
+    genParticlesToTree(genParticles);
+  }
+  
   mSelectedEvents->SetVal(mSelectedEvents->GetVal() + 1);
   return true;
 }
