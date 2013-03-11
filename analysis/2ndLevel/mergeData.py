@@ -19,7 +19,7 @@ for crabFolder in crabFolders:
   dataset = crabFolder.rstrip("/").replace("crab_data_", "")
   print("Processing %s" % dataset)
   outputName = "PhotonJet_2ndLevel_%s.root" % (dataset)
-  fullPath = "%s" % (crabFolder)
+  fullPath = "%s/%s" % (options.path, crabFolder)
   if os.path.exists(outputName):
     print("'%s' already exists. Skipping." % outputName)
     continue
