@@ -196,7 +196,10 @@ class GammaJetFilter : public edm::EDFilter {
     TParameter<double>*           mFirstJetThresholdParameter;
 
     // DEBUG
-    TH1F* mDeltaPhi;
+    TH1F* mFirstJetPhotonDeltaPhi;
+    TH1F* mFirstJetPhotonDeltaR;
+    TH1F* mFirstJetPhotonDeltaPt;
+    TH2F* mFirstJetPhotonDeltaPhiDeltaR;
 
     void particleToTree(const reco::Candidate* particle, TTree* t, std::vector<boost::shared_ptr<void> >& addresses);
     
@@ -350,7 +353,10 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     mFirstJetThresholdParameter = fs->make<TParameter<double> >("cut_on_first_jet_treshold", mFirstJetThreshold);
   }
 
-  mDeltaPhi = fs->make<TH1F>("deltaPhi", "deltaPhi", 40, M_PI / 2., M_PI);
+  mFirstJetPhotonDeltaPhi = fs->make<TH1F>("firstJetPhotonDeltaPhi", "firstJetPhotonDeltaPhi", 50, 0., M_PI);
+  mFirstJetPhotonDeltaR = fs->make<TH1F>("firstJetPhotonDeltaR", "firstJetPhotonDeltaR", 80, 0, 10);
+  mFirstJetPhotonDeltaPt = fs->make<TH1F>("firstJetPhotonDeltaPt", "firstJetPhotonDeltaPt", 100, 0, 50);
+  mFirstJetPhotonDeltaPhiDeltaR = fs->make<TH2F>("firstJetPhotonDeltaPhiDeltaR", "firstJetPhotonDeltaPhiDeltaR", 50, 0, M_PI, 80, 0, 10);
 
   mPFIsolator.initializePhotonIsolation(true);
   mPFIsolator.setConeSize(0.3);
@@ -774,6 +780,14 @@ void GammaJetFilter::processJets(const pat::Photon& photon, pat::JetCollection& 
     if (! isValidJet(*it))
       continue;
 
+    if (index == 0) {
+      mFirstJetPhotonDeltaPhi->Fill(reco::deltaPhi(photon, *it));
+      mFirstJetPhotonDeltaR->Fill(reco::deltaR(photon, *it));
+      mFirstJetPhotonDeltaPt->Fill(fabs(photon.pt() - it->pt()));
+
+      mFirstJetPhotonDeltaPhiDeltaR->Fill(reco::deltaPhi(photon, *it), reco::deltaR(photon, *it));
+    }
+
     // Extract Quark Gluon tagger value
     pat::JetRef jetRef(handleForRef, index);
     it->addUserFloat("qgTagMLP", (*qgTagMLP)[jetRef]);
@@ -817,8 +831,6 @@ void GammaJetFilter::processJets(const pat::Photon& photon, pat::JetCollection& 
 
     if (selectedJets.size() > 1)
       secondJet = &selectedJets[1];
-
-    mDeltaPhi->Fill(fabs(reco::deltaPhi(photon, selectedJets[0])));
   }
 
   jetsToTree(firstJet, secondJet, trees);
