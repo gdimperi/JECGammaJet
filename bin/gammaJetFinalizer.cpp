@@ -309,41 +309,53 @@ void GammaJetFinalizer::runAnalysis() {
 
   // Balancing
   TFileDirectory balancingDir = analysisDir.mkdir("balancing");
-  std::vector<std::vector<TH1F*> > responseBalancing = buildEtaVector<TH1F>(balancingDir, "resp_balancing", 150, 0., 2.);
-  std::vector<std::vector<TH1F*> > responseBalancingRaw = buildEtaVector<TH1F>(balancingDir, "resp_balancing_raw", 150, 0., 2.);
+  std::vector<std::vector<TH1F*> > responseBalancing = buildEtaPtVector<TH1F>(balancingDir, "resp_balancing", 150, 0., 2.);
+  std::vector<std::vector<TH1F*> > responseBalancingRaw = buildEtaPtVector<TH1F>(balancingDir, "resp_balancing_raw", 150, 0., 2.);
   std::vector<std::vector<TH1F*> > responseBalancingGen;
   std::vector<std::vector<TH1F*> > responseBalancingRawGen;
   if (mIsMC) {
-    responseBalancingGen = buildEtaVector<TH1F>(balancingDir, "resp_balancing_gen", 150, 0., 2.);
-    responseBalancingRawGen = buildEtaVector<TH1F>(balancingDir, "resp_balancing_raw_gen", 150, 0., 2.);
+    responseBalancingGen = buildEtaPtVector<TH1F>(balancingDir, "resp_balancing_gen", 150, 0., 2.);
+    responseBalancingRawGen = buildEtaPtVector<TH1F>(balancingDir, "resp_balancing_raw_gen", 150, 0., 2.);
   }
 
-  std::vector<TH1F*> responseBalancingEta013 = buildVector<TH1F>(balancingDir, "resp_balancing", "eta013", 150, 0., 2.);
-  std::vector<TH1F*> responseBalancingRawEta013 = buildVector<TH1F>(balancingDir, "resp_balancing_raw", "eta013", 150, 0., 2.);
+  std::vector<TH1F*> responseBalancingEta013 = buildPtVector<TH1F>(balancingDir, "resp_balancing", "eta013", 150, 0., 2.);
+  std::vector<TH1F*> responseBalancingRawEta013 = buildPtVector<TH1F>(balancingDir, "resp_balancing_raw", "eta013", 150, 0., 2.);
   std::vector<TH1F*> responseBalancingGenEta013;
   std::vector<TH1F*> responseBalancingRawGenEta013;
   if (mIsMC) {
-    responseBalancingGenEta013 = buildVector<TH1F>(balancingDir, "resp_balancing_gen", "eta013", 150, 0., 2.);
-    responseBalancingRawGenEta013 = buildVector<TH1F>(balancingDir, "resp_balancing_raw_gen", "eta013", 150, 0., 2.);
+    responseBalancingGenEta013 = buildPtVector<TH1F>(balancingDir, "resp_balancing_gen", "eta013", 150, 0., 2.);
+    responseBalancingRawGenEta013 = buildPtVector<TH1F>(balancingDir, "resp_balancing_raw_gen", "eta013", 150, 0., 2.);
   }
-  std::vector<TH1F*> responseBalancingEta024 = buildVector<TH1F>(balancingDir, "resp_balancing", "eta024", 150, 0., 2.);
+  std::vector<TH1F*> responseBalancingEta024 = buildPtVector<TH1F>(balancingDir, "resp_balancing", "eta024", 150, 0., 2.);
 
   // MPF
   TFileDirectory mpfDir = analysisDir.mkdir("mpf");
-  std::vector<std::vector<TH1F*> > responseMPF = buildEtaVector<TH1F>(mpfDir, "resp_mpf", 150, 0., 2.);
-  std::vector<std::vector<TH1F*> > responseMPFRaw = buildEtaVector<TH1F>(mpfDir, "resp_mpf_raw", 150, 0., 2.);
+  std::vector<std::vector<TH1F*> > responseMPF = buildEtaPtVector<TH1F>(mpfDir, "resp_mpf", 150, 0., 2.);
+  std::vector<std::vector<TH1F*> > responseMPFRaw = buildEtaPtVector<TH1F>(mpfDir, "resp_mpf_raw", 150, 0., 2.);
   std::vector<std::vector<TH1F*> > responseMPFGen;
   if (mIsMC) {
-    responseMPFGen = buildEtaVector<TH1F>(mpfDir, "resp_mpf_gen", 150, 0., 2.);
+    responseMPFGen = buildEtaPtVector<TH1F>(mpfDir, "resp_mpf_gen", 150, 0., 2.);
   }
 
-  std::vector<TH1F*> responseMPFEta013 = buildVector<TH1F>(mpfDir, "resp_mpf", "eta013", 150, 0., 2.);
-  std::vector<TH1F*> responseMPFRawEta013 = buildVector<TH1F>(mpfDir, "resp_mpf_raw", "eta013", 150, 0., 2.);
+  std::vector<TH1F*> responseMPFEta013 = buildPtVector<TH1F>(mpfDir, "resp_mpf", "eta013", 150, 0., 2.);
+  std::vector<TH1F*> responseMPFRawEta013 = buildPtVector<TH1F>(mpfDir, "resp_mpf_raw", "eta013", 150, 0., 2.);
   std::vector<TH1F*> responseMPFGenEta013;
   if (mIsMC) {
-    responseMPFGenEta013 = buildVector<TH1F>(mpfDir, "resp_mpf_gen", "eta013", 150, 0., 2.);
+    responseMPFGenEta013 = buildPtVector<TH1F>(mpfDir, "resp_mpf_gen", "eta013", 150, 0., 2.);
   }
-  std::vector<TH1F*> responseMPFEta024 = buildVector<TH1F>(mpfDir, "resp_mpf", "eta024", 150, 0., 2.);
+  std::vector<TH1F*> responseMPFEta024 = buildPtVector<TH1F>(mpfDir, "resp_mpf", "eta024", 150, 0., 2.);
+
+  // vs number of vertices
+  TFileDirectory vertexDir = analysisDir.mkdir("vertex");
+  std::vector<std::vector<TH1F*>> vertex_responseBalancing = buildEtaVertexVector<TH1F>(vertexDir, "resp_balancing", 150, 0., 2.);
+  std::vector<std::vector<TH1F*>> vertex_responseBalancingRaw = buildEtaVertexVector<TH1F>(vertexDir, "resp_balancing_raw", 150, 0., 2.);
+  std::vector<TH1F*> vertex_responseBalancingEta013 = buildVertexVector<TH1F>(vertexDir, "resp_balancing", "eta013", 150, 0., 2.);
+  std::vector<TH1F*> vertex_responseBalancingRawEta013 = buildVertexVector<TH1F>(vertexDir, "resp_balancing_raw", "eta013", 150, 0., 2.);
+
+  std::vector<std::vector<TH1F*>> vertex_responseMPF = buildEtaVertexVector<TH1F>(vertexDir, "resp_mpf", 150, 0., 2.);
+  std::vector<std::vector<TH1F*>> vertex_responseMPFRaw = buildEtaVertexVector<TH1F>(vertexDir, "resp_mpf_raw", 150, 0., 2.);
+  std::vector<TH1F*> vertex_responseMPFEta013 = buildVertexVector<TH1F>(vertexDir, "resp_mpf", "eta013", 150, 0., 2.);
+  std::vector<TH1F*> vertex_responseMPFRawEta013 = buildVertexVector<TH1F>(vertexDir, "resp_mpf_raw", "eta013", 150, 0., 2.);
 
   // Extrapolation
   int extrapolationBins = 50;
@@ -405,7 +417,7 @@ void GammaJetFinalizer::runAnalysis() {
   std::shared_ptr<GaussianProfile> new_extrap_responseMPFRawEta013 = buildNewExtrapolationVector(newExtrapDir, "extrap_resp_mpf_raw", "eta013", extrapolationBins, extrapolationMin, extrapolationMax);
 
   // Viola
-  std::vector<TH1F*> ptFirstJetEta024 = buildVector<TH1F>(analysisDir, "ptFirstJet", "eta024", 500, 5., 1005.);
+  std::vector<TH1F*> ptFirstJetEta024 = buildPtVector<TH1F>(analysisDir, "ptFirstJet", "eta024", 500, 5., 1005.);
 
   // Luminosity
   if (! mIsMC) {
@@ -539,7 +551,7 @@ void GammaJetFinalizer::runAnalysis() {
 
     //if (analysis.nvertex >= 21)
     //  continue;
-
+    
     if (mIsMC) {
       passedTrigger = cleanTriggerName(passedTrigger);
       computePUWeight(passedTrigger);
@@ -646,6 +658,8 @@ void GammaJetFinalizer::runAnalysis() {
 
     int etaBin = mEtaBinning.getBin(firstJet.eta);
     int etaBinGen = mEtaBinning.getBin(firstGenJet.eta);
+
+    int vertexBin = mVertexBinning.getVertexBin(analysis.nvertex);
 
     if (secondJet.is_present) {
       do {
@@ -781,6 +795,14 @@ void GammaJetFinalizer::runAnalysis() {
           responseMPFEta013[ptBin]->Fill(respMPF, eventWeight);
           responseMPFRawEta013[ptBin]->Fill(respMPFRaw, eventWeight);
 
+          if (vertexBin >= 0) {
+            vertex_responseBalancingEta013[vertexBin]->Fill(respBalancing, eventWeight);
+            vertex_responseBalancingRawEta013[vertexBin]->Fill(respBalancingRaw, eventWeight);
+
+            vertex_responseMPFEta013[vertexBin]->Fill(respMPF, eventWeight);
+            vertex_responseMPFRawEta013[vertexBin]->Fill(respMPF, eventWeight);
+          }
+
           if (mIsMC && ptBinGen >= 0) {
             responseBalancingGenEta013[ptBinGen]->Fill(respBalancingGen, eventWeight);
             responseBalancingRawGenEta013[ptBinGen]->Fill(respBalancingRawGen, eventWeight);
@@ -808,6 +830,14 @@ void GammaJetFinalizer::runAnalysis() {
 
         responseMPF[etaBin][ptBin]->Fill(respMPF, eventWeight);
         responseMPFRaw[etaBin][ptBin]->Fill(respMPFRaw, eventWeight);
+
+        if (vertexBin >= 0) {
+          vertex_responseBalancing[etaBin][vertexBin]->Fill(respBalancing, eventWeight);
+          vertex_responseBalancingRaw[etaBin][vertexBin]->Fill(respBalancingRaw, eventWeight);
+
+          vertex_responseMPF[etaBin][vertexBin]->Fill(respMPF, eventWeight);
+          vertex_responseMPFRaw[etaBin][vertexBin]->Fill(respMPF, eventWeight);
+        }
 
         // Gen values
         if (mIsMC && ptBinGen >= 0 && etaBinGen >= 0) {
@@ -853,7 +883,7 @@ void GammaJetFinalizer::doSecondJetExtrapolation() {
 }
 
 template<typename T>
-std::vector<T*> GammaJetFinalizer::buildVector(TFileDirectory dir, const std::string& branchName, const std::string& etaName, int nBins, double xMin, double xMax) {
+std::vector<T*> GammaJetFinalizer::buildPtVector(TFileDirectory dir, const std::string& branchName, const std::string& etaName, int nBins, double xMin, double xMax) {
 
   std::vector<T*> vector;
   size_t ptBinningSize = mPtBinning.size();
@@ -871,13 +901,44 @@ std::vector<T*> GammaJetFinalizer::buildVector(TFileDirectory dir, const std::st
 }
 
 template<typename T>
-std::vector<std::vector<T*> > GammaJetFinalizer::buildEtaVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax) {
+std::vector<std::vector<T*> > GammaJetFinalizer::buildEtaPtVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax) {
   size_t etaBinningSize = mEtaBinning.size();
   std::vector<std::vector<T*> > etaBinning;
 
   for (size_t i = 0; i < etaBinningSize; i++) {
     const std::string etaName = mEtaBinning.getBinName(i);
-    etaBinning.push_back(buildVector<T>(dir, branchName, etaName, nBins, xMin, xMax));
+    etaBinning.push_back(buildPtVector<T>(dir, branchName, etaName, nBins, xMin, xMax));
+  }
+
+  return etaBinning;
+}
+
+template<typename T>
+std::vector<T*> GammaJetFinalizer::buildVertexVector(TFileDirectory dir, const std::string& branchName, const std::string& etaName, int nBins, double xMin, double xMax) {
+
+  std::vector<T*> vector;
+  size_t vertexBinningSize = mVertexBinning.size();
+  for (size_t j = 0; j < vertexBinningSize; j++) {
+
+    const std::pair<int, int> bin = mVertexBinning.getBinValue(j);
+    std::stringstream ss;
+    ss << branchName << "_" << etaName << "_nvertex_" << bin.first << "_" << bin.second;
+
+    T* object = dir.make<T>(ss.str().c_str(), ss.str().c_str(), nBins, xMin, xMax);
+    vector.push_back(object);
+  }
+
+  return vector;
+}
+
+template<typename T>
+std::vector<std::vector<T*> > GammaJetFinalizer::buildEtaVertexVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax) {
+  size_t etaBinningSize = mEtaBinning.size();
+  std::vector<std::vector<T*> > etaBinning;
+
+  for (size_t i = 0; i < etaBinningSize; i++) {
+    const std::string etaName = mEtaBinning.getBinName(i);
+    etaBinning.push_back(buildVertexVector<T>(dir, branchName, etaName, nBins, xMin, xMax));
   }
 
   return etaBinning;
