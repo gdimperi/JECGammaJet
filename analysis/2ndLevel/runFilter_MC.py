@@ -24,13 +24,16 @@ process.ak5PFchsL1FastL2L3 = cms.ESProducer(
     correctors = cms.vstring('ak5PFchsL1Fastjet', 'ak5PFchsL2Relative','ak5PFchsL3Absolute')
     )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(2000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 readFiles = cms.untracked.vstring(
-    #"file:patTuple_PF2PAT_MC.root"
-    "/store/user/sbrochet/G_Pt-30to50_TuneZ2star_8TeV_pythia6/G_Pt-30to50_START53_V7A_22Feb13-v1/31346b79deb97ac1b786d692cd650a21/patTuple_PF2PAT_MC_6_3_XDO.root"
     )
+
+readFiles.extend( [
+       '/store/user/sbrochet/G_Pt-170to300_TuneZ2star_8TeV_pythia6/G_Pt-170to300_START53_V7A_22Feb13-v1/31346b79deb97ac1b786d692cd650a21/patTuple_PF2PAT_MC_10_3_15V.root',
+       ])
+
 process.source = cms.Source ("PoolSource", fileNames = readFiles)
 
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -83,7 +86,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     ptHatMin = cms.untracked.double(ptHatMin),
     ptHatMax = cms.untracked.double(ptHatMax),
 
-    runOnNonCHS   = cms.untracked.bool(True),
+    runOnNonCHS   = cms.untracked.bool(False),
     runOnCHS      = cms.untracked.bool(True),
 
     runOnPFAK5    = cms.untracked.bool(True),
@@ -99,7 +102,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     #correctorLabel = cms.untracked.string("ak5PFResidual")
 
     # MET
-    redoTypeIMETCorrection = cms.untracked.bool(False)
+    redoTypeIMETCorrection = cms.untracked.bool(True)
     )
 
 process.p = cms.Path(process.gammaJet)

@@ -64,7 +64,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     csv = cms.string(os.path.join(fullPath, "lumibyls.csv")),
     filterData = cms.untracked.bool(True),
 
-    runOnNonCHS   = cms.untracked.bool(True),
+    runOnNonCHS   = cms.untracked.bool(False),
     runOnCHS      = cms.untracked.bool(True),
 
     runOnPFAK5    = cms.untracked.bool(True),
@@ -80,7 +80,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     #correctorLabel = cms.untracked.string("ak5PFResidual")
 
     # MET
-    redoTypeIMETCorrection = cms.untracked.bool(False)
+    redoTypeIMETCorrection = cms.untracked.bool(True)
     )
 
 process.p = cms.Path(process.gammaJet)

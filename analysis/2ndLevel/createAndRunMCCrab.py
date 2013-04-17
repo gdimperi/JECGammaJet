@@ -23,7 +23,7 @@ datasets = [
     ["/G_Pt-1800_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-1800_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-1800", 1800, 8000, 1939122, 1.867141E-6],
 
     # QCD
-    ["/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/sbrochet-QCD_Pt-15-3000_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "QCD_Pt-15-3000", -1, -1, 1939122, 2.99815997E10],
+    ["/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/sbrochet-QCD_Pt-15-3000_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "QCD_Pt-15-3000", -1, -1, 9991674, 2.99815997E10],
     ]
 
 # Get email address
