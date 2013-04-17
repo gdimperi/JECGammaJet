@@ -250,6 +250,12 @@ void GammaJetFinalizer::runAnalysis() {
   TTree* metTree = NULL;
   cloneTree(MET.fChain, metTree);
 
+  TTree* rawMetTree = NULL;
+  cloneTree(rawMET.fChain, rawMetTree);
+
+  TTree* genMetTree = NULL;
+  cloneTree(genMET.fChain, genMetTree);
+
   TTree* muonsTree = NULL;
   cloneTree(muons.fChain, muonsTree);
 
@@ -293,11 +299,11 @@ void GammaJetFinalizer::runAnalysis() {
   TH1F* h_nvertex = analysisDir.make<TH1F>("nvertex", "nvertex", 50, 0., 50.);
   TH1F* h_nvertex_reweighted = analysisDir.make<TH1F>("nvertex_reweighted", "nvertex_reweighted", 50, 0., 50.);
 
-  TH1F* h_deltaPhi = analysisDir.make<TH1F>("deltaPhi", "deltaPhi", 60, 2.8, M_PI);
+  TH1F* h_deltaPhi = analysisDir.make<TH1F>("deltaPhi", "deltaPhi", 60, M_PI / 2, M_PI);
   TH1F* h_deltaPhi_2ndJet = analysisDir.make<TH1F>("deltaPhi_2ndjet", "deltaPhi of 2nd jet", 60, M_PI / 2., M_PI);
   TH1F* h_ptPhoton = analysisDir.make<TH1F>("ptPhoton", "ptPhoton", 200, 5., 1000.);
 
-  TH1F* h_deltaPhi_passedID = analysisDir.make<TH1F>("deltaPhi_passedID", "deltaPhi", 60, 2.8, M_PI);
+  TH1F* h_deltaPhi_passedID = analysisDir.make<TH1F>("deltaPhi_passedID", "deltaPhi", 40, M_PI / 2, M_PI);
   TH1F* h_ptPhoton_passedID = analysisDir.make<TH1F>("ptPhoton_passedID", "ptPhoton", 200, 5., 1000.);
   TH1F* h_ptFirstJet_passedID = analysisDir.make<TH1F>("ptFirstJet_passedID", "ptFirstJet", 200, 5., 1000.);
   TH1F* h_ptSecondJet_passedID = analysisDir.make<TH1F>("ptSecondJet_passedID", "ptSecondJet", 60, 0., 100.);
@@ -438,6 +444,10 @@ void GammaJetFinalizer::runAnalysis() {
   uint64_t rejectedEventsTriggerNotFound = 0;
   uint64_t rejectedEventsPtOut = 0;
 
+  uint64_t passedPhotonJetCut = 0;
+  uint64_t passedDeltaPhiCut = 0;
+  uint64_t passedAlphaCut = 0;
+
   uint64_t from = 0;
   uint64_t to = totalEvents;
 
@@ -482,6 +492,16 @@ void GammaJetFinalizer::runAnalysis() {
 
     if (! photon.is_present || ! firstJet.is_present)
       continue;
+
+    passedPhotonJetCut++;
+
+    /*
+    {
+      // DEBUG
+      double deltaPhi = fabs(reco::deltaPhi(photon.phi, firstJet.phi));
+      std::cout << firstJet.pt << " " << firstJet.phi << " " << photon.pt << " " << photon.phi << " " << deltaPhi << std::endl;
+    }
+    */
 
     if (jetCorrector) {
       // jetCorrector isn't null. Correct raw jet with jetCorrector and rebuild the corrected jet
@@ -583,6 +603,8 @@ void GammaJetFinalizer::runAnalysis() {
       secondGenJetTree->Fill();
       secondRawJetTree->Fill();
       metTree->Fill();
+      rawMetTree->Fill();
+      genMetTree->Fill();
       electronsTree->Fill();
       muonsTree->Fill();
       analysisTree->Fill();
@@ -593,24 +615,30 @@ void GammaJetFinalizer::runAnalysis() {
     // Event selection
     // The photon is good from previous step
     // From previous step, we have fabs(deltaPhi(photon, firstJet)) > PI/2
-    double deltaPhi = fabs(reco::deltaPhi(firstJet.phi, photon.phi));
+    double deltaPhi = fabs(reco::deltaPhi(photon.phi, firstJet.phi));
+
     bool isBack2Back = (deltaPhi >= DELTAPHI_CUT);
     if (! isBack2Back) {
       continue;
     }
+
+    passedDeltaPhiCut++;
 
     /*
     if (firstJet.pt < 12)
       continue;
     */
 
-    bool secondJetOK = !secondJet.is_present || (secondJet.pt < 5. || secondJet.pt < mAlphaCut * photon.pt);
+    bool secondJetOK = !secondJet.is_present || (secondJet.pt < 10 || secondJet.pt < mAlphaCut * photon.pt);
 
     if (mDoMCComparison) {
       // Lowest unprescaled trigger for 2012 if at 150 GeV
       if (photon.pt < 165)
         continue;
     }
+
+    if (secondJetOK)
+      passedAlphaCut++;
 
     h_nvertex->Fill(analysis.nvertex, analysis.event_weight);
     h_nvertex_reweighted->Fill(analysis.nvertex, eventWeight);
@@ -861,6 +889,8 @@ void GammaJetFinalizer::runAnalysis() {
         secondGenJetTree->Fill();
         secondRawJetTree->Fill();
         metTree->Fill();
+        rawMetTree->Fill();
+        genMetTree->Fill();
         electronsTree->Fill();
         muonsTree->Fill();
         analysisTree->Fill();
@@ -871,7 +901,12 @@ void GammaJetFinalizer::runAnalysis() {
     }
   }
   std::cout << "Selection efficiency: " << MAKE_RED << (double) passedEvents / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Selection for photon/jet cut: " << MAKE_RED << (double) passedPhotonJetCut / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
   std::cout << "Selection efficiency for trigger selection: " << MAKE_RED << (double) passedEventsFromTriggers / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Selection for Δφ cut: " << MAKE_RED << (double) passedDeltaPhiCut / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Selection for α cut: " << MAKE_RED << (double) passedAlphaCut / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
+
+  std::cout << std::endl;
   std::cout << "Rejected events because trigger was not found: " << MAKE_RED << (double) rejectedEventsTriggerNotFound / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
   std::cout << "Rejected events because trigger was found but pT was out of range: " << MAKE_RED << (double) rejectedEventsPtOut / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
 }

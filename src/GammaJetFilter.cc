@@ -201,6 +201,19 @@ class GammaJetFilter : public edm::EDFilter {
     TH1F* mFirstJetPhotonDeltaPt;
     TH2F* mFirstJetPhotonDeltaPhiDeltaR;
 
+    TH1F* mSelectedFirstJetIndex;
+    TH1F* mSelectedSecondJetIndex;
+
+    TH1F* mSecondJetPhotonDeltaPhi;
+    TH1F* mSecondJetPhotonDeltaR;
+    TH1F* mSecondJetPhotonDeltaPt;
+
+    TH1F* mSelectedFirstJetPhotonDeltaPhi;
+    TH1F* mSelectedFirstJetPhotonDeltaR;
+
+    TH1F* mSelectedSecondJetPhotonDeltaPhi;
+    TH1F* mSelectedSecondJetPhotonDeltaR;
+
     void particleToTree(const reco::Candidate* particle, TTree* t, std::vector<boost::shared_ptr<void> >& addresses);
     
     void updateBranch(TTree* tree, void* address, const std::string& name, const std::string& type = "F");
@@ -358,6 +371,19 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   mFirstJetPhotonDeltaPt = fs->make<TH1F>("firstJetPhotonDeltaPt", "firstJetPhotonDeltaPt", 100, 0, 50);
   mFirstJetPhotonDeltaPhiDeltaR = fs->make<TH2F>("firstJetPhotonDeltaPhiDeltaR", "firstJetPhotonDeltaPhiDeltaR", 50, 0, M_PI, 80, 0, 10);
 
+  mSelectedFirstJetIndex = fs->make<TH1F>("selectedFirstJetIndex", "selectedFirstJetIndex", 20, 0, 20);
+  mSelectedSecondJetIndex = fs->make<TH1F>("selectedSecondJetIndex", "selectedSecondJetIndex", 20, 0, 20);
+
+  mSecondJetPhotonDeltaPhi = fs->make<TH1F>("secondJetPhotonDeltaPhi", "secondJetPhotonDeltaPhi", 50, 0., M_PI);
+  mSecondJetPhotonDeltaR = fs->make<TH1F>("secondJetPhotonDeltaR", "secondJetPhotonDeltaR", 80, 0, 10);
+  mSecondJetPhotonDeltaPt = fs->make<TH1F>("secondJetPhotonDeltaPt", "secondJetPhotonDeltaPt", 100, 0, 50);
+
+  mSelectedFirstJetPhotonDeltaPhi = fs->make<TH1F>("selectedFirstJetPhotonDeltaPhi", "selectedFirstJetPhotonDeltaPhi", 50, 0., M_PI);
+  mSelectedFirstJetPhotonDeltaR = fs->make<TH1F>("selectedFirstJetPhotonDeltaR", "selectedFirstJetPhotonDeltaR", 80, 0, 10);
+
+  mSelectedSecondJetPhotonDeltaPhi = fs->make<TH1F>("selectedSecondJetPhotonDeltaPhi", "selectedSecondJetPhotonDeltaPhi", 50, 0., M_PI);
+  mSelectedSecondJetPhotonDeltaR = fs->make<TH1F>("selectedSecondJetPhotonDeltaR", "selectedSecondJetPhotonDeltaR", 80, 0, 10);
+
   mPFIsolator.initializePhotonIsolation(true);
   mPFIsolator.setConeSize(0.3);
 }
@@ -514,8 +540,6 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   const pat::Photon& photon = photonsRef[0];
 
-  //bool eventHasJets = false;
-
   // Process jets
 
   edm::Handle<pat::JetCollection> jetsHandle;
@@ -537,11 +561,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByLabel("QGTagger" + *it,"qgMLP", qgTagHandleMLP);
     iEvent.getByLabel("QGTagger" + *it,"qgLikelihood", qgTagHandleLikelihood);
 
-    /*bool valid = */processJets(photon, jets, infos.algo, qgTagHandleMLP, qgTagHandleLikelihood, jetsHandle, mJetTrees[*it]);
-    //eventHasJets |= valid ;
-
-    //if (! valid)
-    //  continue;
+    processJets(photon, jets, infos.algo, qgTagHandleMLP, qgTagHandleLikelihood, jetsHandle, mJetTrees[*it]);
 
     // MET
     edm::Handle<pat::METCollection> metsHandle;
@@ -577,9 +597,6 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     mMiscTrees[*it]->Fill();
   }
-
-  //if (! eventHasJets)
-  //  return false;
 
   // Number of vertices for pu reweighting
   edm::Handle<std::vector<PileupSummaryInfo> > puInfos;
@@ -775,17 +792,24 @@ void GammaJetFilter::processJets(const pat::Photon& photon, pat::JetCollection& 
 
   pat::JetCollection::iterator it = jets.begin();
   uint32_t index = 0;
+  uint32_t goodJetIndex = -1;
   for (; it != jets.end(); ++it, index++) {
 
     if (! isValidJet(*it))
       continue;
 
-    if (index == 0) {
-      mFirstJetPhotonDeltaPhi->Fill(reco::deltaPhi(photon, *it));
+    goodJetIndex++;
+
+    if (goodJetIndex == 0) {
+      mFirstJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(photon, *it)));
       mFirstJetPhotonDeltaR->Fill(reco::deltaR(photon, *it));
       mFirstJetPhotonDeltaPt->Fill(fabs(photon.pt() - it->pt()));
 
-      mFirstJetPhotonDeltaPhiDeltaR->Fill(reco::deltaPhi(photon, *it), reco::deltaR(photon, *it));
+      mFirstJetPhotonDeltaPhiDeltaR->Fill(fabs(reco::deltaPhi(photon, *it)), reco::deltaR(photon, *it));
+    } else if (goodJetIndex == 1) {
+      mSecondJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(photon, *it)));
+      mSecondJetPhotonDeltaR->Fill(reco::deltaR(photon, *it));
+      mSecondJetPhotonDeltaPt->Fill(fabs(photon.pt() - it->pt()));
     }
 
     // Extract Quark Gluon tagger value
@@ -793,12 +817,24 @@ void GammaJetFilter::processJets(const pat::Photon& photon, pat::JetCollection& 
     it->addUserFloat("qgTagMLP", (*qgTagMLP)[jetRef]);
     it->addUserFloat("qgTagLikelihood", (*qgTagLikelihood)[jetRef]);
 
+    const double deltaR_threshold = (algo == AK5) ? 0.5 : 0.7;
+
     if (selectedJets.size() == 0) {
       // First jet selection
+
+      if (index > 1) {
+        // It's the third jet of the event. We only want to consider the first two jets for our leadind jet,
+        // so, throw this event
+        break;
+      }
 
       const double deltaPhi = reco::deltaPhi(photon, *it);
       if (fabs(deltaPhi) < M_PI / 2.)
         continue; // Only back 2 back event are interesting
+
+      const double deltaR = reco::deltaR(photon, *it);
+      if (deltaR < deltaR_threshold) // This jet is inside the photon. This is probably the photon mis-reconstructed as a jet
+        continue;
 
       // Jet are ordered by pt value.
       // Events are supposed to be balanced between Jet and Gamma
@@ -807,17 +843,22 @@ void GammaJetFilter::processJets(const pat::Photon& photon, pat::JetCollection& 
       if (mFirstJetPtCut && (it->pt() < photon.pt() * mFirstJetThreshold))
         break;
 
+      mSelectedFirstJetIndex->Fill(goodJetIndex);
       selectedJets.push_back(*it);
 
     } else {
+
       // Second jet selection
       const double deltaR = reco::deltaR(photon, *it);
-      const double deltaR_threshold = (algo == AK5) ? 0.5 : 0.7;
 
       if (deltaR > deltaR_threshold) {
+        mSelectedSecondJetIndex->Fill(goodJetIndex);
         selectedJets.push_back(*it);
-        break;
+      } else {
+        continue;
       }
+
+      break;
     }
 
   }
@@ -828,12 +869,20 @@ void GammaJetFilter::processJets(const pat::Photon& photon, pat::JetCollection& 
   if (selectedJets.size() > 0) {
 
     firstJet = &selectedJets[0];
+    mSelectedFirstJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(photon, *firstJet)));
+    mSelectedFirstJetPhotonDeltaR->Fill(reco::deltaR(photon, *firstJet));
 
-    if (selectedJets.size() > 1)
+    if (selectedJets.size() > 1) {
       secondJet = &selectedJets[1];
+
+      mSelectedSecondJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(photon, *secondJet)));
+      mSelectedSecondJetPhotonDeltaR->Fill(reco::deltaR(photon, *secondJet));
+    }
   }
 
   jetsToTree(firstJet, secondJet, trees);
+
+  return;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
