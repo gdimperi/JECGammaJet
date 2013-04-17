@@ -7,6 +7,7 @@
 
 #include "etaBinning.h"
 #include "ptBinning.h"
+#include "vertexBinning.h"
 
 
 bool useMCassoc_ = false;
@@ -16,9 +17,11 @@ bool OUTPUT_GRAPHS = true;
 int main(int argc, char* argv[]) {
 
   if (argc != 7 && argc != 8) {
-    std::cout << "USAGE: ./drawPhotonJet [data_dataset] [mc_SIGNAL_dataset] [mc_BG_dataset] [recoType] [jetAlgo] [norm ('LUMI' or 'SHAPE')] [flags=\"\"]" << std::endl;
+    std::cout << "USAGE: ./draw_vs_npv [data_dataset] [mc_SIGNAL_dataset] [mc_BG_dataset] [recoType] [jetAlgo] [norm ('LUMI' or 'SHAPE')] [flags=\"\"]" << std::endl;
     exit(23);
   }
+
+  gROOT->SetBatch();
 
   std::string data_dataset(argv[1]);
   std::string mc_photonjet(argv[2]);
@@ -125,37 +128,16 @@ int main(int argc, char* argv[]) {
   }
 
   db->setFolder("analysis");
-  db->set_outputdir();
+  std::string outputDir = "PhotonJetPlots_" + db->get_fullSuffix() + "/vs_npv";
+  db->set_outputdir(outputDir);
 
   bool log = true;
   gErrorIgnoreLevel = kWarning;
 
-  db->setOutputGraphs(true);
-
-  db->set_rebin(5);
-
-  // Data / MC comparison
-  db->drawHisto("ptPhoton", "Photon Transverse Momentum", "GeV", "Events", log, 1, "", false, 200);
-  db->drawHisto("ptPhoton_passedID", "Photon Transverse Momentum", "GeV", "Events", log, 1, "", false, 200);
-  db->drawHisto("ptFirstJet_passedID", "Jet Transverse Momentum", "GeV", "Events", log);
-  db->drawHisto("ptSecondJet_passedID", "2nd Jet Transverse Momentum", "GeV", "Events", log);
-
-  //db->drawHisto("etaPhot", "#eta", "", "", log);
-
-  db->set_rebin(1);
-  db->drawHisto("nvertex", "Number of Reconstructed Vertices", "", "Events", log);
-  db->drawHisto("nvertex_reweighted", "Number of Reconstructed Vertices (after reweighting)", "", "Events", log);
-
-  db->set_rebin(2);
-  db->drawHisto("deltaPhi_passedID", "#Delta #varphi", "", "Events", log);
-
-  db->set_rebin(5);
-  db->drawHisto("MET_passedID", "Missing E_{T}", "GeV", "Events", log);
-
   db->setOutputGraphs(OUTPUT_GRAPHS);
 
-  PtBinning ptBinning;
-  std::vector<std::pair<float, float> > ptBins = ptBinning.getBinning();
+  VertexBinning vertexBinning;
+  std::vector<std::pair<int, int> > vertexBins = vertexBinning.getBinning();
 
   EtaBinning etaBinning;
   size_t etaBinningSize = etaBinning.size();
@@ -163,42 +145,42 @@ int main(int argc, char* argv[]) {
   db->set_rebin(2);
 
   // Balancing
-  db->setFolder("analysis/balancing");
+  db->setFolder("analysis/vertex");
   for (size_t i = 0; i < etaBinningSize; i++) {
     db->set_legendTitle(etaBinning.getBinTitle(i));
     
     TString responseName = TString::Format("resp_balancing_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, responseName.Data(), "Balancing Response", "", "Events", log);
+    db->drawHisto_vs_vertex(vertexBins, responseName.Data(), "Balancing Response", "", "Events", log);
 
     // Raw jets
-    responseName = TString::Format("resp_balancing_raw_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, responseName.Data(), "Balancing Response (raw jets)", "", "Events", log);
+    //responseName = TString::Format("resp_balancing_raw_%s", etaBinning.getBinName(i).c_str());
+    //db->drawHisto_vs_vertex(ptBins, responseName.Data(), "Balancing Response (raw jets)", "", "Events", log);
 
   }
   // Special case eta < 1.3
 
   db->set_legendTitle("|#eta| < 1.3");
-  db->drawHisto_vs_pt(ptBins, "resp_balancing_eta013", "Balancing Response", "", "Events", log);
-  db->drawHisto_vs_pt(ptBins, "resp_balancing_raw_eta013", "Balancing Response (raw jets)", "", "Events", log);
+  db->drawHisto_vs_vertex(vertexBins, "resp_balancing_eta013", "Balancing Response", "", "Events", log);
+  //db->drawHisto_vs_pt(ptBins, "resp_balancing_raw_eta013", "Balancing Response (raw jets)", "", "Events", log);
 
   // MPF
-  db->setFolder("analysis/mpf");
+  //db->setFolder("analysis/vertex");
   for (size_t i = 0; i < etaBinningSize; i++) {
     db->set_legendTitle(etaBinning.getBinTitle(i));
     
     TString responseName = TString::Format("resp_mpf_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, responseName.Data(), "MPF Response", "", "Events", log);
+    db->drawHisto_vs_vertex(vertexBins, responseName.Data(), "MPF Response", "", "Events", log);
 
     // Raw jets
-    responseName = TString::Format("resp_mpf_raw_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, responseName.Data(), "MPF Response (raw ME_{T})", "", "Events", log);
+    //responseName = TString::Format("resp_mpf_raw_%s", etaBinning.getBinName(i).c_str());
+    //db->drawHisto_vs_pt(ptBins, responseName.Data(), "MPF Response (raw ME_{T})", "", "Events", log);
 
   }
   // Special case eta < 1.3
 
   db->set_legendTitle("|#eta| < 1.3");
-  db->drawHisto_vs_pt(ptBins, "resp_mpf_eta013", "MPF Response", "", "Events", log);
-  db->drawHisto_vs_pt(ptBins, "resp_mpf_raw_eta013", "MPF Response (raw ME_{T})", "", "Events", log);
+  db->drawHisto_vs_vertex(vertexBins, "resp_mpf_eta013", "MPF Response", "", "Events", log);
+  //db->drawHisto_vs_pt(ptBins, "resp_mpf_raw_eta013", "MPF Response (raw ME_{T})", "", "Events", log);
 
   delete db;
   db = NULL;
