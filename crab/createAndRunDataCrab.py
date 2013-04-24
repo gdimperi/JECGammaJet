@@ -7,17 +7,13 @@ parser = OptionParser()
 parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
 (options, args) = parser.parse_args()
 
-global_json = "Cert_190456-208686_8TeV_PromptReco_Collisions12_JSON.txt"
+global_json = "Cert_190456-203742_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"
 
 datasets = [
 
-    ["/Photon/Run2012A-13Jul2012-v1/AOD", "Photon_Run2012A-13Jul2012", "Cert_190456-196531_8TeV_13Jul2012ReReco_Collisions12_JSON_v2.txt", "FT_53_V6_AN3", [190456, 193621]],
-    ["/Photon/Run2012A-recover-06Aug2012-v1/AOD", "Photon_Run2012A-recover-06Aug2012", "Cert_190782-190949_8TeV_06Aug2012ReReco_Collisions12_JSON.txt", "FT_53_V6C_AN3", [190782, 190949]],
-    ["/SinglePhoton/Run2012B-13Jul2012-v1/AOD", "SinglePhoton_Run2012B-13Jul2012", "Cert_190456-196531_8TeV_13Jul2012ReReco_Collisions12_JSON_v2.txt", "FT_53_V6_AN3", [193833, 196531]],
-    ["/SinglePhoton/Run2012C-24Aug2012-v1/AOD", "SinglePhoton_Run2012C-24Aug2012", "Cert_198022-198523_8TeV_24Aug2012ReReco_Collisions12_JSON.txt", "FT_53_V10_AN3", [198022, 198913]],
-    ["/SinglePhoton/Run2012C-PromptReco-v2/AOD", "SinglePhoton_Run2012C-PromptReco", "", "GR_P_V41_AN3", [198934, 203746]],
-    ["/SinglePhoton/Run2012C-EcalRecover_11Dec2012-v1/AOD", "SinglePhoton_Run2012C-EcalRecover_11Dec2012", "Cert_201191-201191_8TeV_11Dec2012ReReco-recover_Collisions12_JSON.txt", "FT_P_V42C_AN3", [201191, 201191]],
-    ["/SinglePhoton/Run2012D-PromptReco-v1/AOD", "SinglePhoton_Run2012D-PromptReco", "", "GR_P_V42_AN3", [203768, 208686]],
+    ["/Photon/Run2012A-22Jan2013-v1/AOD", "Photon_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
+    ["/SinglePhoton/Run2012B-22Jan2013-v1/AOD", "SinglePhoton_Run2012B-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
+    ["/SinglePhoton/Run2012C-22Jan2013-v1/AOD", "SinglePhoton_Run2012C-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
 
     ]
 
