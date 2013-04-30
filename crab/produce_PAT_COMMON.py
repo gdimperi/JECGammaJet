@@ -308,11 +308,15 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   # MET Filters
   process.load("RecoMET.METFilters.metFilters_cff")
 
+  # HCAL Laser filter : work only on Winter13 rereco
+  process.load("EventFilter.HcalRawToDigi.hcallaserFilterFromTriggerResult_cff")
+
   # Let it run
   process.p = cms.Path(
       process.nEventsTotal +
 
       # Filters
+      process.hcalfilter +
       process.primaryVertexFilter +
       process.scrapingVeto +
       process.metFilters +
@@ -326,6 +330,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       )
 
   if runOnMC:
+    process.p.remove(process.hcalfilter)
     process.p.remove(process.scrapingVeto)
 
   # Add PF2PAT output to the created file
