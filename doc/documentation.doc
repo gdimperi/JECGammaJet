@@ -18,7 +18,7 @@ This is a documentation for the gamma + jets framework.
 
 The code is hosted on git, and available on read-access to anyone. You can find some documentation on git on their website: http://git-scm.com/documentation
 
-All the informations needed to setup a working area are summarized inside the +README+ file. Follow all the instructions here to have a working area.
+All the informations needed to setup a working area are summarized inside the http://ipnl.madalynn.eu/GammaJetFilter.git/blob_plain/HEAD:/README[README] file. Follow all the instructions here to have a working area.
 
 If everything went fine, you should now have a 'JetMETCorrections/GammaJetFilter' directory. It's only here you'll need to work.
 
