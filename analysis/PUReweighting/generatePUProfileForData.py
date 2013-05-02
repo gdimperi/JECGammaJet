@@ -4,29 +4,52 @@
 import argparse, os, tempfile, shutil, sys
 from subprocess import call, PIPE, STDOUT, Popen
 
+# JSON files for Run2012 before Winter13 rereco
+#jsonFiles = [
+    #["Photon_Run2012A-13Jul2012.json", [190645, 193621]],
+    #["Photon_Run2012A-recover-06Aug2012.json", [190782, 190949]],
+    #["SinglePhoton_Run2012B-13Jul2012.json", [193834, 196531]],
+    #["SinglePhoton_Run2012C-24Aug2012.json", [198049, 198522]],
+    #["SinglePhoton_Run2012C-PromptReco.json", [198941, 203002]],
+    #["SinglePhoton_Run2012C-EcalRecover_11Dec2012.json", [201191, 201191]],
+    #["SinglePhoton_Run2012D-PromptReco.json", [203894, 208686]]
+ #]
+
+# JSON files for Winter13 rereco. 2012D is still missing!
 jsonFiles = [
-    ["Photon_Run2012A-13Jul2012.json", [190645, 193621]],
-    ["Photon_Run2012A-recover-06Aug2012.json", [190782, 190949]],
-    ["SinglePhoton_Run2012B-13Jul2012.json", [193834, 196531]],
-    ["SinglePhoton_Run2012C-24Aug2012.json", [198049, 198522]],
-    ["SinglePhoton_Run2012C-PromptReco.json", [198941, 203002]],
-    ["SinglePhoton_Run2012C-EcalRecover_11Dec2012.json", [201191, 201191]],
-    ["SinglePhoton_Run2012D-PromptReco.json", [203894, 208686]]
+    ["Photon_Run2012A-22Jan2013.json", [190645, 193621]],
+    ["SinglePhoton_Run2012B-22Jan2013.json", [193834, 196531]],
+    ["SinglePhoton_Run2012C-22Jan2013.json", [198049, 203742]]
  ]
 
+# Trigger list for all 2012
+#triggers = {
+    #tuple([190645, 199608]) : ["HLT_Photon30_CaloIdVL_IsoL_*",
+                        #"HLT_Photon50_CaloIdVL_IsoL_*",
+                        #"HLT_Photon90_CaloIdVL_IsoL_*",
+                        #"HLT_Photon135_*",
+                        #"HLT_Photon150_*",
+                        #"HLT_Photon160_*"],
+    #tuple([199609, 208686]) : ["HLT_Photon30_CaloIdVL_*",
+                        #"HLT_Photon50_CaloIdVL_IsoL_*",
+                        #"HLT_Photon90_CaloIdVL_*",
+                        #"HLT_Photon135_*",
+                        #"HLT_Photon150_*",
+                        #"HLT_Photon160_*"]
+    #}
+
+# Trigger list for 2012, for Run2012ABC. This is the same as above, only the run range change
 triggers = {
     tuple([190645, 199608]) : ["HLT_Photon30_CaloIdVL_IsoL_*",
                         "HLT_Photon50_CaloIdVL_IsoL_*",
                         "HLT_Photon90_CaloIdVL_IsoL_*",
                         "HLT_Photon135_*",
-                        "HLT_Photon150_*",
-                        "HLT_Photon160_*"],
-    tuple([199609, 208686]) : ["HLT_Photon30_CaloIdVL_*",
+                        "HLT_Photon150_*"],
+    tuple([199609, 203742]) : ["HLT_Photon30_CaloIdVL_*",
                         "HLT_Photon50_CaloIdVL_IsoL_*",
                         "HLT_Photon90_CaloIdVL_*",
                         "HLT_Photon135_*",
-                        "HLT_Photon150_*",
-                        "HLT_Photon160_*"]
+                        "HLT_Photon150_*"]
     }
 
 def parallelize(cmd):
@@ -100,7 +123,7 @@ for trigger_runs, triggerslist in triggers.items():
         toMerge.setdefault(trigger.rstrip("_*"), []).append(root_file)
 
 for trigger, files in toMerge.items():
-  output_file = "merged/pu_truth_data_photon_2012_true_%s_75bins.root" % trigger
+  output_file = "pu_truth_data_photon_2012_true_%s_75bins.root" % trigger
   input_files = " ".join(files)
   os.system("hadd %s %s" % (output_file, input_files))
 

@@ -22,6 +22,10 @@ addpkg CondFormats/EgammaObjects V00-04-00
 
 cvs update -r 1.19.8.1 PhysicsTools/PatAlgos/python/tools/helpers.py
 
+# LumiCalc
+cvs co  -r V04-02-03 RecoLuminosity/LumiDB
+cvs co -rV04-01-01 RecoLuminosity/LumiDB/python/csvLumibyLSParser.py  # Bug when creating PU profile when trigger is prescaled
+
 # Photon ID
 cvs co -r V00-00-30 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
 
