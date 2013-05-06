@@ -4,17 +4,17 @@
     <path>
       <name>HLT_Photon30_CaloIdVL_IsoL_v.*</name>
       <pt from="40" to="60" />
-      <weight value="0.000572221816108" />
+      <weight value="0.000549905962709" />
     </path>
     <path>
       <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
       <pt from="60" to="100" />
-      <weight value="0.00433206187225" />
+      <weight value="0.004161728773047" />
     </path>
     <path>
       <name>HLT_Photon90_CaloIdVL_IsoL.*</name>
       <pt from="100" to="155" />
-      <weight value="0.079208760361994" />
+      <weight value="0.075628205749574" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
@@ -26,22 +26,22 @@
     <path>
       <name>HLT_Photon30_CaloIdVL_IsoL_v.*</name>
       <pt from="40" to="60" />
-      <weight value="0.0003999586218" />
+      <weight value="0.000399990825688" />
     </path>
     <path>
       <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
       <pt from="60" to="100" />
-      <weight value="0.003030429882467" />
+      <weight value="0.003030098181233" />
     </path>
     <path>
       <name>HLT_Photon90_CaloIdVL_IsoL.*</name>
       <pt from="100" to="155" />
-      <weight value="0.05000177105136" />
+      <weight value="0.049995493320457" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
       <pt from="155" to="180" />
-      <weight value="0.033334567702463" />
+      <weight value="0.033323837115725" />
     </path>
     <path>
       <name>HLT_Photon150_.*</name>
@@ -49,58 +49,25 @@
       <weight value="1." />
     </path>
   </runs>
-  <runs from="199609" to="-1">
+  <runs from="199609" to="203742">
     <path>
       <name>HLT_Photon30_CaloIdVL_v.*</name>
       <pt from="40" to="60" />
-      <weight value="0.000142879974429" />
+      <weight value="0.000142864965543" />
     </path>
     <path>
       <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
       <pt from="60" to="100" />
-      <weight value="0.003030365990091" />
+      <weight value="0.003030545725461" />
     </path>
     <path>
       <name>HLT_Photon90_CaloIdVL.*</name>
       <pt from="100" to="155" />
-      <weight value="0.013758031005274" />
+      <weight value="0.014002980070777" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
       <pt from="155" to="8000" />
-      <weight value="1." />
-    </path>
-  </runs>
-
-  <runs from="1" to="10"><!-- MC -->
-    <path>
-      <name>HLT_Photon30_CaloIdVL_.*</name>
-      <pt from="40" to="60" />
-      <weight value="1." />
-    </path>
-    <path>
-      <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
-      <pt from="60" to="100" />
-      <weight value="1." />
-    </path>
-    <path>
-      <name>HLT_Photon90_CaloIdVL_.*</name>
-      <pt from="100" to="155" />
-      <weight value="1." />
-    </path>
-    <path>
-      <name>HLT_Photon135_.*</name>
-      <pt from="155" to="180" />
-      <weight value="1." />
-    </path>
-    <path>
-      <name>HLT_Photon150_.*</name>
-      <pt from="180" to="210" />
-      <weight value="1." />
-    </path>
-    <path>
-      <name>HLT_Photon160_.*</name>
-      <pt from="210" to="8000" />
       <weight value="1." />
     </path>
   </runs>
