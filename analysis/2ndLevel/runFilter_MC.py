@@ -102,7 +102,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     #correctorLabel = cms.untracked.string("ak5PFResidual")
 
     # MET
-    redoTypeIMETCorrection = cms.untracked.bool(False)
+    redoTypeIMETCorrection = cms.untracked.bool(True)
     )
 
 process.p = cms.Path(process.gammaJet)
