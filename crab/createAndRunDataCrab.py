@@ -7,13 +7,14 @@ parser = OptionParser()
 parser.add_option("", "--run", action="store_true", dest="run", default=False, help="run crab")
 (options, args) = parser.parse_args()
 
-global_json = "Cert_190456-203742_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"
+global_json = "Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"
 
 datasets = [
 
     ["/Photon/Run2012A-22Jan2013-v1/AOD", "Photon_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
     ["/SinglePhoton/Run2012B-22Jan2013-v1/AOD", "SinglePhoton_Run2012B-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
     ["/SinglePhoton/Run2012C-22Jan2013-v1/AOD", "SinglePhoton_Run2012C-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
+    ["/SinglePhotonParked/Run2012D-22Jan2013-v1/AOD", "SinglePhoton_Run2012D-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686]],
 
     ]
 
