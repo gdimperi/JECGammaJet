@@ -49,21 +49,21 @@
       <weight value="1." />
     </path>
   </runs>
-  <runs from="199609" to="203742">
+  <runs from="199609" to="208686">
     <path>
       <name>HLT_Photon30_CaloIdVL_v.*</name>
       <pt from="40" to="60" />
-      <weight value="0.000142864965543" />
+      <weight value="0.000142823362497" />
     </path>
     <path>
       <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
       <pt from="60" to="100" />
-      <weight value="0.003030545725461" />
+      <weight value="0.003030346023489" />
     </path>
     <path>
       <name>HLT_Photon90_CaloIdVL.*</name>
       <pt from="100" to="155" />
-      <weight value="0.014002980070777" />
+      <weight value="0.013766611492078" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>

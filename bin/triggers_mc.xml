@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <triggers>
   <path>
-    <name weight="0.432010419">HLT_Photon30_CaloIdVL_.*</name>
-    <name weight="0.567989581">HLT_Photon30_CaloIdVL_IsoL.*</name>
+    <name weight="0.64251179520895">HLT_Photon30_CaloIdVL_.*</name>
+    <name weight="0.35748820479105">HLT_Photon30_CaloIdVL_IsoL.*</name>
     <pt from="40" to="60" />
   </path>
   <path>
@@ -10,8 +10,8 @@
     <pt from="60" to="100" />
   </path>
   <path>
-    <name weight="0.432010419">HLT_Photon90_CaloIdVL_.*</name>
-    <name weight="0.567989581">HLT_Photon90_CaloIdVL_IsoL.*</name>
+    <name weight="0.64251179520895">HLT_Photon90_CaloIdVL_.*</name>
+    <name weight="0.35748820479105">HLT_Photon90_CaloIdVL_IsoL.*</name>
     <pt from="100" to="155" />
   </path>
   <path>
