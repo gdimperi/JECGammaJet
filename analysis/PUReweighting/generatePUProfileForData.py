@@ -15,11 +15,12 @@ from subprocess import call, PIPE, STDOUT, Popen
     #["SinglePhoton_Run2012D-PromptReco.json", [203894, 208686]]
  #]
 
-# JSON files for Winter13 rereco. 2012D is still missing!
+# JSON files for Winter13 rereco. 
 jsonFiles = [
     ["Photon_Run2012A-22Jan2013.json", [190645, 193621]],
     ["SinglePhoton_Run2012B-22Jan2013.json", [193834, 196531]],
-    ["SinglePhoton_Run2012C-22Jan2013.json", [198049, 203742]]
+    ["SinglePhoton_Run2012C-22Jan2013.json", [198049, 203742]],
+    ["SinglePhoton_Run2012D-22Jan2013.json", [205515, 208686]]
  ]
 
 # Trigger list for all 2012
@@ -38,14 +39,14 @@ jsonFiles = [
                         #"HLT_Photon160_*"]
     #}
 
-# Trigger list for 2012, for Run2012ABC. This is the same as above, only the run range change
+# Trigger list for 2012, for Run2012ABCD.
 triggers = {
     tuple([190645, 199608]) : ["HLT_Photon30_CaloIdVL_IsoL_*",
                         "HLT_Photon50_CaloIdVL_IsoL_*",
                         "HLT_Photon90_CaloIdVL_IsoL_*",
                         "HLT_Photon135_*",
                         "HLT_Photon150_*"],
-    tuple([199609, 203742]) : ["HLT_Photon30_CaloIdVL_*",
+    tuple([199609, 208686]) : ["HLT_Photon30_CaloIdVL_*",
                         "HLT_Photon50_CaloIdVL_IsoL_*",
                         "HLT_Photon90_CaloIdVL_*",
                         "HLT_Photon135_*",
