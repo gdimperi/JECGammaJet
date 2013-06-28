@@ -9,9 +9,11 @@ parser.add_option("", "--run", action="store_true", dest="run", default=False, h
 
 datasets = [
 
-    ["/Photon/sbrochet-Photon_Run2012A-22Jan2013_24Apr13-v1-37e3bf2409397e623ffd52beab84a202/USER", "Photon_Run2012A-22Jan2013", "FT_53_V21_AN3"],
-    ["/SinglePhoton/sbrochet-SinglePhoton_Run2012B-22Jan2013_24Apr13-v1-37e3bf2409397e623ffd52beab84a202/USER", "SinglePhoton_Run2012B-22Jan2013", "FT_53_V21_AN3"],
-    ["/SinglePhoton/sbrochet-SinglePhoton_Run2012C-22Jan2013_24Apr13-v1-37e3bf2409397e623ffd52beab84a202/USER", "SinglePhoton_Run2012C-22Jan2013", "FT_53_V21_AN3" ],
+    ["/Photon/sbrochet-Photon_Run2012A-22Jan2013_24Apr13-v1-37e3bf2409397e623ffd52beab84a202/USER", "Photon_Run2012A-22Jan2013", "FT_53_V21_AN4"],
+    ["/SinglePhoton/sbrochet-SinglePhoton_Run2012B-22Jan2013_24Apr13-v1-37e3bf2409397e623ffd52beab84a202/USER", "SinglePhoton_Run2012B-22Jan2013", "FT_53_V21_AN4"],
+    ["/SinglePhoton/sbrochet-SinglePhoton_Run2012C-22Jan2013_24Apr13-v1-37e3bf2409397e623ffd52beab84a202/USER", "SinglePhoton_Run2012C-22Jan2013", "FT_53_V21_AN4" ],
+    ["/SinglePhotonParked/sbrochet-SinglePhoton_Run2012D-22Jan2013_16May13-v1-d8690a0448f852b4d70656ff31f27990/USER", "SinglePhoton_Run2012D-22Jan2013", "FT_53_V21_AN4" ],
+    ["/SinglePhotonParked/sbrochet-SinglePhoton_Run2012D-22Jan2013_part2_07June13-v1-d8690a0448f852b4d70656ff31f27990/USER", "SinglePhoton_Run2012D-22Jan2013_part2", "FT_53_V21_AN4"],
 
     ]
 
