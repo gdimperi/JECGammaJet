@@ -70,10 +70,25 @@ GammaJetFinalizer::~GammaJetFinalizer() {
 }
 
 std::string GammaJetFinalizer::buildPostfix() {
+<<<<<<< HEAD
   std::string algo = mJetAlgo == AK5 ? "AK5" : "AK7";
   std::string type = mJetType == PF ? "PFlow" : "Calo";
 
   std::string postfix = type + algo;
+=======
+  //edit giulia
+  //std::string algo = mJetAlgo == AK5 ? "AK5" : "AK7";
+  std::string algo;
+  if( mJetAlgo == AK5) algo =  "AK5";
+  else if(mJetAlgo == AK7) algo = "AK7";
+  else if(mJetAlgo == CA8) algo = "CA8";
+
+  std::string type = mJetType == PF ? "PFlow" : "Calo";
+
+  std::string postfix;
+  postfix = type + algo;
+  if(mJetAlgo == CA8) postfix = "CA8";
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
 
   if (mUseCHS)
     postfix += "chs";
@@ -96,6 +111,11 @@ void GammaJetFinalizer::runAnalysis() {
 
   typedef std::chrono::high_resolution_clock clock;
   
+<<<<<<< HEAD
+=======
+  //  cout << endl << "mIsMC : " << mIsMC << endl << endl;
+
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
   if (mIsMC) {
     mMCTriggers = new MCTriggers("triggers_mc.xml");
   } else {
@@ -366,6 +386,19 @@ void GammaJetFinalizer::runAnalysis() {
   std::vector<std::vector<TH1F*> > responseBalancingRaw = buildEtaPtVector<TH1F>(balancingDir, "resp_balancing_raw", 150, 0., 2.);
   std::vector<std::vector<TH1F*> > responseBalancingGen;
   std::vector<std::vector<TH1F*> > responseBalancingRawGen;
+<<<<<<< HEAD
+=======
+  //giulia add not binned
+  TH1F* h_responseBalancingGen_firstjet_all = balancingDir.make<TH1F>("responseBalancingGen_firstjet_all", "pt_firstjet over ptGen_firstjet", 150, 0., 2.);
+  TH1F* h_responseBalancingRawGen_firstjet_all = balancingDir.make<TH1F>("responseBalancingRawGen_firstjet_all", "ptRaw_firstjet over ptGen_firstjet", 150, 0., 2.);
+  //TH1F* h_responseBalancingGen_secondjet_all = balancingDir.make<TH1F>("responseBalancingGen_secondjet_all", "pt_secondjet over ptGen_secondjet", 150, 0., 2.);
+  //TH1F* h_responseBalancingRawGen_secondjet_all = balancingDir.make<TH1F>("responseBalancingRawGen_secondjet_all", "ptRaw_secondjet over ptGen_secondjet", 150, 0., 2.);
+  TH1F* h_responseBalancing_all = balancingDir.make<TH1F>("responseBalancing_all", "response balancing", 150, 0., 2.);
+  TH1F* h_responseBalancingRaw_all = balancingDir.make<TH1F>("responseBalancingRaw_all", "response balancing with raw jets", 150, 0., 2.);
+  TH1F* h_responseMPF_all = balancingDir.make<TH1F>("responseMPF_all", "response MPF balancing", 150, 0., 2.);
+  TH1F* h_responseMPFRaw_all = balancingDir.make<TH1F>("responseMPFRaw_all", "response MPF balancing with raw jets", 150, 0., 2.);
+
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
   if (mIsMC) {
     responseBalancingGen = buildEtaPtVector<TH1F>(balancingDir, "resp_balancing_gen", 150, 0., 2.);
     responseBalancingRawGen = buildEtaPtVector<TH1F>(balancingDir, "resp_balancing_raw_gen", 150, 0., 2.);
@@ -518,6 +551,10 @@ void GammaJetFinalizer::runAnalysis() {
   std::chrono::microseconds t2;
 #endif
 
+<<<<<<< HEAD
+=======
+  cout << "mIsMC : " << mIsMC << endl;
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
   for (uint64_t i = from; i < to; i++) {
 
     if ((i - from) % 50000 == 0) {
@@ -819,6 +856,17 @@ void GammaJetFinalizer::runAnalysis() {
     respBalancingRaw = firstRawJet.pt / photon.pt;
     respBalancingRawGen = firstRawJet.pt / firstGenJet.pt;
 
+<<<<<<< HEAD
+=======
+    //giulia fill balancing trees not binned
+    h_responseBalancingGen_firstjet_all->Fill(respBalancingGen);
+    h_responseBalancingRawGen_firstjet_all->Fill(respBalancingRawGen);
+    h_responseBalancing_all->Fill(respBalancing, eventWeight);
+    h_responseBalancingRaw_all->Fill(respBalancingRaw, eventWeight);
+    h_responseMPF_all->Fill(respMPF, eventWeight);
+    h_responseMPFRaw_all->Fill(respMPFRaw, eventWeight);
+
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
     // For DATA/MC comparison
     respGenPhoton = firstGenJet.pt / photon.pt;
     respGenGamma = firstGenJet.pt / genPhoton.pt;
@@ -1086,8 +1134,17 @@ void GammaJetFinalizer::runAnalysis() {
   std::cout << "Efficiency for α cut: " << MAKE_RED << (double) passedAlphaCut / (to - from) * 100 << "%" << RESET_COLOR << std::endl;
 
   std::cout << std::endl;
+<<<<<<< HEAD
   std::cout << "Rejected events because trigger was not found: " << MAKE_RED << (double) rejectedEventsTriggerNotFound / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
   std::cout << "Rejected events because trigger was found but pT was out of range: " << MAKE_RED << (double) rejectedEventsPtOut / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
+=======
+  std::cout << "Rejected events from the trigger: " << MAKE_RED << (double) rejectedEventsFromTriggers / (passedEventsFromTriggers + rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Rejected events because trigger was not found: " << MAKE_RED << (double) rejectedEventsTriggerNotFound / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
+  std::cout << "Rejected events because trigger was found but pT was out of range: " << MAKE_RED << (double) rejectedEventsPtOut / (rejectedEventsFromTriggers) * 100 << "%" << RESET_COLOR << std::endl;
+
+  //debug line
+  std::cout << "just runned analysis" << std::endl;
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
 }
 
 template<typename T>
@@ -1317,12 +1374,29 @@ int GammaJetFinalizer::checkTrigger(std::string& passedTrigger, float& weight) {
     //if (! mIsMC) {
 
     const PathData* mandatoryTrigger = nullptr;
+<<<<<<< HEAD
     for (auto& path: mandatoryTriggers) {
       if (path.second.range.in(photon.pt)) {
         mandatoryTrigger = &path;
       }
     }
 
+=======
+
+    for (auto& path: mandatoryTriggers) {
+      if (path.second.range.in(photon.pt)) {
+        mandatoryTrigger = &path;
+
+      }
+    }
+
+    //size_t size_test = analysis.trigger_names->size();
+    //std::cout << "size_test : " << size_test << endl;
+    //for (int i = size_test - 1; i >= 0; i--) {
+    //  std::cout << "mandatory trigger : " << (*mandatoryTrigger)[i].name.str() << endl;
+    //}
+
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
     if (!mandatoryTrigger)
       return TRIGGER_NOT_FOUND;
 
@@ -1451,6 +1525,10 @@ int main(int argc, char** argv) {
     std::vector<std::string> algoTypes;
     algoTypes.push_back("ak5");
     algoTypes.push_back("ak7");
+<<<<<<< HEAD
+=======
+    algoTypes.push_back("ca8");
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
     TCLAP::ValuesConstraint<std::string> allowedAlgoTypes(algoTypes);
 
     TCLAP::ValueArg<std::string> algoArg("", "algo", "jet algo", true, "ak5", &allowedAlgoTypes, cmd);
@@ -1499,6 +1577,11 @@ int main(int argc, char** argv) {
     }
 
     finalizer.runAnalysis();
+<<<<<<< HEAD
+=======
+    //debug line
+    std::cout << "in main : just runned the analysis" << std::endl;
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
 
   } catch (TCLAP::ArgException &e) {
     std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;

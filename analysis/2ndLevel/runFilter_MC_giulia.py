@@ -34,8 +34,12 @@ readFiles = cms.untracked.vstring(
 #       '/store/user/sbrochet/G_Pt-170to300_TuneZ2star_8TeV_pythia6/G_Pt-170to300_START53_V7A_22Feb13-v1/31346b79deb97ac1b786d692cd650a21/patTuple_PF2PAT_MC_10_3_15V.root',
 readFiles.extend( [                                                                                                                                                        
        #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-30to50.root',
+<<<<<<< HEAD
        #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step1.root',
        'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_gammajet/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step0-1_START53_V21.root',
+=======
+       'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step1.root',
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
        ])
 
 process.source = cms.Source ("PoolSource", fileNames = readFiles)
@@ -95,8 +99,13 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     runOnNonCHS   = cms.untracked.bool(True),
     runOnCHS      = cms.untracked.bool(False),
 
+<<<<<<< HEAD
     runOnPFAK5    = cms.untracked.bool(False),
     runOnPFAK7    = cms.untracked.bool(False),
+=======
+    runOnPFAK5    = cms.untracked.bool(True),
+    runOnPFAK7    = cms.untracked.bool(True),
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
     runOnCA8      = cms.untracked.bool(True),
 
     runOnCaloAK5  = cms.untracked.bool(False),
@@ -105,8 +114,13 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     # JEC
     doJetCorrection = cms.untracked.bool(False),
     correctJecFromRaw = cms.untracked.bool(True),
+<<<<<<< HEAD
     #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
     correctorLabel = cms.untracked.string("ca8PFL1FastL2L3"),                                                            
+=======
+    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
+    #correctorLabel = cms.untracked.string("ca8PFL1FastL2L3"),                                                            
+>>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
     #correctorLabel = cms.untracked.string("ak5PFResidual")
 
     # MET
