@@ -40,17 +40,13 @@ class TTree;
 class TChain;
 class TFileDirectory;
 
-<<<<<<< HEAD
-enum JetAlgo {
-  AK5,
-  AK7
-=======
+
 //edit giulia---------- Add CA8
 enum JetAlgo {
   AK5,
   AK7,
   CA8
->>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
+
 };
 
 enum JetType {
@@ -88,12 +84,7 @@ class GammaJetFinalizer
         mJetType = CALO;
       }
 
-<<<<<<< HEAD
-      if (jetAlgo == "ak5") {
-        mJetAlgo = AK5;
-      } else {
-        mJetAlgo = AK7;
-=======
+
       //edit giulia
       if (jetAlgo == "ak5") {
         mJetAlgo = AK5;
@@ -101,7 +92,7 @@ class GammaJetFinalizer
         mJetAlgo = AK7;
       } else if (jetAlgo == "ca8"){
 	mJetAlgo = CA8;
->>>>>>> 64c426998ca6464ead7db5feee3a295127df49f9
+
       }
     }
 
