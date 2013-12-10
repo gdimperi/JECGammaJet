@@ -10,7 +10,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
-process.GlobalTag.globaltag = cms.string("START53_V7G::All")
+process.GlobalTag.globaltag = cms.string("START53_V23::All")
 
 process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
 
@@ -98,7 +98,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     runOnCaloAK7  = cms.untracked.bool(False),
 
     # JEC
-    doJetCorrection = cms.untracked.bool(False),
+    doJetCorrection = cms.untracked.bool(True),
     correctJecFromRaw = cms.untracked.bool(True),
     correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
     #correctorLabel = cms.untracked.string("ak5PFResidual")

@@ -230,6 +230,14 @@ public:
     outputGraphs_ = output;
   }
 
+  void set_kFactor(float kFactor) {
+    m_kFactor = kFactor;
+
+    if (scaleFactor_ > 0) {
+      scaleFactor_ *= m_kFactor;
+    }
+  }
+
 private:
 
 
@@ -283,4 +291,5 @@ private:
 
   bool isCMSArticle_;
 
+  float m_kFactor;
 };

@@ -212,6 +212,8 @@ drawBase::drawBase(const std::string& analysisType, const std::string& recoType,
 
   lastHistos_mcHistoSum_ = 0;
 
+  m_kFactor = -1;
+
   // this is needed to avoid the same-histogram problem:
   TH1F::AddDirectory(kFALSE);
 }
@@ -245,6 +247,10 @@ void drawBase::set_lumiNormalization(float givenLumi) {
   } else {
     scaleFactor_ = givenLumi; //this is set to normalize MC histograms to a given int luminosity (if plotted with no data)
     lumi_ = givenLumi; //givenlumi is in pb-1
+  }
+
+  if (m_kFactor > 0) {
+    scaleFactor_ *= m_kFactor;
   }
 }
 
@@ -3367,6 +3373,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     TH1* data_clone = static_cast<TH1*>(data->Clone("data_cloned"));
     data_clone->Divide(mc);
 
+    //TString eq = TString::Format("[1] * (x - %f) + [0]", data->GetXaxis()->GetBinLowEdge(1));
+
     // Fit the ratio
     TF1* ratioFit = new TF1("ratioFit", "pol1", fitMin, fitMax);
     ratioFit->SetParameter(0, 1.);
@@ -3377,6 +3385,11 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     ratioFit->SetLineColor(46);
     ratioFit->SetLineWidth(1.5);
     data_clone->Fit(ratioFit, "QR");
+
+    TF1* constantFit = new TF1("linearFit", "pol0", fitMin, fitMax);
+    constantFit->SetLineColor(36);
+    constantFit->SetLineStyle(kDashed);
+    data_clone->Fit(constantFit, "QR");
     
     //TH1D* errors = new TH1D("errors", "errors", 100, fitMin, fitMax);
     //(TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors);
@@ -3405,14 +3418,17 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     data_clone->Draw("e");
     //errors->Draw("e3 same");
     ratioFit->Draw("same");
+    constantFit->Draw("same");
 
-    TPaveText* fitlabel = new TPaveText(0.45, 0.35, 0.78, 0.51, "brNDC");
+    TPaveText* fitlabel = new TPaveText(0.45, 0.35, 0.78, 0.60, "brNDC");
     fitlabel->SetTextFont(42);
     fitlabel->SetTextSize(0.08);
     fitlabel->SetFillColor(0);
     TString fitLabelText = TString::Format("Fit: b = %.4f #pm %.4f", fitValue, fitError);
     fitlabel->AddText(fitLabelText);
     fitLabelText = TString::Format("Fit: a = %.4f #pm %.4f", ratioFit->GetParameter(1) , ratioFit->GetParError(1));
+    fitlabel->AddText(fitLabelText);
+    fitLabelText = TString::Format("Constant fit: %.4f #pm %.4f", constantFit->GetParameter(0), constantFit->GetParError(0));
     fitlabel->AddText(fitLabelText);
 
     fitlabel->Draw("same");

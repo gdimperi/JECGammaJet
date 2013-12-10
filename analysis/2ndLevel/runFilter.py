@@ -31,8 +31,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-      #'/store/user/sbrochet/Photon/Photon_Run2012A-recover-06Aug2012_18Feb13-v1/298629d7efe53cfa022ca63c838ed612/patTuple_PF2PAT_16_1_Z3z.root'
-      'file:patTuple_PF2PAT.root'
+      #'/store/user/sbrochet/Photon/Photon_Run2012A-22Jan2013_24Apr13-v1/37e3bf2409397e623ffd52beab84a202/patTuple_PF2PAT_92_1_v1Q.root' 
+      '/store/user/sbrochet/SinglePhotonParked/SinglePhoton_Run2012D-22Jan2013_16May13-v1/d8690a0448f852b4d70656ff31f27990/patTuple_PF2PAT_981_4_yaZ.root'
     )
 )
 
@@ -78,7 +78,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     runOnCaloAK7  = cms.untracked.bool(False),
 
     # JEC
-    doJetCorrection = cms.untracked.bool(False),
+    doJetCorrection = cms.untracked.bool(True),
     correctJecFromRaw = cms.untracked.bool(True),
     #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
     correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3Residual"),
