@@ -40,7 +40,17 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   # this function will modify the PAT sequences.
   from PhysicsTools.PatAlgos.tools.coreTools import removeSpecificPATObjects, removeMCMatching
   from PhysicsTools.PatAlgos.tools.pfTools import usePF2PAT, adaptPFIsoElectrons, adaptPVs, usePFIso
+  from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection
   #from PhysicsTools.PatAlgos.tools.metTools import *
+
+  process.load("RecoJets.Configuration.GenJetParticles_cff")
+  from RecoJets.JetProducers.ca4GenJets_cfi import ca4GenJets
+  process.ca8GenJetsNoNu = ca4GenJets.clone(
+      rParam = cms.double(0.8),
+      src = cms.InputTag("genParticlesForJetsNoNu")
+      )
+
+  from RecoJets.JetProducers.ca4PFJets_cfi import ca4PFJets
 
   def usePF2PATForAnalysis(jetAlgo, postfix, useTypeIMET, usePFNoPU):
 
@@ -70,7 +80,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     getattr(process,"pfNoPileUp" + p).enable = cms.bool(usePFNoPU)
     getattr(process,"pfNoMuon" + p).enable = True
     getattr(process,"pfNoElectron" + p).enable = True
-    getattr(process,"pfNoTau" + p).enable = True
+    getattr(process,"pfNoTau" + p).enable = False
     getattr(process,"pfNoJet" + p).enable = True
 
     getattr(process,"patElectrons" + p).embedTrack = True
@@ -106,41 +116,6 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     # ... And for PAT
     adaptPFIsoElectrons(process, getattr(process, "pfElectrons" + p), p, "03")
 
-    
-    if runOnMC:
-      cloneProcessingSnippet(process, getattr(process, "makePatMuons" + p), "Loose" + p, p)
-      getattr(process, "muonMatchLoose" + p).src = cms.InputTag("pfMuons" + p)
-      getattr(process, "patMuonsLoose" + p).pfMuonSource = cms.InputTag("pfMuons" + p)
-      getattr(process, "patDefaultSequence" + p).replace(getattr(process, "makePatMuons" + p), getattr(process, "makePatMuons" + p) + getattr(process, "makePatMuonsLoose" + p))
-    else:
-      setattr(process, "patMuonsLoose" + p, getattr(process, "patMuons" + p).clone(
-          pfMuonSource = cms.InputTag("pfMuons" + p)
-        )
-      )
-
-    setattr(process, "selectedPatMuonsLoose" + p, getattr(process, "selectedPatMuons" + p).clone(
-        src = cms.InputTag("patMuonsLoose" + p)
-      )
-    )
-    sequence = getattr(process, "patDefaultSequence" + p)
-
-    if not runOnMC:
-      sequence += getattr(process, "patMuonsLoose" + p)
-
-    sequence += (getattr(process, "selectedPatMuonsLoose" + p))
-
-    setattr(process, "patElectronsLoose" + p, getattr(process, "patElectrons" + p).clone(
-        pfElectronSource = cms.InputTag("pfElectrons" + p)
-      )
-    )
-    setattr(process, "selectedPatElectronsLoose" + p, getattr(process, "selectedPatElectrons" + p).clone(
-        src = cms.InputTag("patElectronsLoose" + p)
-      )
-    )
-    adaptPFIsoElectrons(process, getattr(process, "patElectronsLoose" + p), postfix, "03")
-    sequence = getattr(process, "patDefaultSequence" + p)
-    sequence += (getattr(process, "patElectronsLoose" + p) * getattr(process, "selectedPatElectronsLoose" + p))
-
 
     # Setup quark gluon tagger
     #process.load('QuarkGluonTagger.EightTeV.QGTagger_RecoJets_cff')
@@ -159,8 +134,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       getattr(process, 'patPFMet' + p).addGenMET = cms.bool(False)
 
     names = ["Taus"]
-    #if jetAlgo != "AK5":
-      #names += ["Electrons", "Muons"]
+    if jetAlgo != "AK5":
+      names += ["Electrons", "Muons"]
     if len(names) > 0:
       removeSpecificPATObjects(process, names = names, outputModules = ['out'], postfix = p) 
 
@@ -172,10 +147,44 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
 
     return getattr(process, "patPF2PATSequence" + p)
 
+  # This must be called after all the calls to usePF2PAT
+  def addC8Jets(p):
+    p2 = p.replace('AK5', 'CA8')
+
+    ###############################
+    ###### Bare CA 0.8 jets #######
+    ###############################
+    setattr(process, "ca8PFJets" + p2, ca4PFJets.clone(
+            rParam = cms.double(0.8),
+            src = cms.InputTag('pfNoElectron' + p),
+            doAreaFastjet = cms.bool(True),
+            doRhoFastjet = cms.bool(True),
+            Rho_EtaMax = cms.double(6.0),
+            Ghost_EtaMax = cms.double(7.0),
+            srcPVs = cms.InputTag("goodOfflinePrimaryVertices")
+            ))
+
+    # Add ca8PFJets to the main process path
+    getattr(process, "patPF2PATSequence" + p).replace(
+            getattr(process, "pfNoElectron" + p), getattr(process, "pfNoElectron" + p) * getattr(process, "ca8PFJets" + p2)
+            )
+
+    addJetCollection(process, 
+            cms.InputTag('ca8PFJets' + p2),
+            'CA8', 'PFchs' if 'chs' in p else 'PF',
+            doJTA = True,
+            doBTagging = True,
+            jetCorrLabel = ('AK7PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute']),
+            doType1MET = True,
+            doL1Cleaning = False,
+            doL1Counters = False,
+            genJetCollection = cms.InputTag("ca8GenJetsNoNu"),
+            doJetID = True,
+            )
+
   if correctMETWithT1:
     process.load("PhysicsTools.PatUtils.patPFMETCorrections_cff")
-    
-  from PhysicsTools.PatAlgos.tools.helpers import cloneProcessingSnippet
+    #from PhysicsTools.PatAlgos.tools.helpers import cloneProcessingSnippet
 
   print "##########################"
   print "PF jets with PF2PAT"
@@ -213,6 +222,11 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       getattr(process, "QGTagger" + chsP).useCHS = cms.untracked.bool(True)
 
       process.QuarkGluonTagger.replace(getattr(process, 'QGTagger' + p), getattr(process, 'QGTagger' + p) + getattr(process, 'QGTagger' + chsP))
+
+  for p, algo in postfixes.items():
+    addC8Jets(p)
+    if runCHS:
+      addC8Jets(p + "chs")
 
   print "##########################"
   print "Calo jets" if processCaloJets else "No processing of calo jets"
@@ -269,6 +283,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
 
   process.analysisSequence = cms.Sequence()
 
+  process.analysisSequence *= process.genParticlesForJetsNoNu * process.ca8GenJetsNoNu
+
   process.analysisSequence *= process.sequence_nochs
   if runCHS:
     process.analysisSequence *= process.sequence_chs
@@ -302,25 +318,57 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       thresh = cms.untracked.double(0.25)
       )
 
+  ## The iso-based HBHE noise filter ___________________________________________||
+  process.load('CommonTools.RecoAlgos.HBHENoiseFilter_cfi')
+
+  ## The CSC beam halo tight filter ____________________________________________||
+  process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
+
+  ## The HCAL laser filter _____________________________________________________||
+  process.load("RecoMET.METFilters.hcalLaserEventFilter_cfi")
+
+  ## The ECAL dead cell trigger primitive filter _______________________________||
+  process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
+
+  ## The EE bad SuperCrystal filter ____________________________________________||
+  process.load('RecoMET.METFilters.eeBadScFilter_cfi')
+
+  ## The ECAL laser correction filter
+  process.load('RecoMET.METFilters.ecalLaserCorrFilter_cfi')
+
+  ## The Good vertices collection needed by the tracking failure filter ________||
+  process.goodVertices = cms.EDFilter(
+      "VertexSelector",
+      filter = cms.bool(False),
+      src = cms.InputTag("offlinePrimaryVertices"),
+      cut = cms.string("!isFake && ndof > 4 && abs(z) <= 24 && position.rho < 2")
+      )
+
+  ## The tracking failure filter _______________________________________________||
+  process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+
+  ## The tracking POG filters __________________________________________________||
+  process.load('RecoMET.METFilters.trackingPOGFilters_cff')
+
   # Count events
   process.nEventsTotal    = cms.EDProducer("EventCountProducer")
   process.nEventsFiltered = cms.EDProducer("EventCountProducer")
-
-  # MET Filters
-  process.load("RecoMET.METFilters.metFilters_cff")
-
-  # HCAL Laser filter : work only on Winter13 rereco
-  process.load("EventFilter.HcalRawToDigi.hcallaserFilterFromTriggerResult_cff")
 
   # Let it run
   process.p = cms.Path(
       process.nEventsTotal +
 
       # Filters
-      process.hcalfilter +
       process.primaryVertexFilter +
       process.scrapingVeto +
-      process.metFilters +
+      process.HBHENoiseFilter +
+      process.CSCTightHaloFilter +
+      process.hcalLaserEventFilter +
+      process.EcalDeadCellTriggerPrimitiveFilter +
+      process.goodVertices + process.trackingFailureFilter +
+      process.eeBadScFilter +
+      process.ecalLaserCorrFilter +
+      process.trkPOGFilters +
 
       process.goodOfflinePrimaryVertices +
 
@@ -331,7 +379,6 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       )
 
   if runOnMC:
-    process.p.remove(process.hcalfilter)
     process.p.remove(process.scrapingVeto)
 
   # Add PF2PAT output to the created file
