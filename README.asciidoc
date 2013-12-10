@@ -18,7 +18,54 @@ This is a documentation for the gamma + jets framework.
 
 The code is hosted on git, and available on read-access to anyone. You can find some documentation on git on their website: http://git-scm.com/documentation
 
-All the informations needed to setup a working area are summarized inside the http://ipnl.madalynn.eu/GammaJetFilter.git/blob_plain/HEAD:/README[README] file. Follow all the instructions here to have a working area.
+To setup a working area, here the step you must follow:
+
+[source,bash]
+----
+setenv SCRAM_ARCH slc5_amd64_gcc462 / export SCRAM_ARCH=slc5_amd64_gcc462
+
+cmsrel CMSSW_5_3_9_patch2
+cd CMSSW_5_3_9_patch2/src/
+cmsenv
+
+addpkg DataFormats/PatCandidates   V06-05-06-10
+addpkg PhysicsTools/PatAlgos       V08-09-56
+addpkg PhysicsTools/PatUtils       V03-09-28
+addpkg DataFormats/CaloRecHit      V02-05-11
+addpkg DataFormats/StdDictionaries V00-02-14
+addpkg FWCore/GuiBrowsers          V00-00-70
+addpkg RecoMET/METProducers        V03-03-12-02
+
+addpkg RecoParticleFlow/PFProducer V15-02-06
+
+addpkg RecoTauTag/RecoTau V01-04-23
+addpkg RecoTauTag/Configuration V01-04-10
+addpkg CondFormats/EgammaObjects V00-04-00
+
+cvs update -r 1.19.8.1 PhysicsTools/PatAlgos/python/tools/helpers.py
+
+# LumiCalc
+cvs co  -r V04-02-03 RecoLuminosity/LumiDB
+cvs co -rV04-01-01 RecoLuminosity/LumiDB/python/csvLumibyLSParser.py  # Bug when creating PU profile when trigger is prescaled
+
+# Photon ID
+cvs co -r V00-00-30 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
+
+# Quark / Gluon tagging
+cvs co -r v1-2-3 -d QuarkGluonTagger/EightTeV UserCode/tomc/QuarkGluonTagger/EightTeV
+
+# Filters
+
+cvs co -r V00-00-13 RecoMET/METFilters
+cvs co -r V00-00-08 RecoMET/METAnalyzers
+cvs co -r 1.2 RecoMET/METFilters/python/metFilters_cff.py
+
+cd JetMETCorrections
+git clone https://github.com/blinkseb/GammaJetResiduals.git GammaJetFilter
+
+cd ..
+scram b -j 9
+----
 
 If everything went fine, you should now have a 'JetMETCorrections/GammaJetFilter' directory. It's only here you'll need to work.
 
