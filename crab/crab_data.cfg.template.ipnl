@@ -23,20 +23,30 @@ output_file = patTuple_PF2PAT.root
 
 [USER]
 
-eMail = @email@
+#eMail = @email@
+eMail = giulia.dimperio@cern.ch
 
 ui_working_dir = @uiworkingdir@
 
 return_data = 0
 copy_data = 1
 
-storage_element = T3_FR_IPNL
+#storage_element = T3_FR_IPNL
+storage_element = cmsrm-se01.roma1.infn.it
 
-check_user_remote_dir = 0
+#check_user_remote_dir = 0
+
 
 publish_data = 1
 dbs_url_for_publication = https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet
 publish_data_name = @publish_data_name@
+
+storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms/
+
+check_user_remote_dir = 1
+
+user_remote_dir = @remote_dir@
+
 
 [GRID]
 rb = CERN
