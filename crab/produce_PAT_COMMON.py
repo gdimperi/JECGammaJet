@@ -148,7 +148,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     return getattr(process, "patPF2PATSequence" + p)
 
   # This must be called after all the calls to usePF2PAT
-  def addC8Jets(p):
+  def addC8Jets(p, runOnMC):
     p2 = p.replace('AK5', 'CA8')
 
     ###############################
@@ -181,6 +181,10 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
             genJetCollection = cms.InputTag("ca8GenJetsNoNu"),
             doJetID = True,
             )
+    if not runOnMC:
+      # Remove MC Matching
+      removeMCMatching(process, names = ["All"])
+
 
   if correctMETWithT1:
     process.load("PhysicsTools.PatUtils.patPFMETCorrections_cff")
@@ -224,9 +228,9 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       process.QuarkGluonTagger.replace(getattr(process, 'QGTagger' + p), getattr(process, 'QGTagger' + p) + getattr(process, 'QGTagger' + chsP))
 
   for p, algo in postfixes.items():
-    addC8Jets(p)
+    addC8Jets(p, runOnMC)
     if runCHS:
-      addC8Jets(p + "chs")
+      addC8Jets(p + "chs", runOnMC)
 
   print "##########################"
   print "Calo jets" if processCaloJets else "No processing of calo jets"
@@ -283,7 +287,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
 
   process.analysisSequence = cms.Sequence()
 
-  process.analysisSequence *= process.genParticlesForJetsNoNu * process.ca8GenJetsNoNu
+  if runOnMC: 
+    process.analysisSequence *= process.genParticlesForJetsNoNu * process.ca8GenJetsNoNu
 
   process.analysisSequence *= process.sequence_nochs
   if runCHS:
