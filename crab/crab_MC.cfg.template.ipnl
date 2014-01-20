@@ -1,8 +1,8 @@
 [CRAB]
 jobtype = cmssw
-#scheduler = glite
+scheduler = glite
 #use_server = 1
-scheduler = remoteGlidein
+#scheduler = remoteGlidein
 use_server = 0
 
 [CMSSW]
@@ -20,21 +20,32 @@ output_file = patTuple_PF2PAT_MC.root
 
 [USER]
 
-eMail = @email@
+#eMail = @email@
+eMail = giulia.dimperio@cern.ch
 
 ui_working_dir = @uiworkingdir@
 
 return_data = 0
 copy_data = 1
 
+storage_element = cmsrm-se01.roma1.infn.it
+storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms/
+check_user_remote_dir = 1
+user_remote_dir = @remote_dir@
+#user_remote_dir = /JetMET/MC/
+
+#storage_element = T3_FR_IPNL
+#check_user_remote_dir = 0
+
 publish_data = 1
 dbs_url_for_publication = https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet
 publish_data_name = @publish_data_name@
 
-storage_element = T3_FR_IPNL
-check_user_remote_dir = 0
+
 
 [GRID]
 rb = CERN
 virtual_organization = cms
+ce_black_list=T2_US_Purdue
 #ce_black_list=T2_KR_KNU,T2_BE_IIHE,T2_RU_ITEP
+#ce_white_list=T3_FR_IPNL
