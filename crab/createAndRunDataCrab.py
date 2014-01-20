@@ -8,13 +8,19 @@ parser.add_option("", "--run", action="store_true", dest="run", default=False, h
 (options, args) = parser.parse_args()
 
 global_json = "Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"
+#global_json = "Cert_190782-190949_8TeV_06Aug2012ReReco_Collisions12_JSON.txt"
 
 datasets = [
 
-    ["/Photon/Run2012A-22Jan2013-v1/AOD", "Photon_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],
-    ["/SinglePhoton/Run2012B-22Jan2013-v1/AOD", "SinglePhoton_Run2012B-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],
-    ["/SinglePhoton/Run2012C-22Jan2013-v1/AOD", "SinglePhoton_Run2012C-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],
-    ["/SinglePhotonParked/Run2012D-22Jan2013-v1/AOD", "SinglePhoton_Run2012D-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686]],
+#    ["/Photon/Run2012A-22Jan2013-v1/AOD", "Photon_Run2012A-22Jan2013", "", "FT_53_V21_AN3", [190456, 193621]],                  
+#    ["/SinglePhoton/Run2012B-22Jan2013-v1/AOD", "SinglePhoton_Run2012B-22Jan2013", "", "FT_53_V21_AN3", [193833, 196531]],      
+#    ["/SinglePhoton/Run2012C-22Jan2013-v1/AOD", "SinglePhoton_Run2012C-22Jan2013", "", "FT_53_V21_AN3", [198022, 203742]],      
+#    ["/SinglePhotonParked/Run2012D-22Jan2013-v1/AOD", "SinglePhoton_Run2012D-22Jan2013", "", "FT_53_V21_AN3", [203768, 208686]],
+
+  ["/Photon/Run2012A-22Jan2013-v1/AOD", "Photon_Run2012A-22Jan2013", "", "FT_53_V21_AN5", [190456, 193621]],                  
+#  ["/SinglePhoton/Run2012B-22Jan2013-v1/AOD", "SinglePhoton_Run2012B-22Jan2013", "", "FT_53_V21_AN5", [193833, 196531]],      
+#  ["/SinglePhoton/Run2012C-22Jan2013-v1/AOD", "SinglePhoton_Run2012C-22Jan2013", "", "FT_53_V21_AN5", [198022, 203742]],      
+#  ["/SinglePhotonParked/Run2012D-22Jan2013-v1/AOD", "SinglePhoton_Run2012D-22Jan2013", "", "FT_53_V21_AN5", [203768, 208686]],
 
     ]
 
@@ -44,6 +50,7 @@ for dataset in datasets:
   publish_name = "%s_%s-v%d" % (dataset_name, d, version)
   ui_working_dir = ("crab_data_%s") % (dataset_name)
   output_file = "crab_data_%s.cfg" % (dataset_name)
+  output_dir = "/store/JetMET/1stLevel/data/%s/%s" % (d, dataset_name)
 
   print("Creating config file for '%s'" % (dataset_path))
   print("\tName: %s" % dataset_name)
@@ -53,7 +60,7 @@ for dataset in datasets:
   print("\tPublishing name: %s" % publish_name)
   print("")
 
-  os.system("sed -e \"s#@datasetname@#%s#\" -e \"s#@uiworkingdir@#%s#g\" -e \"s#@lumi_mask@#%s#g\" -e \"s#@runselection@#%s#g\" -e \"s#@publish_data_name@#%s#g\" -e \"s#@email@#%s#g\" -e \"s#@globaltag@#%s#g\" crab_data.cfg.template.ipnl > %s" % (dataset_path, ui_working_dir, dataset_json, runselection, publish_name, email, dataset_globaltag, output_file))
+  os.system("sed -e \"s#@datasetname@#%s#\" -e \"s#@uiworkingdir@#%s#g\" -e \"s#@lumi_mask@#%s#g\" -e \"s#@runselection@#%s#g\" -e \"s#@publish_data_name@#%s#g\" -e \"s#@email@#%s#g\" -e \"s#@remote_dir@#%s#g\" -e \"s#@globaltag@#%s#g\" crab_data.cfg.template.ipnl > %s" % (dataset_path, ui_working_dir, dataset_json, runselection, publish_name, email, output_dir, dataset_globaltag, output_file))
 
   cmd = "crab -create -submit -cfg %s" % (output_file)
   if options.run:
