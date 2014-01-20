@@ -3012,6 +3012,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       algoName = "k_{T} 0.4 ";
     } else if (jetAlgo_ == "KT6") {
       algoName = "k_{T} 0.6 ";
+    } else if (jetAlgo_ == "CA8") {
+      algoName = "Cambridge-Aachen 0.6 ";
     } else {
       std::cout << "Jet algo '" << jetAlgo_ << "' currently not supported. Exiting." << std::endl;
       exit(918);

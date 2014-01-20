@@ -38,7 +38,7 @@ readFiles.extend( [
        #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step1.root',
        'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_gammajet/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step0-1_START53_V21.root',
 
-       'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step1.root',
+       #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step1.root',
 
        ])
 
@@ -100,8 +100,8 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     runOnCHS      = cms.untracked.bool(False),
 
 
-    runOnPFAK5    = cms.untracked.bool(True),
-    runOnPFAK7    = cms.untracked.bool(True),
+    runOnPFAK5    = cms.untracked.bool(False),
+    runOnPFAK7    = cms.untracked.bool(False),
     runOnCA8      = cms.untracked.bool(True),
 
     runOnCaloAK5  = cms.untracked.bool(False),
@@ -112,7 +112,7 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     correctJecFromRaw = cms.untracked.bool(True),
 
     #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
-    correctorLabel = cms.untracked.string("ca8PFL1FastL2L3"),                                                            
+    correctorLabel = cms.untracked.string("ak7PFL1FastL2L3"),                                                            
 
     #correctorLabel = cms.untracked.string("ak5PFResidual")
 
@@ -139,8 +139,8 @@ process.p = cms.Path(process.gammaJet)
 #)
 
 process.TFileService = cms.Service("TFileService",
-    #fileName = cms.string("output_mc.root")
-    fileName = cms.string("output_mc_G_Pt-50to80.root")
+    fileName = cms.string("output_mc.root")
+    #fileName = cms.string("output_mc_G_Pt-50to80.root")
     )
 
 #process.out.fileName = 'patTuple_cleaned.root'

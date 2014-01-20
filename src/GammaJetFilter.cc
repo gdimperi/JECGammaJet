@@ -291,7 +291,7 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   mRedoTypeI     = iConfig.getUntrackedParameter<bool>("redoTypeIMETCorrection", false);
 
   //add CA8
-  mJetsCA8PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsCA8PFlow", edm::InputTag("selectedPatJetsPFlowCA8"));
+  mJetsCA8PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsCA8PFlow", edm::InputTag("selectedPatJetsCA8PF"));
 
 
   if (mDoJEC) {
@@ -364,8 +364,8 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     //------------------ giulia -------------------------
 
     if (runOnCA8) {
-      mJetCollections.push_back("CA8");
-      mJetCollectionsData["CA8"] = {CA8, mJetsCA8PFlowIT};
+      mJetCollections.push_back("PFlowCA8");
+      mJetCollectionsData["PFlowCA8"] = {CA8, mJetsCA8PFlowIT};
     }
     //-------------------giulia end---------------------------
 
@@ -623,17 +623,18 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<pat::METCollection> metsHandle;
     //iEvent.getByLabel(std::string("patMETsPFlow" + ((*it == "AK5Calo") ? "" : *it)), metsHandle);
     // //giulia
-    if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , metsHandle);
-    else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , metsHandle);
-    else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , metsHandle);
+    iEvent.getByLabel("patMETsPFlowAK5" , metsHandle);			
+    //if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , metsHandle);
+    //else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , metsHandle);
+    //else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , metsHandle);
 
     edm::Handle<pat::METCollection> rawMets;
     //iEvent.getByLabel(std::string("patPFMetPFlow" + ((*it == "AK5Calo") ? "" : *it)), rawMets);
-    // iEvent.getByLabel("patPFMetPFlowAK5", rawMets);
+     iEvent.getByLabel("patPFMetPFlowAK5", rawMets);
     //giulia
-    if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , rawMets);
-    else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , rawMets);
-    else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , rawMets);
+    //if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , rawMets);
+    //else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , rawMets);
+    //else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , rawMets);
 
 
     pat::METCollection mets = *metsHandle;
@@ -753,9 +754,9 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //giulia 
   //iEvent.getByLabel("selectedPatElectronsPFlowAK5chs", electrons);
   iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
-  //if (infos2.algo == AK5) iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
-  //if (infos2.algo == AK7) iEvent.getByLabel("selectedPatElectronsPFlowAK7", electrons);
-  //if (infos2.algo == CA8) iEvent.getByLabel("selectedPatElectronsPFlowCA8", electrons);
+  //if (infos.algo == AK5) iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
+  //if (infos.algo == AK7) iEvent.getByLabel("selectedPatElectronsPFlowAK7", electrons);
+  //if (infos.algo == CA8) iEvent.getByLabel("selectedPatElectronsPFlowCA8", electrons);
 
   electronsToTree(electrons, primaryVertex);
 
@@ -766,9 +767,9 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //iEvent.getByLabel("selectedPatMuonsPFlowAK5chs", muons);
   iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
   //  iEvent.getByLabel(std::string("selectedPatMuonsPFlow" + ((*it == "AK5Calo") ? "" : *it)), muons);
-  //if (infos2.algo == AK5) iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
-  //if (infos2.algo == AK7) iEvent.getByLabel("selectedPatMuonsPFlowAK7",  muons);
-  //if (infos2.algo == CA8) iEvent.getByLabel("selectedPatMuonsPFlowCA8",  muons);
+  //if (infos.algo == AK5) iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
+  //if (infos.algo == AK7) iEvent.getByLabel("selectedPatMuonsPFlowAK7",  muons);
+  //if (infos.algo == CA8) iEvent.getByLabel("selectedPatMuonsPFlowCA8",  muons);
 
   muonsToTree(muons, primaryVertex);
 
@@ -1178,7 +1179,7 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::E
   // Isolations are produced at PAT level by the PḧotonPFIsolation producer
   edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
 
-  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT2"), hasMatchedPromptElectronHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
 
 
   isValid &= ! (*hasMatchedPromptElectronHandle)[photonRef];
@@ -1189,13 +1190,13 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::E
   // Now, isolations
   edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
 
-  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT2"), chargedHadronsIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT2"), neutralHadronsIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT2"), photonIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
 
 
   isValid &= getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 0.7;
@@ -1358,7 +1359,7 @@ void GammaJetFilter::photonToTree(const pat::PhotonRef& photon, const edm::Event
   // Isolations are produced at PAT level by the PḧotonPFIsolation producer
   edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
 
-  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT2"), hasMatchedPromptElectronHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
 
 
   bool hasMatchedPromptElectron = (*hasMatchedPromptElectronHandle)[photon];
@@ -1367,13 +1368,13 @@ void GammaJetFilter::photonToTree(const pat::PhotonRef& photon, const edm::Event
   // Now, isolations
   edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
 
-  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT2"), chargedHadronsIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT2"), neutralHadronsIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT2"), photonIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
 
 
   float chargedHadronsIsolation = getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photon], rho, photon->eta(), IsolationType::CHARGED_HADRONS);

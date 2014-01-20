@@ -100,10 +100,12 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     # JEC
     doJetCorrection = cms.untracked.bool(False),
     correctJecFromRaw = cms.untracked.bool(True),
-    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
+    #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
     #correctorLabel = cms.untracked.string("ak5PFResidual")
+    correctorLabel = cms.untracked.string("ak7PFchsL1FastL2L3")
 
     # MET
+                        
     redoTypeIMETCorrection = cms.untracked.bool(True)
     )
 
