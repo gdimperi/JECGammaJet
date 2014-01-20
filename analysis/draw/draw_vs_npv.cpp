@@ -52,12 +52,17 @@ int main(int argc, char* argv[]) {
     algoType = "jptak5";
   }
 
-  jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
+  //jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
+  if (jetAlgo == "ak5") jetAlgo = "AK5" ;
+  if (jetAlgo == "ak7") jetAlgo = "AK7" ;
+  if (jetAlgo == "ca8") jetAlgo = "CA8" ;
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
 
   postFix += "chs";
 
+  //giulia debug
+  postFix = "PFlowCA8";
 
   //Float_t etamax = 3.;
   //bool sameEvents = false; //until njets histos have no overflows... or maybe use GetEntries instead of integral?
@@ -71,9 +76,12 @@ int main(int argc, char* argv[]) {
 
   TString dataFileName;
   if (flags.length() > 0) {
+    
     dataFileName = TString::Format("PhotonJet_%s_%s_%s.root", data_dataset.c_str(), postFix.c_str(), flags.c_str());
+    //dataFileName = TString::Format("PhotonJet_%s_%s_%s.root", data_dataset.c_str(), "PFlowCA8", flags.c_str());
   } else {
     dataFileName = TString::Format("PhotonJet_%s_%s.root", data_dataset.c_str(), postFix.c_str());
+    //dataFileName = TString::Format("PhotonJet_%s_%s.root", data_dataset.c_str(), "PFlowCA8");
   }
 
   TFile* dataFile = TFile::Open(dataFileName);
@@ -84,12 +92,18 @@ int main(int argc, char* argv[]) {
   }
 
   TString mc1FileName;
+  
   if (flags.length() > 0) {
     mc1FileName = TString::Format("PhotonJet_%s_%s_%s.root", mc_photonjet.c_str(), postFix.c_str(), flags.c_str());
   } else {
     mc1FileName = TString::Format("PhotonJet_%s_%s.root", mc_photonjet.c_str(), postFix.c_str());
   }
+
   TFile* mcPhotonJetFile = TFile::Open(mc1FileName);
+  //giulia debug  
+  //TFile* mcPhotonJetFile = TFile::Open("PhotonJet_G_Pt-50to80_PFlowCA8.root");
+
+
   std::cout << "Opened mc file '" << mc1FileName << "'." << std::endl;
 
   if (mcPhotonJetFile) {
@@ -156,12 +170,22 @@ int main(int argc, char* argv[]) {
     //responseName = TString::Format("resp_balancing_raw_%s", etaBinning.getBinName(i).c_str());
     //db->drawHisto_vs_vertex(ptBins, responseName.Data(), "Balancing Response (raw jets)", "", "Events", log);
 
+    //giulia true response
+    responseName = TString::Format("true_resp_%s", etaBinning.getBinName(i).c_str());
+    db->drawHisto_vs_vertex(vertexBins, responseName.Data(), "True Response", "", "Events", log);
+    responseName = TString::Format("true_resp_raw_%s", etaBinning.getBinName(i).c_str());
+    db->drawHisto_vs_vertex(vertexBins, responseName.Data(), "True Response (raw jets)", "", "Events", log);
+
   }
   // Special case eta < 1.3
 
   db->set_legendTitle("|#eta| < 1.3");
   db->drawHisto_vs_vertex(vertexBins, "resp_balancing_eta013", "Balancing Response", "", "Events", log);
   //db->drawHisto_vs_pt(ptBins, "resp_balancing_raw_eta013", "Balancing Response (raw jets)", "", "Events", log);
+
+    //giulia true response
+  db->drawHisto_vs_vertex(vertexBins, "true_resp_eta013", "True Response", "", "Events", log);
+  db->drawHisto_vs_vertex(vertexBins, "true_resp_raw_eta013", "True Response (raw jets)", "", "Events", log);
 
   // MPF
   //db->setFolder("analysis/vertex");
