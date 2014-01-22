@@ -16,7 +16,9 @@
 
 #include <DataFormats/PatCandidates/interface/Photon.h>
 
-#include "EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h"
+//#include "EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h"
+#include "EgammaAnalysis/ElectronTools/interface/PFIsolationEstimator.h"
+
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
 class PhotonIsolationProducer : public edm::EDProducer {
