@@ -49,10 +49,14 @@ cvs co  -r V04-02-03 RecoLuminosity/LumiDB
 cvs co -rV04-01-01 RecoLuminosity/LumiDB/python/csvLumibyLSParser.py  # Bug when creating PU profile when trigger is prescaled
 
 # Photon ID
-cvs co -r V00-00-30 -d EGamma/EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
+mkdir EGamma; cd EGamma
+cvs co -r V00-00-30 -d EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
+cd ..
 
 # Quark / Gluon tagging
-cvs co -r v1-2-3 -d QuarkGluonTagger/EightTeV UserCode/tomc/QuarkGluonTagger/EightTeV
+mkdir QuarkGluonTagger; cd QuarkGluonTagger
+cvs co -r v1-2-3 -d EightTeV UserCode/tomc/QuarkGluonTagger/EightTeV
+cd ..
 
 # Filters
 
