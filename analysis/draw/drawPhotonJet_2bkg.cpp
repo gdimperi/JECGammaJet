@@ -8,6 +8,8 @@
 #include "etaBinning.h"
 #include "ptBinning.h"
 
+#include <TColor.h>
+
 
 bool useMCassoc_ = false;
 bool ONEVTX = false;
@@ -62,7 +64,7 @@ int main(int argc, char* argv[]) {
   drawBase* db = new drawBase("PhotonJet", recoType, jetAlgo, OUTPUT_GRAPHS);
   db->set_pdf_aussi((bool)false);
   db->set_flags(flags);
-  db->set_isCMSArticle((bool)true);
+  db->set_isCMSArticle(false);
 
   std::cout << "flags set." << std::endl;
 
@@ -90,7 +92,11 @@ int main(int argc, char* argv[]) {
   std::cout << "Opened mc file '" << mc1FileName << "'." << std::endl;
 
   if (mcPhotonJetFile) {
-    db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma+jet MC", 46);
+    //db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma + jets MC", TColor::GetColor(236, 208, 120));
+    //db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma + jets MC", TColor::GetColor(84, 36, 55));
+    //db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma + jets MC", TColor::GetColor(83, 119, 122));
+    //db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma + jets MC", TColor::GetColor(217, 91, 67));
+    db->add_mcFile(mcPhotonJetFile, mc_photonjet, "#gamma + jets MC", TColor::GetColor(192, 41, 66));
   }
 
   if (mc_QCD != "") {
@@ -104,7 +110,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
 
     if (mcQCDFile && mc_QCD != mc_photonjet) {
-      db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", 38);
+      //db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", TColor::GetColor(192, 41, 66));
+      db->add_mcFile(mcQCDFile, mc_QCD, "QCD MC", TColor::GetColor("#ECD078"));
     }
   }
 

@@ -468,7 +468,12 @@ int main(int argc, char* argv[]) {
   // Create output directory
   mkdir("plots", 0755);
 
-  TString directoryName = TString::Format("plots/%s_vs_%s_%s", data_dataset.c_str(), mc_photonjet.c_str(), postFix.c_str());
+  TString directoryName = "";
+  
+  if (mc_QCD.length() == 0)
+    directoryName = TString::Format("plots/%s_vs_%s_%s", data_dataset.c_str(), mc_photonjet.c_str(), postFix.c_str());
+  else
+    directoryName = TString::Format("plots/%s_vs_%s_plus_%s_%s", data_dataset.c_str(), mc_photonjet.c_str(), mc_QCD.c_str(), postFix.c_str());
   mkdir(directoryName, 0755);
 
   directoryName = TString::Format("%s/extrapolation", directoryName.Data());

@@ -22,6 +22,8 @@ bool FIXM_ = false;
 bool OUTPUT_GRAPHS = false;
 
 #define LIGHT_RED TColor::GetColor(0xcf, 0xa0, 0xa1)
+#define BALANCING TColor::GetColor(217, 91, 67)
+#define MPF TColor::GetColor(192, 41, 66)
 
 void setGraphStyle(TGraphErrors* graph, int markerStyle, int markerColor, int markerSize = 1) {
   graph->SetMarkerStyle(markerStyle);
@@ -78,7 +80,7 @@ int main(int argc, char* argv[]) {
 
   drawBase* db = new drawBase("PhotonJet", recoType, jetAlgo, OUTPUT_GRAPHS);
   db->set_flags(flags);
-  db->set_isCMSArticle((bool)true);
+  db->set_isCMSArticle(false);
 
   TString dataFileName;
   if (flags.length() > 0) {
@@ -198,15 +200,17 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
 
   pad_lo->cd();
 
-  double lowPadY1 = 0.86;
-  double lowPadY2 = 1.14;
+  bool isResponse = prefix == "response";
 
-  TH2D* h2_axes_lo_resp = new TH2D("axes_lo_resp", "", 10, xMin, xMax, 10, lowPadY1, lowPadY2);
+  double lowPadY1 = isResponse ? 0.86 : 0.6;
+  double lowPadY2 = isResponse ? 1.14 : 1.4;
+
+  TH2D* h2_axes_lo_resp = new TH2D("axes_lo_resp", "", 100, xMin, xMax, 100, lowPadY1, lowPadY2);
 
   h2_axes_lo_resp->SetXTitle("Photon p_{T} [GeV/c]");
   h2_axes_lo_resp->SetYTitle("Data / MC");
   h2_axes_lo_resp->GetXaxis()->SetTitleOffset(1.2);
-  h2_axes_lo_resp->GetYaxis()->SetTitleOffset(0.55);
+  h2_axes_lo_resp->GetYaxis()->SetTitleOffset(0.70);
   h2_axes_lo_resp->GetXaxis()->SetTickLength(0.06);
   h2_axes_lo_resp->GetXaxis()->SetMoreLogLabels();
   h2_axes_lo_resp->GetXaxis()->SetNoExponent();
@@ -217,9 +221,11 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
   h2_axes_lo_resp->GetYaxis()->SetNdivisions(7,true);
   h2_axes_lo_resp->Draw();
 
+  float factor = isResponse ? 0.05 : 0.2;
+
   TLine* line_one = new TLine(xMin, 1., xMax, 1.);
-  TLine* line_plus_resp = new TLine(xMin, 1.05, xMax, 1.05);
-  TLine* line_minus_resp = new TLine(xMin, 0.95, xMax, 0.95);
+  TLine* line_plus_resp = new TLine(xMin, 1 + factor, xMax, 1 + factor);
+  TLine* line_minus_resp = new TLine(xMin, 1 - factor, xMax, 1 - factor);
 
   line_plus_resp->SetLineWidth(2);
   line_plus_resp->SetLineStyle(2);
@@ -231,33 +237,41 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
   gr_resp_ratio->SetName("response_ratio");
   gr_resp_ratio->SetMarkerStyle(20);
   gr_resp_ratio->SetMarkerSize(1.5);
-  gr_resp_ratio->SetMarkerColor(kBlue - 6);
+  gr_resp_ratio->SetMarkerColor(BALANCING);
+  gr_resp_ratio->SetLineColor(BALANCING);
 
   TF1* ratioFit = new TF1("ratioFit", "pol0", xMin, xMax);
   ratioFit->SetParameter(0, 1.);
-  ratioFit->SetParameter(1, 0.);
-  ratioFit->SetLineColor(46);
-  //ratioFit->SetLineColor(kBlue - 6);
-  ratioFit->SetLineWidth(1);
-  gr_resp_ratio->Fit(ratioFit, "VFR");
+  //ratioFit->SetParameter(1, 0.);
+  ratioFit->SetLineColor(TColor::GetColor("#C02942"));
+  ratioFit->SetLineWidth(1.0);
+  gr_resp_ratio->Fit(ratioFit, "RQNF EX0");
 
-  TH1D* errors = new TH1D("errors", "errors", 100, xMin, xMax);
+  TH1D* errors = new TH1D("errors", "errors", xMax - xMin, xMin, xMax);
   (TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors, 0.68);
   errors->SetStats(false);
-  errors->SetFillColor(LIGHT_RED);
-  errors->SetLineColor(kRed);
+  //errors->SetFillColor(TColor::GetColor("#556270"));
+  errors->SetFillColor(TColor::GetColor("#ECD078"));
   errors->SetFillStyle(1001);
 
   double fitValue = ratioFit->GetParameter(0);
   double fitError = ratioFit->GetParError(0);
 
-  TPaveText* fitlabel = new TPaveText(0.43, 0.77, 0.78, 0.81, "brNDC");
+  TString str = TString::Format("\\num{%.4f \\pm %.4f} & \\num{%.4f \\pm %.4f}", fitValue, fitError, 1. / fitValue, 1. / fitValue * fitError / fitValue);
+  std::cout << str << std::endl;
+
+  float height = 0.81 - 0.77;
+  float labelYPos = isResponse ? 0.77 : 0.37;
+
+  TPaveText* fitlabel = new TPaveText(0.43, labelYPos, 0.78, labelYPos + height, "brNDC");
   fitlabel->SetTextSize(0.08);
   fitlabel->SetFillColor(0);
+  fitlabel->SetTextFont(42);
   //TString fitLabelText = TString::Format("#font[42]{Fit: %.4f #pm %.4f + (%.2e #pm %.2e)x}", fitValue, fitError, ratioFit->GetParameter(1), ratioFit->GetParError(1));
-  TString fitLabelText = TString::Format("#font[42]{Fit: %.4f #pm %.4f}", fitValue, fitError);
+  TString fitLabelText = TString::Format("Fit: %.4f #pm %.4f", fitValue, fitError);
   fitlabel->AddText(fitLabelText);
 
+  gr_resp_ratio->Draw("P same");
   /*
   if (showErrors)
     errors->Draw("same");
@@ -325,8 +339,10 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
 
   TLegend* legend = new TLegend(0.50, legendY1, 0.90, legendY2, legendTitle.c_str());
   legend->SetFillColor(kWhite);
+  legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->SetTextSize(0.038);
+  legend->SetTextFont(42);
 
   TString label = TString::Format("%s (data)", methodName.c_str());
   legend->AddEntry(data, label, "P");
@@ -347,13 +363,14 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
 
   mc->SetMarkerStyle(24);
   mc->SetMarkerSize(1.5);
-  mc->SetMarkerColor(kBlue - 6);
-  mc->SetLineColor(kBlue - 6);
+  mc->SetMarkerColor(MPF);
+  mc->SetLineColor(MPF);
   mc->Draw("Psame");
 
   data->SetMarkerStyle(20);
   data->SetMarkerSize(1.5);
-  data->SetMarkerColor(kBlue - 6);
+  data->SetMarkerColor(MPF);
+  data->SetLineColor(MPF);
 
   data->Draw("Psame");
 
@@ -474,7 +491,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseMPF_vs_pt = (TGraphErrors*)file_noextrap->Get(responseMPF_name.c_str());
   gr_responseMPF_vs_pt->SetMarkerStyle(20);
   gr_responseMPF_vs_pt->SetMarkerSize(markerSize);
-  gr_responseMPF_vs_pt->SetMarkerColor(38);
+  gr_responseMPF_vs_pt->SetMarkerColor(MPF);
   gr_responseMPF_vs_pt->SetName(TString::Format("MPFchs_DATA_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   std::string responseMPFMC_name = responseMPF_name;
@@ -483,7 +500,7 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   gr_responseMPFMC_vs_pt = (TGraphErrors*)file_noextrap->Get(responseMPFMC_name.c_str());
   gr_responseMPFMC_vs_pt->SetMarkerStyle(24);
   gr_responseMPFMC_vs_pt->SetMarkerSize(markerSize);
-  gr_responseMPFMC_vs_pt->SetMarkerColor(38);
+  gr_responseMPFMC_vs_pt->SetMarkerColor(MPF);
   gr_responseMPFMC_vs_pt->SetName(TString::Format("MPFchs_MC_a%s_%s", alphaCut.c_str(), fullEtaRegion.c_str()));
 
   std::string resp_reso_short = (resp_reso == "response") ? "Resp" : "Reso";

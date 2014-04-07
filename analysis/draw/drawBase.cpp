@@ -6,12 +6,15 @@
 #include "TVirtualFitter.h"
 #include <iostream>
 #include <algorithm>
+#include <TGaxis.h>
 
 #include <boost/algorithm/string.hpp>
 
 #include <sys/stat.h>
 
 #define LIGHT_RED TColor::GetColor(0xcf, 0xa0, 0xa1)
+#define BALANCING_COLOR TColor::GetColor(217, 91, 67)
+#define MPF_COLOR TColor::GetColor(192, 41, 66)
 
 drawBase::drawBase(const std::string& analysisType, const std::string& recoType, const std::string& jetAlgo, bool outputGraphs, const std::string& flags) {
 
@@ -199,14 +202,14 @@ drawBase::drawBase(const std::string& analysisType, const std::string& recoType,
   markerSize_ = 1.6;
   getBinLabels_ = false;
   legendTitle_ = "";
-  legendTextSize_ = 0.038;
+  legendTextSize_ = 0.036;
 
   poissonAsymmErrors_ = false;
 
   pdf_aussi_ = false;
   noStack_ = false;
 
-  isCMSArticle_ = false;
+  isCMSArticle_ = true;
 
   additionalLabel_ = 0;
 
@@ -549,14 +552,14 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
   TPad* pad_hi = new TPad("pad_hi", "", 0., 0.33, 0.99, 0.99);
   pad_hi->Draw();
   pad_hi->SetLogx();
-  pad_hi->SetLeftMargin(0.12);
+  pad_hi->SetLeftMargin(0.15);
   pad_hi->SetBottomMargin(0.015);
 
   // Data / MC ratio
   TPad* pad_lo = new TPad("pad_lo", "", 0., 0., 0.99, 0.33);
   pad_lo->Draw();
   pad_lo->SetLogx();
-  pad_lo->SetLeftMargin(0.12);
+  pad_lo->SetLeftMargin(0.15);
   pad_lo->SetTopMargin(1.);
   pad_lo->SetBottomMargin(0.3);
 
@@ -669,6 +672,8 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
   TPaveText* label_algo = get_labelAlgo(2);
 
   TLegend* legend = new TLegend(0.55, 0.15, 0.92, 0.38, legendTitle_.c_str());
+  legend->SetTextFont(42);
+  legend->SetBorderSize(0);
   legend->SetFillColor(kWhite);
   legend->SetFillStyle(0);
   legend->SetTextSize(legendTextSize_);
@@ -855,6 +860,8 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
   //label_algo2->AddText(jetAlgoName.c_str());
 
   TLegend* legend2 = new TLegend(0.5, 0.5, 0.85, 0.73, legendTitle_.c_str());
+  legend2->SetTextFont(42);
+  legend2->SetBorderSize(0);
   legend2->SetFillColor(kWhite);
   legend2->SetFillStyle(0);
   legend2->SetTextSize(labelTextSize);
@@ -1149,6 +1156,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     //if (noMC) {
       dataHistos[iData]->SetMarkerSize(1.);
       dataFiles_[iData].markerSize = 1.;
+      dataHistos[iData]->SetLineColor(dataFiles_[iData].lineColor);
     //}
   }
 
@@ -1159,8 +1167,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   if (!noMC) {
     if (mcFiles_[0].fillColor == -1) {
       mcHistos[0]->SetFillColor(fillColor_default++);  //so that it changes at every histo
+      mcHistos[0]->SetLineColor(fillColor_default - 1);
     } else {
       mcHistos[0]->SetFillColor(mcFiles_[0].fillColor);
+      mcHistos[0]->SetLineColor(mcFiles_[0].fillColor);
     }
     if (noStack_) {
       if (mcFiles_[0].fillStyle != 1001) {
@@ -1198,6 +1208,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
           mcHistos[i]->SetFillColor(fillColor_default++);  //so that it changes at every histo
         } else {
           mcHistos[i]->SetFillColor(mcFiles_[i].fillColor);
+          mcHistos[i]->SetLineColor(mcFiles_[i].fillColor);
         }
         if (noStack_) {
           if (mcFiles_[i].fillStyle != 1001) {
@@ -1223,9 +1234,6 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       } //for mc files
     } //if mc files size > 1
   } // if !nomc
-
-
-
 
   // superimposed MC histos (for now only one):
   if (mcHistos_superimp.size() > 0) {
@@ -1329,6 +1337,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
 
   TLegend* legend = new TLegend(lb.xMin, lb.yMin, lb.xMax, lb.yMax, legendTitle_.c_str());
+  legend->SetTextFont(42);
+  legend->SetBorderSize(0);
   legend->SetFillColor(kWhite);
   legend->SetTextSize(legendTextSize_);
   for (unsigned i = 0; i < dataHistos.size(); ++i)
@@ -1359,6 +1369,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   if (yAxisMax_ != 9999.) {
     h2_axes->GetYaxis()->SetRangeUser(yMin, yAxisMax_);
   }
+
   if (getBinLabels_) {
     for (int iBinx = 1; iBinx < nBinsx + 1; ++iBinx) {
       if (std::string(refHisto->GetXaxis()->GetBinLabel(iBinx)) != "") {
@@ -1367,7 +1378,6 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       h2_axes->GetXaxis()->SetBinLabel(iBinx, refHisto->GetXaxis()->GetBinLabel(iBinx));
     }
   }
-
 
   // create data graph (poisson asymm errors):
   TGraphAsymmErrors* graph_data_poisson = new TGraphAsymmErrors(0);
@@ -1394,9 +1404,6 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     if (noMC) {
     }
   }
-
-
-
 
   // axis titles:
 
@@ -1434,8 +1441,6 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     yAxis = yAxis_str_tmp;
   }
 
-
-
   h2_axes->SetXTitle(xAxis.c_str());
   h2_axes->SetYTitle(yAxis.c_str());
 
@@ -1445,19 +1450,22 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
   if (drawRatio) {
     h2_axes->GetXaxis()->SetTitleOffset(1.1);
-    h2_axes->GetYaxis()->SetTitleOffset(1.2);
+    h2_axes->GetYaxis()->SetTitleOffset(1.3);
     h2_axes->GetYaxis()->SetTitleSize(0.045);
     h2_axes->GetXaxis()->SetLabelSize(0.);
+  } else {
+    h2_axes->GetYaxis()->SetTitleOffset(1.75);
   }
 
-  TPaveText* label_cms = get_labelCMS(0);
-  TPaveText* label_sqrt = get_labelSqrt(0);
 
+  TPaveText* label_cms = get_labelCMS(0, drawRatio);
+  TPaveText* label_sqrt = get_labelSqrt(0);
 
   TPaveText* label_cuts = 0;
 
   //TPaveText* label_bonus = new TPaveText(0.63, lb.yMin-0.07, 0.84, lb.yMin-0.02,  "brNDC");
   TPaveText* label_bonus = new TPaveText(0.65, 0.45, 0.9, 0.55, "brNDC");
+  label_bonus->SetTextFont(42);
   label_bonus->SetFillColor(kWhite);
   label_bonus->SetTextSize(0.030);
   if (add_jetAlgoText) {
@@ -1466,31 +1474,43 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   }
   label_bonus->AddText(labelText.c_str());
 
-  TCanvas* c1 = new TCanvas("c1", "c1", (drawRatio) ? 600 : 800, 800);
+  TCanvas* c1 = new TCanvas("c1", "c1", 800, (drawRatio) ? 1000 : 800);
+  c1->SetLeftMargin(0);
   c1->cd();
 
   // Data / MC comparison
   TVirtualPad* pad_hi = NULL; 
   TPad* pad_lo = NULL;
+
+  // Compute response for data & MC
+  float meanMC = 0;
+  float meanData = 0;
+  float meanMC_err = 0;
+  float meanData_err = 0;
+  float foo = 0;
+
+  fitTools::getTruncatedMeanAndRMS(mcHisto_sum, meanMC, meanMC_err, foo, foo, 0.99, 0.99);
+  fitTools::getTruncatedMeanAndRMS(dataHistos[0], meanData, meanData_err, foo, foo, 0.99, 0.99);
   
   if (drawRatio) {
     pad_hi = new TPad("pad_hi", "", 0., 0.33, 0.99, 0.99);
     pad_hi->Draw();
     //pad_hi->SetLogx();
-    pad_hi->SetLeftMargin(0.12);
+    pad_hi->SetLeftMargin(0.15);
     pad_hi->SetBottomMargin(0.015);
 
     // Data / MC ratio
     pad_lo = new TPad("pad_lo", "", 0., 0., 0.99, 0.33);
     pad_lo->Draw();
     //pad_lo->SetLogx();
-    pad_lo->SetLeftMargin(0.12);
+    pad_lo->SetLeftMargin(0.15);
     pad_lo->SetTopMargin(1.);
     pad_lo->SetBottomMargin(0.3);
 
     pad_hi->cd();
   } else {
     pad_hi = gPad;
+    c1->SetLeftMargin(0.18);
   }
 
   if (logx_) {
@@ -1520,6 +1540,28 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       }
     }
   } // if !nomc
+  
+  // Errors on MC
+  for (uint32_t i = 1; i <= (uint32_t) mcHisto_sum->GetNbinsX(); i++) {
+    float error = mcHisto_sum->GetBinError(i);
+    float entries = mcHisto_sum->GetBinContent(i);
+    float lumi_error = entries * 0.026; // Lumi error
+
+    float xsec_error = entries * 0.1;
+
+    mcHisto_sum->SetBinError(i, std::sqrt(error * error + lumi_error * lumi_error + xsec_error * xsec_error));
+  }
+
+  int color = TColor::GetColor("#556270");
+  //gROOT->GetColor(color)->SetAlpha(0xee / 255.0);
+
+  mcHisto_sum->SetMarkerSize(0);
+  mcHisto_sum->SetMarkerStyle(0);
+  mcHisto_sum->SetFillStyle(3154);
+  mcHisto_sum->SetFillColor(color);
+
+  mcHisto_sum->Draw("E2 same");
+
   for (unsigned i = 0; i < dataHistos.size(); ++i) {
     if (dataHistos.size() == 1 && poissonAsymmErrors_) {
       std::cout << "drawing poisson" << std::endl;
@@ -1537,6 +1579,21 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     //  dataHistos[i]->Draw("h same");
     //else
     //  dataHistos[i]->Draw("E same");
+  }
+
+  // Draw lines for response
+  TLine line_mc(meanMC, 0, meanMC, yMax);
+  line_mc.SetLineColor(TColor::GetColor("#036564"));
+  line_mc.SetLineWidth(2.5);
+  line_mc.SetLineStyle(kDashed);
+
+  TLine line_data(meanData, 0, meanData, yMax);
+  line_data.SetLineColor(kBlack);
+  line_data.SetLineWidth(2.5);
+
+  if (! drawRatio) {
+    line_mc.Draw("same");
+    line_data.Draw("same");
   }
 
   pad_hi->RedrawAxis();
@@ -1606,7 +1663,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     TH2D* h2_axes_log = new TH2D("axes_log", "", nBinsx, xMin, xMax, 10, 0.1 * yMin_log, yAxisMaxScaleLog_ * yMax);
 
     if (drawRatio) {
-      h2_axes_log->GetXaxis()->SetTitleOffset(1.1);
+      h2_axes_log->GetXaxis()->SetTitleOffset(1.3);
       h2_axes_log->GetYaxis()->SetTitleOffset(1.2);
       h2_axes_log->GetYaxis()->SetTitleSize(0.045);
       h2_axes_log->GetXaxis()->SetLabelSize(0.);
@@ -1663,6 +1720,9 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
         }
       }
     } // if !nomc
+    
+    mcHisto_sum->Draw("E2 same");
+
     for (unsigned i = 0; i < dataHistos.size(); ++i) {
       if (dataHistos.size() == 1 && poissonAsymmErrors_) {
         graph_data_poisson->Draw("Psame");
@@ -1679,6 +1739,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       //else
       //  dataHistos[i]->Draw("E same");
     }
+
     gPad->RedrawAxis();
     label_cms->Draw("same");
     label_sqrt->Draw("same");
@@ -1803,6 +1864,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     LegendBox lb = get_legendBox(legendQuadrant);
 
     TLegend* legend = new TLegend(lb.xMin, lb.yMin, lb.xMax, lb.yMax);
+    legend->SetTextFont(42);
+    legend->SetBorderSize(0);
     legend->SetFillColor(kWhite);
     legend->SetTextSize(legendTextSize_);
     legend->AddEntry(dataProfile, "Data", "P");
@@ -1847,7 +1910,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     label_cuts->SetFillColor(kWhite);
     label_cuts->SetTextSize(0.035);
     label_cuts->SetTextFont(42);
-    label_cuts->AddText("Anti-k_{T} 0.5 PFJets");
+    label_cuts->AddText("anti-k_{T} 0.5 PFJets");
     if (xVar != "eta") {
       char etaRange_ch[100];
       sprintf(etaRange_ch, "|#eta| < %.1f", etamax_);
@@ -2239,7 +2302,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     label_cuts->SetFillColor(kWhite);
     label_cuts->SetTextSize(textSize_cuts);
     label_cuts->SetTextFont(42);
-    label_cuts->AddText("Anti-k_{T} R=0.5");
+    label_cuts->AddText("anti-k_{T} R=0.5");
     std::string apexText = (RECO_GEN == "RECO") ? raw_corr_ : "GEN";
     //std::string apexText = raw_corr_;
     if (varX != "eta") {
@@ -2382,8 +2445,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     LegendBox lb = get_legendBox(legendQuadrant, &legendNames);
 
     TLegend* legend = new TLegend(lb.xMin, lb.yMin, lb.xMax, lb.yMax, legendTitle_.c_str());
+    legend->SetTextFont(42);
     legend->SetFillColor(0);
     legend->SetTextSize(legendTextSize_);
+    legend->SetBorderSize(0);
 
 
     float xMin, xMax, yMin, yMax;
@@ -2586,8 +2651,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
 
     TLegend* legend = new TLegend(0.45, 0.15, 0.88, 0.4, "|#eta| < 1.3");
+    legend->SetTextFont(42);
     legend->SetFillColor(kWhite);
     legend->SetTextSize(legendTextSize_);
+    legend->SetBorderSize(0);
     for (unsigned i = 0; i < objects.size(); ++i) {
       legend->AddEntry(objects[i], objects[i]->GetName(), "P");
     }
@@ -2859,8 +2926,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     LegendBox lb;
 
     if (legendQuadrant == 1) {
-      lb.xMin = 0.63;
-      lb.yMax = 0.91;
+      lb.xMin = 0.75;
+      lb.yMax = 0.94;
       lb.yMin = lb.yMax - 0.07 * (float)nNames_total;
       lb.xMax = 0.92;
     } else if (legendQuadrant == 0) {
@@ -3011,9 +3078,9 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     std::string algoName;
 
     if (jetAlgo_ == "AK5") {
-      algoName = "Anti-k_{T} 0.5 ";
+      algoName = "anti-k_{T} 0.5 ";
     } else if (jetAlgo_ == "AK7") {
-      algoName = "Anti-k_{T} 0.7 ";
+      algoName = "anti-k_{T} 0.7 ";
     } else if (jetAlgo_ == "KT4") {
       algoName = "k_{T} 0.4 ";
     } else if (jetAlgo_ == "KT6") {
@@ -3045,9 +3112,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
     //TLatex *latex = new TLatex();
     //latex->SetNDC();
-    TPaveText* label_cmstop = new TPaveText(0.15, 0.94, 0.96, 0.98, "brNDC");
+    TPaveText* label_cmstop = new TPaveText(0.10, 0.94, 0.96, 0.98, "brNDC");
     label_cmstop->SetTextSize(0.045);
     label_cmstop->SetFillColor(0);
+    label_cmstop->SetTextFont(42);
 
     label_cmstop->SetTextAlign(31); // align right
     //latex->DrawLatex(wide ? 0.98 : 0.95, 0.96, "#sqrt{s} = 7 TeV");
@@ -3083,7 +3151,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
 
 
-  TPaveText* drawBase::get_labelCMS(int legendQuadrant) const {
+  TPaveText* drawBase::get_labelCMS(int legendQuadrant, bool hasRatio) const {
 
     if (legendQuadrant != 0 && legendQuadrant != 1 && legendQuadrant != 2 && legendQuadrant != 3) {
       std::cout << "WARNING! Legend quadrant '" << legendQuadrant << "' not yet implemented for CMS label. Using 2." << std::endl;
@@ -3097,7 +3165,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       x2 = 0.8;
       y2 = 0.92;
     } else if (legendQuadrant == 2) {
-      x1 = (isCMSArticle_) ? 0.22 : 0.25;
+      x1 = 0.10;
       y1 = 0.86;
       x2 = (isCMSArticle_) ? 0.39 : 0.42;
       y2 = 0.92;
@@ -3107,7 +3175,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       x2 = 0.42;
       y2 = 0.24;
     } else if (legendQuadrant == 0) {
-      x1 = 0.17;
+      x1 = hasRatio ? 0.25 : 0.30;
       y1 = 0.963;
       x2 = 0.65;
       y2 = 0.985;
@@ -3120,7 +3188,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     if (legendQuadrant == 0) {
       //cmslabel->SetTextAlign(11);
     }
-    cmslabel->SetTextFont(62);
+    cmslabel->SetTextFont(42);
     std::string label_CMS_text = this->get_CMSText();
     if (legendQuadrant != 0) {
       cmslabel->AddText(label_CMS_text.c_str());
@@ -3238,6 +3306,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     Float_t labelTextSize = 0.035;
     std::string jetAlgoName = (recoType_ != "" && jetAlgo_ != "") ? get_algoName() : "";
     TPaveText* label_algo = new TPaveText(x1, y1, x2, y2, "brNDC");
+    label_algo->SetTextFont(42);
     label_algo->SetFillColor(kWhite);
     label_algo->SetTextSize(labelTextSize);
     label_algo->AddText(jetAlgoName.c_str());
@@ -3315,36 +3384,76 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   }
 
 
+  struct Point {
+    double x;
+    double y;
+
+    double x_err;
+    double y_err;
+  };
+
   TGraphErrors* drawBase::get_graphRatio(TGraphErrors* gr_data, TGraphErrors* gr_MC) {
 
     TGraphErrors* gr_ratio = new TGraphErrors(0);
 
+    // First, build a vector of points
+    std::vector<Point> data_points;
+    std::vector<Point> mc_points;
+
     for (int i = 0; i < gr_MC->GetN(); ++i) {
+      Point p;
+      gr_MC->GetPoint(i, p.x, p.y);
 
-      Double_t datax, datay;
-      gr_data->GetPoint(i, datax, datay);
-      //Double_t dataxerr = gr_data->GetErrorX(i);
-      Double_t datayerr = gr_data->GetErrorY(i);
+      p.x_err = gr_MC->GetErrorX(i);
+      p.y_err = gr_MC->GetErrorY(i);      
 
-      Double_t mcx, mcy;
-      gr_MC->GetPoint(i, mcx, mcy);
-      Double_t mcxerr = gr_MC->GetErrorX(i);
-      Double_t mcyerr = gr_MC->GetErrorY(i);
+      mc_points.push_back(p);
+    }
 
-      Double_t ratiox = mcx;
-      Double_t ratioxerr = mcxerr;
+    for (int i = 0; i < gr_data->GetN(); ++i) {
+      Point p;
+      gr_data->GetPoint(i, p.x, p.y);
 
-      Double_t ratioy = datay / mcy;
-      Double_t ratioyerr = sqrt(datayerr * datayerr / (mcy * mcy) + datay * datay * mcyerr * mcyerr / (mcy * mcy * mcy * mcy));
+      p.x_err = gr_data->GetErrorX(i);
+      p.y_err = gr_data->GetErrorY(i);      
 
+      data_points.push_back(p);
+    }
 
-      gr_ratio->SetPoint(i, ratiox, ratioy);
-      gr_ratio->SetPointError(i, ratioxerr, ratioyerr);
+    int index = 0;
+    for (Point data: data_points) {
 
-    } //for points
+      // Find corresponding point inside other array
+      Point mc;
+      bool found = false;
+      for (Point foo: mc_points) {
+        if (abs(foo.x - data.x) < 1e-6) {
+          found = true;
+          mc = foo;
+
+          break;
+        }
+      }
+
+      if (! found)
+        continue;
+
+      double ratio_x = data.x;
+      double ratio_x_err = data.x_err;
+
+      double ratio_y = data.y / mc.y;
+      double ratio_y_err = sqrt(data.y_err * data.y_err / (mc.y * mc.y) + data.y * data.y * mc.y_err * mc.y_err / (mc.y * mc.y * mc.y * mc.y));
+
+      if (std::isnan(ratio_y))
+        continue;
+
+      gr_ratio->SetPoint(index, ratio_x, ratio_y);
+      gr_ratio->SetPointError(index, ratio_x_err, ratio_y_err);
+
+      index++;
+    }
 
     return gr_ratio;
-
   }
 
 
@@ -3383,19 +3492,22 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     ratioFit->SetParLimits(0, -5, 5);
     ratioFit->SetParLimits(1, -5, 5);
     ratioFit->SetLineColor(46);
-    ratioFit->SetLineWidth(1.5);
-    data_clone->Fit(ratioFit, "QR");
+    ratioFit->SetLineWidth(1);
+    //data_clone->Fit(ratioFit, "QR");
 
     TF1* constantFit = new TF1("linearFit", "pol0", fitMin, fitMax);
-    constantFit->SetLineColor(36);
-    constantFit->SetLineStyle(kDashed);
-    data_clone->Fit(constantFit, "QR");
+    constantFit->SetLineColor(TColor::GetColor("#C02942"));
+    constantFit->SetLineWidth(1.0);
+    //constantFit->SetLineStyle(kDashed);
+    data_clone->Fit(constantFit, "QENFMI");
     
+    TH1D* errors = new TH1D("errors", "errors", 500, data_clone->GetXaxis()->GetXmin(), data_clone->GetXaxis()->GetXmax());
     //TH1D* errors = new TH1D("errors", "errors", 100, fitMin, fitMax);
-    //(TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors);
-    //errors->SetStats(false);
+    (TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors, 0.68);
+    errors->SetStats(false);
     //errors->SetLineColor(46);
-    //errors->SetFillColor(LIGHT_RED);
+    //errors->SetFillColor(TColor::GetColor("#556270"));
+    errors->SetFillColor(TColor::GetColor("#ECD078"));
 
     double fitValue = ratioFit->GetParameter(0);
     double fitError = ratioFit->GetParError(0);
@@ -3416,18 +3528,21 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     data_clone->GetYaxis()->SetNdivisions(505, true);
 
     data_clone->Draw("e");
-    //errors->Draw("e3 same");
-    ratioFit->Draw("same");
+
+    errors->Draw("e3 same");
+    //ratioFit->Draw("same");
     constantFit->Draw("same");
 
-    TPaveText* fitlabel = new TPaveText(0.45, 0.35, 0.78, 0.60, "brNDC");
+    data_clone->Draw("e same");
+
+    TPaveText* fitlabel = new TPaveText(0.45, 0.40, 0.46, 0.41, "brNDC");
     fitlabel->SetTextFont(42);
     fitlabel->SetTextSize(0.08);
     fitlabel->SetFillColor(0);
     TString fitLabelText = TString::Format("Fit: b = %.4f #pm %.4f", fitValue, fitError);
-    fitlabel->AddText(fitLabelText);
+    //fitlabel->AddText(fitLabelText);
     fitLabelText = TString::Format("Fit: a = %.4f #pm %.4f", ratioFit->GetParameter(1) , ratioFit->GetParError(1));
-    fitlabel->AddText(fitLabelText);
+    //fitlabel->AddText(fitLabelText);
     fitLabelText = TString::Format("Constant fit: %.4f #pm %.4f", constantFit->GetParameter(0), constantFit->GetParError(0));
     fitlabel->AddText(fitLabelText);
 
@@ -3487,7 +3602,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
     // pt phot cut label
     TString labelPtPhot = TString::Format("%d < NPV < %d", (int) currentBin.first, (int) currentBin.second);
-    drawHisto(std::string(name + "_" + vertexRange), axisName, units, instanceName, log_aussi, legendQuadrant, labelPtPhot.Data(), true);
+    drawHisto(std::string(name + "_" + vertexRange), axisName, units, instanceName, log_aussi, legendQuadrant, labelPtPhot.Data(), true, false);
 
     scaleFactor_ = oldScaleFactor;
 
@@ -3669,8 +3784,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   bool noDATA = (gr_response_vs_pt->GetN() == 0);
   bool noMC = (gr_responseMC_vs_pt->GetN() == 0);
 
-  int canvasHeight = (noMC) ? 600 : 800;
-  TCanvas* c1 = new TCanvas("c1", "c1", 600, canvasHeight);
+  TCanvas* c1 = new TCanvas("c1", "c1", 600, 800);
   c1->cd();
 
   // Data / MC comparison
@@ -3709,17 +3823,16 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     h2_axes_lo_resp->SetXTitle("Number of primary vertices");
     h2_axes_lo_resp->SetYTitle("Data / MC");
     h2_axes_lo_resp->GetXaxis()->SetTitleOffset(1.2);
-    h2_axes_lo_resp->GetYaxis()->SetTitleOffset(0.55);
+    h2_axes_lo_resp->GetYaxis()->SetTitleOffset(0.70);
     h2_axes_lo_resp->GetXaxis()->SetTickLength(0.06);
     h2_axes_lo_resp->GetXaxis()->SetMoreLogLabels();
     h2_axes_lo_resp->GetXaxis()->SetNoExponent();
-    //h2_axes_lo_resp->GetXaxis()->SetLabelSize(0.);
     h2_axes_lo_resp->GetXaxis()->SetLabelSize(0.085);
     h2_axes_lo_resp->GetYaxis()->SetLabelSize(0.07);
     h2_axes_lo_resp->GetXaxis()->SetTitleSize(0.09);
     h2_axes_lo_resp->GetYaxis()->SetTitleSize(0.08);
-    h2_axes_lo_resp->GetYaxis()->SetNdivisions(7, kTRUE);
-    h2_axes_lo_resp->Draw("");
+    h2_axes_lo_resp->GetYaxis()->SetNdivisions(7,true);
+    h2_axes_lo_resp->Draw();
 
     line_one->Draw("same");
 
@@ -3735,15 +3848,16 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     gr_resp_ratio->SetName("response_ratio");
     gr_resp_ratio->SetMarkerStyle(20);
     gr_resp_ratio->SetMarkerSize(1.5);
-    gr_resp_ratio->SetMarkerColor(kBlue - 6);
+    gr_resp_ratio->SetMarkerColor(BALANCING_COLOR);
+    gr_resp_ratio->SetLineColor(BALANCING_COLOR);
 
     TF1* ratioFit = new TF1("ratioFit", "[0] + [1]*x", npvMin, npvMax);
     ratioFit->SetParameter(0, 1.);
     ratioFit->SetParameter(1, 0.);
 
-    ratioFit->SetLineColor(46);
-    ratioFit->SetLineWidth(2);
-    gr_resp_ratio->Fit(ratioFit, "RQ");
+    ratioFit->SetLineColor(TColor::GetColor("#C02942"));
+    ratioFit->SetLineWidth(1.0);
+    gr_resp_ratio->Fit(ratioFit, "RQN");
     //std::cout << "-> ChiSquare: " << constline->GetChisquare() << "   NDF: " << constline->GetNDF() << std::endl;
 
     double fitValue = ratioFit->GetParameter(0);
@@ -3753,19 +3867,22 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     //errors->SetFillColor(kBlue - 10);
     //errors->SetFillStyle(1001);
 
-    TPaveText* fitlabel = new TPaveText(0.45, 0.77, 0.90, 0.83, "brNDC");
+    TPaveText* fitlabel = new TPaveText(0.35, 0.77, 0.90, 0.83, "brNDC");
     fitlabel->SetTextSize(0.08);
     fitlabel->SetFillColor(0);
-    TString fitLabelText = TString::Format("Fit: %.3f #pm %.3f + (%.3f #pm %.3f)x", fitValue, fitError, ratioFit->GetParameter(1), ratioFit->GetParError(1));
+    fitlabel->SetTextFont(42);
+    TString fitLabelText = TString::Format("Fit: %.3f #pm %.3f + (%.2e #pm %.2e)x", fitValue, fitError, ratioFit->GetParameter(1), ratioFit->GetParError(1));
     fitlabel->AddText(fitLabelText);
     fitlabel->Draw("same");
 
     TH1D* errors = new TH1D("errors", "errors", 100, npvMin, npvMax);
     (TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors, 0.68);
     errors->SetStats(false);
-    errors->SetLineColor(46);
-    errors->SetFillColor(LIGHT_RED);
+    errors->SetFillColor(TColor::GetColor("#ECD078"));
+    errors->SetFillStyle(1001);
+
     errors->Draw("e3 same");
+    ratioFit->Draw("same");
 
     line_plus_resp->Draw("same");
     line_minus_resp->Draw("same");
@@ -3799,9 +3916,11 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   TPaveText* label_algo = get_labelAlgo(2);
 
   TLegend* legend = new TLegend(0.55, 0.15, 0.92, 0.38, legendTitle_.c_str());
+  legend->SetTextFont(42);
   legend->SetFillColor(kWhite);
   legend->SetFillStyle(0);
   legend->SetTextSize(legendTextSize_);
+  legend->SetBorderSize(0);
   if (! isMPF) {
     if (!noDATA) {
       legend->AddEntry(gr_response_vs_pt, "Data (#gamma+Jet)", "P");
@@ -3844,8 +3963,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
     gr_responseMC_vs_pt->SetMarkerStyle(24);
     gr_responseMC_vs_pt->SetMarkerSize(1.5);
-    gr_responseMC_vs_pt->SetMarkerColor(kBlue - 6);
-    gr_responseMC_vs_pt->SetLineColor(kBlue - 6);
+    gr_responseMC_vs_pt->SetMarkerColor(MPF_COLOR);
+    gr_responseMC_vs_pt->SetLineColor(MPF_COLOR);
     gr_responseMC_vs_pt->Draw("Psame");
   }
 
@@ -3859,8 +3978,33 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     } else {
       gr_response_vs_pt->SetMarkerStyle(20);
       gr_response_vs_pt->SetMarkerSize(1.5);
-      gr_response_vs_pt->SetMarkerColor(kBlue - 6);
+      gr_response_vs_pt->SetMarkerColor(MPF_COLOR);
+      gr_response_vs_pt->SetLineColor(MPF_COLOR);
     }
+
+    // Fit Data to show evolution vs npv
+    
+    TF1* ratioFit = new TF1("ratioFit", "pol1", npvMin, npvMax);
+    ratioFit->SetParameter(0, 1.);
+    ratioFit->SetParameter(1, 0.);
+
+    ratioFit->SetLineColor(MPF_COLOR);
+
+    ratioFit->SetLineWidth(1.0);
+
+    gr_response_vs_pt->Fit(ratioFit, "RQNF EX0");
+
+    TH1D* errors = new TH1D("errors", "errors", npvMax - npvMin, npvMin, npvMax);
+    (TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors, 0.68);
+    errors->SetStats(false);
+    errors->SetFillColor(TColor::GetColor("#ECD078"));
+    errors->SetFillStyle(1001);
+
+    errors->Draw("E3 same");
+    ratioFit->Draw("same");
+
+    if (! noMC)
+      gr_responseMC_vs_pt->Draw("Psame");
 
     gr_response_vs_pt->Draw("Psame");
   }
@@ -3995,9 +4139,11 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   //label_algo2->AddText(jetAlgoName.c_str());
 
   TLegend* legend2 = new TLegend(0.5, 0.5, 0.85, 0.73, legendTitle_.c_str());
+  legend2->SetTextFont(42);
   legend2->SetFillColor(kWhite);
   legend2->SetFillStyle(0);
   legend2->SetTextSize(labelTextSize);
+  legend2->SetBorderSize(0);
   if (! isMPF) {
     if (!noDATA) {
       legend2->AddEntry(gr_resolution_vs_pt, "Data (#gamma+Jet)", "P");

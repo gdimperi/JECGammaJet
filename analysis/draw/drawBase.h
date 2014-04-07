@@ -160,7 +160,7 @@ public:
   void delete_label();
 
   LegendBox get_legendBox(int legendQuadrant = 1, const std::vector<std::string>* legendNames = 0) const;
-  TPaveText* get_labelCMS(int legendQuadrant = 0) const;
+  TPaveText* get_labelCMS(int legendQuadrant = 0, bool hasRatio = false) const;
   TPaveText* get_labelCMStop(bool wide = false) const;
   TPaveText* get_labelSqrt(int legendQuadrant = 0) const;
   TPaveText* get_labelAlgo(int legendQuadrant = 3) const;

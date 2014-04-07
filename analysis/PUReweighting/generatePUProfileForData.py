@@ -99,7 +99,7 @@ for trigger_runs, triggerslist in triggers.items():
 
     print("\tRunning lumiCalc2...")
 
-    parallelize(["lumiCalc2.py", "--without-checkforupdate", "--begin", str(trigger_runs[0]), "--end", str(trigger_runs[1]), "lumibyls", "-i", "{}", "--hltpath", trigger, "-o", outputCSV])
+    parallelize(["pixelLumiCalc.py", "--begin", str(trigger_runs[0]), "--end", str(trigger_runs[1]), "lumibyls", "-i", "{}", "--hltpath", trigger, "-o", outputCSV])
     #parallelize(["echo", "lumibyls", "-i", "{}", "--hltpath", trigger, "-o", outputCSV])
 
     print("\tRunning pileupReCalc_HLTpaths.py...")

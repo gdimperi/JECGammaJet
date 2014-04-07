@@ -4,17 +4,17 @@
     <path>
       <name>HLT_Photon30_CaloIdVL_IsoL_v.*</name>
       <pt from="40" to="60" />
-      <weight value="0.000549905962709" />
+      <weight value="0.000549309042211" />
     </path>
     <path>
       <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
       <pt from="60" to="100" />
-      <weight value="0.004161728773047" />
+      <weight value="0.004158417493064" />
     </path>
     <path>
       <name>HLT_Photon90_CaloIdVL_IsoL.*</name>
       <pt from="100" to="155" />
-      <weight value="0.075628205749574" />
+      <weight value="0.075527758311173" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
@@ -26,22 +26,22 @@
     <path>
       <name>HLT_Photon30_CaloIdVL_IsoL_v.*</name>
       <pt from="40" to="60" />
-      <weight value="0.000399990825688" />
+      <weight value="0.000400094222945" />
     </path>
     <path>
       <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
       <pt from="60" to="100" />
-      <weight value="0.003030098181233" />
+      <weight value="0.003030431244915" />
     </path>
     <path>
       <name>HLT_Photon90_CaloIdVL_IsoL.*</name>
       <pt from="100" to="155" />
-      <weight value="0.049995493320457" />
+      <weight value="0.05000276647681" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>
       <pt from="155" to="180" />
-      <weight value="0.033323837115725" />
+      <weight value="0.03333506916192" />
     </path>
     <path>
       <name>HLT_Photon150_.*</name>
@@ -53,17 +53,17 @@
     <path>
       <name>HLT_Photon30_CaloIdVL_v.*</name>
       <pt from="40" to="60" />
-      <weight value="0.000142823362497" />
+      <weight value="0.000142868400315" />
     </path>
     <path>
       <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
       <pt from="60" to="100" />
-      <weight value="0.003030346023489" />
+      <weight value="0.003030260047281" />
     </path>
     <path>
       <name>HLT_Photon90_CaloIdVL.*</name>
       <pt from="100" to="155" />
-      <weight value="0.013766611492078" />
+      <weight value="0.013763987391647" />
     </path>
     <path>
       <name>HLT_Photon135_.*</name>

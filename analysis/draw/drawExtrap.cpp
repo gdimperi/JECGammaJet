@@ -6,7 +6,13 @@
 #include "TGraphErrors.h"
 #include "TH1F.h"
 
-#define OUTPUT_GRAPHS false
+#include <TColor.h>
+
+#define OUTPUT_GRAPHS true
+
+#define BALANCING_COLOR TColor::GetColor(217, 91, 67)
+#define MPF_COLOR TColor::GetColor(192, 41, 66)
+#define LINE_COLOR TColor::GetColor("#0B486B")
 
 drawExtrap::drawExtrap(const std::string& analysisType, const std::string& recoType, const std::string& jetAlgo, bool outputGraphs, const std::string& flags) : drawBase(analysisType, recoType, jetAlgo, outputGraphs, flags) {
 
@@ -23,9 +29,9 @@ drawExtrap::drawExtrap(const std::string& analysisType, const std::string& recoT
 
 void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::string& etaRegion_str, bool rawJets) {
 
-  int recoPhot_color = kRed;
-  int recoGen_color = kBlue;
-  int genPhot_color = kGreen + 2;
+  int recoPhot_color = MPF_COLOR;
+  int recoGen_color = TColor::GetColor("#542437");
+  int genPhot_color = BALANCING_COLOR;
   //int genPhot_color = kGreen+3;
 
   std::vector<std::pair<float, float> > ptPhot_binning = mPtBinning.getBinning();
@@ -560,18 +566,22 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     TGraphErrors* gr_resp_DATA = new TGraphErrors(nPoints, x, y_resp_DATA, x_err, y_resp_err_DATA);
     gr_resp_DATA->SetMarkerStyle(20);
     gr_resp_DATA->SetMarkerColor(recoPhot_color);
+    gr_resp_DATA->SetLineColor(recoPhot_color);
 
     TGraphErrors* gr_resp_recoPhot = new TGraphErrors(nPoints, x, y_resp_recoPhot, x_err, y_resp_recoPhot_err);
     gr_resp_recoPhot->SetMarkerStyle(24);
     gr_resp_recoPhot->SetMarkerColor(recoPhot_color);
+    gr_resp_recoPhot->SetLineColor(recoPhot_color);
 
     TGraphErrors* gr_resp_MPFDATA = new TGraphErrors(nPoints, x, y_resp_MPFDATA, x_err, y_resp_err_MPFDATA);
     gr_resp_MPFDATA->SetMarkerStyle(20);
     gr_resp_MPFDATA->SetMarkerColor(recoPhot_color);
+    gr_resp_MPFDATA->SetLineColor(recoPhot_color);
 
     TGraphErrors* gr_resp_MPF = new TGraphErrors(nPoints, x, y_resp_MPF, x_err, y_resp_MPF_err);
     gr_resp_MPF->SetMarkerStyle(24);
     gr_resp_MPF->SetMarkerColor(recoPhot_color);
+    gr_resp_MPF->SetLineColor(recoPhot_color);
 
     // Type I + II Corrected MPF
     /*TGraphErrors* gr_resp_MPFDATA_TypeICor = new TGraphErrors(nPoints, xDATA, y_resp_MPFDATA_TypeICor, x_errDATA, y_resp_MPFDATA_TypeICor_err);
@@ -594,11 +604,13 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     gr_resp_genPhot->SetMarkerStyle(22);
     //gr_resp_genPhot->SetMarkerColor(kGreen+3);
     gr_resp_genPhot->SetMarkerColor(genPhot_color);
+    gr_resp_genPhot->SetLineColor(genPhot_color);
 
     TGraphErrors* gr_resp_metRecoGen = new TGraphErrors(nPoints, x, y_resp_recoGenMet, x_err, y_resp_recoGenMet_err);
     gr_resp_metRecoGen->SetMarkerStyle(21);
     //gr_resp_genPhot->SetMarkerColor(kGreen+3);
     gr_resp_metRecoGen->SetMarkerColor(genPhot_color);
+    gr_resp_metRecoGen->SetLineColor(genPhot_color);
 
     /*TGraphErrors* gr_resp_cosRecoGen = new TGraphErrors(nPoints, x, y_resp_recoGenCos, x_err, y_resp_recoGenCos_err);
     gr_resp_cosRecoGen->SetMarkerStyle(21);
@@ -609,14 +621,17 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     gr_resp_genMPF->SetMarkerStyle(22);
     //gr_resp_genPhot->SetMarkerColor(kGreen+3);
     gr_resp_genMPF->SetMarkerColor(genPhot_color);
+    gr_resp_genMPF->SetLineColor(genPhot_color);
 
     TGraphErrors* gr_resp_recoGen = new TGraphErrors(nPoints, x, y_resp_recoGen, x_err, y_resp_recoGen_err);
     gr_resp_recoGen->SetMarkerStyle(21);
     gr_resp_recoGen->SetMarkerColor(recoGen_color);
+    gr_resp_recoGen->SetLineColor(recoGen_color);
 
     TGraphErrors* gr_resp_photGenReco = new TGraphErrors(nPoints, x, y_resp_genRecoPhot, x_err, y_resp_genRecoPhot_err);
     gr_resp_photGenReco->SetMarkerStyle(21);
     gr_resp_photGenReco->SetMarkerColor(recoGen_color);
+    gr_resp_photGenReco->SetLineColor(recoGen_color);
 
     /*TGraphErrors* gr_resp_genPart = new TGraphErrors(nPoints, x, y_resp_genPart, x_err, y_resp_genPart_err);
     gr_resp_genPart->SetMarkerStyle(21);
@@ -625,6 +640,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     TGraphErrors* gr_resp_genGamma = new TGraphErrors(nPoints, x, y_resp_genGamma, x_err, y_resp_genGamma_err);
     gr_resp_genGamma->SetMarkerStyle(21);
     gr_resp_genGamma->SetMarkerColor(kGreen);
+    gr_resp_genGamma->SetLineColor(kGreen);
 
     /*TGraphErrors* gr_resp_partGamma = new TGraphErrors(nPoints, x, y_resp_partGamma, x_err, y_resp_partGamma_err);
     gr_resp_partGamma->SetMarkerStyle(21);
@@ -633,6 +649,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     TGraphErrors* gr_resp_photGamma = new TGraphErrors(nPoints, x, y_resp_photGamma, x_err, y_resp_photGamma_err);
     gr_resp_photGamma->SetMarkerStyle(21);
     gr_resp_photGamma->SetMarkerColor(kGray);
+    gr_resp_photGamma->SetLineColor(kGray);
 
     /*if (recoGen != "RecoRelRaw") {
       // NPV Study
@@ -789,7 +806,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
       xMax_axis = 40. / 100.;
 
 
-    std::string xTitle = "p_{T}^{2ndJet} / p_{T}^{#gamma}";
+    std::string xTitle = "p_{T}^{2^{nd} Jet} / p_{T}^{#gamma}";
 
     std::string fitFunct_name;
     ////  if( ptMin <=150. )
@@ -835,7 +852,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     TF1* fit_resp_genMPF = new TF1("fit_resp_genMPF", "[0]");
     fit_resp_genMPF->SetRange(0., xMax_fit);
     fit_resp_genMPF->SetLineWidth(0.5);
-    fit_resp_genMPF->SetLineColor(kGreen);
+    fit_resp_genMPF->SetLineColor(genPhot_color);
     gr_resp_genMPF->Fit(fit_resp_genMPF, "RQ");
 
     /*TF1* fit_resp_genPart = new TF1("fit_resp_genPart", "[0]+[1]*x");
@@ -853,13 +870,13 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     TF1* fit_resp_photGamma = new TF1("fit_resp_photGamma", "[0]");
     fit_resp_photGamma->SetRange(0., xMax_fit);
     fit_resp_photGamma->SetLineWidth(0.5);
-    fit_resp_photGamma->SetLineColor(kGray);
+    fit_resp_photGamma->SetLineColor(LINE_COLOR);
     gr_resp_photGamma->Fit(fit_resp_photGamma, "RQ");
 
     std::string total_resp_str = "fit_resp_recoGen*fit_resp_genPhot";
     TF1* total_resp = new TF1("total_resp", total_resp_str.c_str());
     total_resp->SetRange(0., xMax_fit);
-    total_resp->SetLineColor(kGray + 2);
+    total_resp->SetLineColor(LINE_COLOR);
 
     float q_resp = fit_resp_genPhot->GetParameter(0);
 
@@ -960,17 +977,26 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
 
     // set response graph points:
 
-    gr_DATAResp_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabola_DATA->GetParameter(0));
-    gr_DATAResp_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabola_DATA->GetParError(0));
+    if (fit_respParabola_DATA->GetParameter(0) > 0) {
+      gr_DATAResp_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabola_DATA->GetParameter(0));
+      gr_DATAResp_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabola_DATA->GetParError(0));
+    }
 
-    gr_extrapResp_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabola->GetParameter(0));
-    gr_extrapResp_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabola->GetParError(0));
+    if (fit_respParabola->GetParameter(0) > 0) {
+      gr_extrapResp_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabola->GetParameter(0));
+      gr_extrapResp_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabola->GetParError(0));
+    }
 
-    gr_DATARespMPF_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabola_MPFDATA->GetParameter(0));
-    gr_DATARespMPF_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabola_MPFDATA->GetParError(0));
+    if (fit_respParabola_MPFDATA->GetParameter(0) > 0) {
+      gr_DATARespMPF_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabola_MPFDATA->GetParameter(0));
+      gr_DATARespMPF_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabola_MPFDATA->GetParError(0));
+    }
 
-    gr_extrapRespMPF_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabolaMPF->GetParameter(0));
-    gr_extrapRespMPF_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabolaMPF->GetParError(0));
+    if (fit_respParabolaMPF->GetParameter(0) > 0) {
+      gr_extrapRespMPF_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBin, fit_respParabolaMPF->GetParameter(0));
+      gr_extrapRespMPF_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBin, fit_respParabolaMPF->GetParError(0));
+    }
+
     /* else if (recoGen != "RecoRelRaw") {
        gr_DATARespMPF_TypeICor_vs_pt->SetPoint(iPtBin, ptPhotReco_thisBinDATA, fit_resp_MPFDATA_TypeICor->GetParameter(0));
        gr_DATARespMPF_TypeICor_vs_pt->SetPointError(iPtBin, ptPhotReco_err_thisBinDATA, fit_resp_MPFDATA_TypeICor->GetParError(0));
@@ -1021,7 +1047,6 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     }
     if (etaRegion == "eta1524" || etaRegion == "eta243") yMin_axis -= 0.1;
 
-
     float yMax_resp = (! rawJets) ? 1.3 : 1.2;
 
     TH2D* h2_axes_resp = new TH2D("axes_resp", "", 10, 0., xMax_axis, 10, yMin_axis, yMax_resp);
@@ -1044,18 +1069,20 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
       legend_resp = new TLegend(legbox.xMin, legbox.yMin, legbox.xMax, legbox.yMax);
     legend_resp->SetTextSize(0.035);
     legend_resp->SetTextFont(42);
+    legend_resp->SetBorderSize(0);
     //legend_resp->SetFillStyle(0);
     legend_resp->SetFillColor(kWhite);
     legend_resp->AddEntry(gr_resp_recoGen, "MC Intrinsic", "P");
     legend_resp->AddEntry(gr_resp_genPhot, "MC Imbalance", "P");
     legend_resp->AddEntry(total_resp, "MC Intr #oplus Imb", "L");
 
-    legend_resp->AddEntry(gr_resp_DATA, "DATA ( #gamma + jet)", "P");
-    legend_resp->AddEntry(gr_resp_recoPhot, "MC (#gamma + jet)", "P");
+    legend_resp->AddEntry(gr_resp_recoPhot, "MC (#gamma + jets)", "PL");
+    legend_resp->AddEntry(gr_resp_DATA, "DATA ( #gamma + jets)", "PL");
 
 
     TString labelText = TString::Format("%d < p_{T}^{#gamma} < %d GeV", (int) ptMin, (int) ptMax);
     TPaveText* label_resp = new TPaveText(0.24, 0.18, 0.4, 0.21, "brNDC");
+    label_resp->SetTextFont(42);
     label_resp->SetFillColor(kWhite);
     label_resp->SetTextSize(0.035);
     label_resp->AddText(labelText);
@@ -1119,11 +1146,12 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
       legend_resp = new TLegend(legbox.xMin, legbox.yMin, legbox.xMax, legbox.yMax);
     legend_resp->SetTextSize(0.035);
     legend_resp->SetTextFont(42);
+    legend_resp->SetBorderSize(0);
     //legend_resp->SetFillStyle(0);
     legend_resp->SetFillColor(kWhite);
-    legend_resp->AddEntry(gr_resp_genMPF, "MPF Gen", "P");
-    legend_resp->AddEntry(gr_resp_MPFDATA, "DATA (MPF #gamma + jet)", "P");
-    legend_resp->AddEntry(gr_resp_MPF, "MC (MPF #gamma + jet)", "P");
+    legend_resp->AddEntry(gr_resp_genMPF, "MPF Gen", "PL");
+    legend_resp->AddEntry(gr_resp_MPFDATA, "DATA (#gamma + jets)", "PL");
+    legend_resp->AddEntry(gr_resp_MPF, "MC (#gamma + jets)", "PL");
 
     //    total_mpf->Draw("same");
     gr_resp_MPF->Draw("Psame");
@@ -1152,7 +1180,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     label_fit->AddText(line1);
     label_fit->AddText(line2);
 
-    label_fit->Draw("same");
+    //label_fit->Draw("same");
 
     std::string MPF = "MPF";
 
@@ -1296,6 +1324,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   gr_mcRatio->SetName("gr_mcRatioResp");
   gr_mcRatio->SetMarkerStyle(20);
   gr_mcRatio->SetMarkerColor(recoPhot_color);
+  gr_mcRatio->SetLineColor(recoPhot_color);
   gr_mcRatio->SetMarkerSize(markerSize);
 
   TF1* fit_mcRatio_Parabola = new TF1("fit_mcRatio_Parabola", fitFunct_name.c_str());
@@ -1326,6 +1355,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
     legend_resp = new TLegend(legbox.xMin, legbox.yMin, legbox.xMax, legbox.yMax);
   legend_resp->SetTextSize(0.035);
   legend_resp->SetTextFont(42);
+  legend_resp->SetBorderSize(0);
   //legend_resp->SetFillStyle(0);
   legend_resp->SetFillColor(kWhite);
   legend_resp->AddEntry(gr_mcRatio, "DATA/MC ratio", "P");
@@ -1355,6 +1385,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   TGraphErrors* gr_reso_DATA = new TGraphErrors(nPoints, x, y_reso_DATA, x_err, y_reso_err_DATA);
   gr_reso_DATA->SetMarkerStyle(20);
   gr_reso_DATA->SetMarkerColor(recoPhot_color);
+  gr_reso_DATA->SetLineColor(recoPhot_color);
   // take out points with reso=0:
   for (int iPointDATA = 0; iPointDATA < gr_reso_DATA->GetN(); ++iPointDATA) {
     Double_t x, y;
@@ -1364,7 +1395,6 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   }
   gr_reso_DATA->SetLineColor(recoPhot_color);
   gr_reso_DATA->SetLineWidth(1.);
-  gr_reso_DATA->ResetAttLine();
 
 
   TGraphErrors* gr_reso_recoPhot = new TGraphErrors(nPoints, x, y_reso_recoPhot, x_err, y_reso_recoPhot_err);
@@ -1378,10 +1408,12 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   gr_reso_genPhot->SetMarkerStyle(22);
   //gr_reso_genPhot->SetMarkerColor(kGreen+3);
   gr_reso_genPhot->SetMarkerColor(genPhot_color);
+  gr_reso_genPhot->SetLineColor(genPhot_color);
 
   TGraphErrors* gr_reso_recoGen = new TGraphErrors(nPoints, x, y_reso_recoGen, x_err, y_reso_recoGen_err);
   gr_reso_recoGen->SetMarkerStyle(21);
   gr_reso_recoGen->SetMarkerColor(recoGen_color);
+  gr_reso_recoGen->SetLineColor(recoGen_color);
 
   /*TGraphErrors* gr_reso_genPart = new TGraphErrors(nPoints, x, y_reso_genPart, x_err, y_reso_genPart_err);
     gr_reso_genPart->SetMarkerStyle(21);
@@ -1402,10 +1434,12 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   TGraphErrors* gr_reso_MPFDATA = new TGraphErrors(nPoints, x, y_reso_MPFDATA, x_err, y_reso_err_MPFDATA);
   gr_reso_MPFDATA->SetMarkerStyle(20);
   gr_reso_MPFDATA->SetMarkerColor(recoPhot_color);
+  gr_reso_MPFDATA->SetLineColor(recoPhot_color);
 
   TGraphErrors* gr_reso_MPF = new TGraphErrors(nPoints, x, y_reso_MPF, x_err, y_reso_MPF_err);
   gr_reso_MPF->SetMarkerStyle(24);
   gr_reso_MPF->SetMarkerColor(recoPhot_color);
+  gr_reso_MPF->SetLineColor(recoPhot_color);
 
   // Type I + II Corrected MPF
   /*TGraphErrors* gr_reso_MPFDATA_TypeICor = new TGraphErrors(nPoints, xDATA, y_reso_MPFDATA_TypeICor, x_errDATA, y_reso_MPFDATA_TypeICor_err);
@@ -1428,6 +1462,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   gr_reso_genMPF->SetMarkerStyle(22);
   //gr_reso_genPhot->SetMarkerColor(kGreen+3);
   gr_reso_genMPF->SetMarkerColor(genPhot_color);
+  gr_reso_genMPF->SetLineColor(genPhot_color);
 
   Double_t x1, x2, y1, y2;
 
@@ -1708,16 +1743,19 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   legend_reso->SetTextSize(0.04);
   //legend_reso->SetFillStyle(0);
   legend_reso->SetFillColor(kWhite);
+  legend_reso->SetTextFont(42);
+  legend_reso->SetBorderSize(0);
   legend_reso->AddEntry(gr_reso_recoGen, "MC Intrinsic", "P");
   legend_reso->AddEntry(gr_reso_genPhot, "MC Imbalance", "P");
   legend_reso->AddEntry(sum, "MC Intr #oplus Imb", "L");
-  legend_reso->AddEntry(gr_reso_recoPhot, "MC (#gamma + jet)", "PL");
-  legend_reso->AddEntry(gr_reso_DATA, "DATA (#gamma + jet)", "L");
+  legend_reso->AddEntry(gr_reso_recoPhot, "MC (#gamma + jets)", "PL");
+  legend_reso->AddEntry(gr_reso_DATA, "DATA (#gamma + jets)", "PL");
 
   TPaveText* label_reso = new TPaveText(0.25, 0.85, 0.47, 0.9, "brNDC");
   label_reso->SetFillColor(kWhite);
   label_reso->SetTextSize(0.035);
   label_reso->AddText(labelText);
+  label_reso->SetTextFont(42);
 
   gr_reso_recoGen->SetMarkerSize(markerSize);
   gr_reso_genPhot->SetMarkerSize(markerSize);
@@ -1803,15 +1841,18 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   legend_reso->SetTextSize(0.04);
   //legend_reso->SetFillStyle(0);
   legend_reso->SetFillColor(kWhite);
+  legend_reso->SetBorderSize(0);
+  legend_reso->SetTextFont(42);
   legend_reso->AddEntry(gr_reso_genMPF, "MPF Gen", "P");
-  legend_reso->AddEntry(gr_reso_MPF, "MC (#gamma + jet MPF)", "PL");
-  legend_reso->AddEntry(gr_reso_MPFDATA, "DATA (#gamma + jet MPF)", "L");
+  legend_reso->AddEntry(gr_reso_MPF, "MC (#gamma + jets)", "PL");
+  legend_reso->AddEntry(gr_reso_MPFDATA, "DATA (#gamma + jets)", "L");
 
   delete label_reso;
   label_reso = new TPaveText(0.25, 0.85, 0.47, 0.9, "brNDC");
   label_reso->SetFillColor(kWhite);
   label_reso->SetTextSize(0.035);
   label_reso->AddText(labelText);
+  label_reso->SetTextFont(42);
 
   gr_reso_MPF->SetMarkerSize(markerSize);
   gr_reso_MPFDATA->SetMarkerSize(markerSize);
@@ -1902,6 +1943,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   gr_mcRatioReso->SetName("gr_mcRatioReso");
   gr_mcRatioReso->SetMarkerStyle(20);
   gr_mcRatioReso->SetMarkerColor(recoPhot_color);
+  gr_mcRatioReso->SetLineColor(recoPhot_color);
   gr_mcRatioReso->SetMarkerSize(markerSize);
 
   // genPhot: y = mx + q
@@ -1960,7 +2002,6 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   if (OUTPUT_GRAPHS || ptMin == 155) {
     char output_name[500];
     sprintf(output_name, "%s/reso_dataMC_ratio_%s_%s_ptPhot_%d_%d.pdf", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
-    std::cout << output_name << std::endl;
     c1_reso->SaveAs(output_name);
   }
 
@@ -2099,34 +2140,25 @@ void drawExtrap::getYPointsVector(TFile *file, const std::string& yHistoName, In
       return;
     }
 
-    Float_t mean70, mean70_err, rms70, rms70_err;
-    fitTools::getTruncatedMeanAndRMS(h1_r, mean70, mean70_err, rms70, rms70_err, 0.70, 0.70);
-
-    Float_t mean95, mean95_err, rms95, rms95_err;
-    fitTools::getTruncatedMeanAndRMS(h1_r, mean95, mean95_err, rms95, rms95_err, 0.95, 0.95);
-
-    Float_t mean99, mean99_err, rms99, rms99_err;
-    fitTools::getTruncatedMeanAndRMS(h1_r, mean99, mean99_err, rms99, rms99_err, 0.99, 0.99);
-
     //Float_t mean, mean_err, rms, rms_err;
     //fitTools::getProjectionMeanAndRMS(h1_r, mean, mean_err, rms, rms_err, 1., 0.9);
 
-    TF1* gaussian = new TF1("gaussian", "gaus");
-    gaussian->SetLineColor(kRed);
-    TH1* newhisto = NULL;
-    fitTools::fitProjection_sameArea(h1_r, gaussian, &newhisto, (Float_t)(INTPERC_ / 100.), "RQ");
-    //fitTools::fitProjection(h1_r, gaussian, 2., "RQ");
-
-    Float_t mu = gaussian->GetParameter(1);
-    Float_t sigma = gaussian->GetParameter(2);
-    //TF1* gaussian_chi = new TF1("gaussian_chi", "gaus");
-    //fitTools::fitProjection(h1_r, gaussian_chi, 1.5, "RQN");
-    Float_t mu_err = gaussian->GetParError(1);
-    //Float_t sigma_err = gaussian->GetParError(2);
-    //Float_t sigma_err = (LUMI>0) ? sigma/sqrt((Float_t)LUMI*h1_r->Integral()*(Float_t)INT_PERC_/100.) : h1_r->GetRMSError();
-    Float_t sigma_err = h1_r->GetRMSError();
-
     if (FIT_RMS_ == "FIT") {
+
+      TF1* gaussian = new TF1("gaussian", "gaus");
+      gaussian->SetLineColor(kRed);
+      TH1* newhisto = NULL;
+      fitTools::fitProjection_sameArea(h1_r, gaussian, &newhisto, (Float_t)(INTPERC_ / 100.), "RQ");
+      //fitTools::fitProjection(h1_r, gaussian, 2., "RQ");
+
+      Float_t mu = gaussian->GetParameter(1);
+      Float_t sigma = gaussian->GetParameter(2);
+      //TF1* gaussian_chi = new TF1("gaussian_chi", "gaus");
+      //fitTools::fitProjection(h1_r, gaussian_chi, 1.5, "RQN");
+      Float_t mu_err = gaussian->GetParError(1);
+      //Float_t sigma_err = gaussian->GetParError(2);
+      //Float_t sigma_err = (LUMI>0) ? sigma/sqrt((Float_t)LUMI*h1_r->Integral()*(Float_t)INT_PERC_/100.) : h1_r->GetRMSError();
+      Float_t sigma_err = h1_r->GetRMSError();
 
       y_resp.push_back(mu);
       y_resp_err.push_back(mu_err);
@@ -2135,6 +2167,9 @@ void drawExtrap::getYPointsVector(TFile *file, const std::string& yHistoName, In
       y_reso_err.push_back(sqrt(sigma_err * sigma_err / (mu * mu) + sigma * sigma * mu_err * mu_err / (mu * mu * mu * mu)));
 
     } else if (FIT_RMS_ == "RMS99") {
+
+      Float_t mean99, mean99_err, rms99, rms99_err;
+      fitTools::getTruncatedMeanAndRMS(h1_r, mean99, mean99_err, rms99, rms99_err, 0.99, 0.99);
 
       y_resp.push_back(mean99);
       y_resp_err.push_back(mean99_err);
@@ -2167,9 +2202,10 @@ void drawExtrap::getYPoints(TFile * file, const char* yHistoName, Int_t nPoints,
     //this ugly fix saves from empty relative pt binning plots
     if (h1_r->GetEntries() == 0) {
       y_resp[i] = -1.;
-      y_resp_err[i] = 0.;
+      y_resp_err[i] = 1000000000.;
       y_reso[i] = -1.;
       y_reso_err[i] = 0.;
+
       continue;
     }
 

@@ -369,6 +369,30 @@ void fitTools::getTruncatedMeanAndRMS(TH1* h1_projection, Float_t& mean, Float_t
     delete gaussian;
   }
 
+  bool useGaussian = false;
+
+  if (useGaussian) {
+    TF1* gaussian = new TF1("gaussian", "gaus");
+    gaussian->SetLineColor(kGreen);
+    Float_t histMean = h1_projection->GetMean();
+    Float_t histRMS = h1_projection->GetRMS();
+
+    gaussian->SetParameter(0, h1_projection->GetMaximum());
+    gaussian->SetParameter(1, histMean);
+    gaussian->SetParameter(2, histRMS);
+
+    h1_projection->Fit(gaussian, "RQN");
+
+    mean = gaussian->GetParameter(1);
+    mean_err = gaussian->GetParError(1);
+    rms = gaussian->GetParameter(2);
+    rms_err = gaussian->GetParError(2);
+
+    delete gaussian;
+
+    return;
+  }
+
 //  std::cout << "maxBin: " << maxBin << "\tbin center: " << h1_projection->GetXaxis()->GetBinCenter(maxBin) << "\t gauss mu: " << gaussian->GetParameter(1) << std::endl;
   TH1D* newHisto = new TH1D("newHisto", "", nBins, xMin, xMax);
   newHisto->SetBinContent(maxBin, h1_projection->GetBinContent(maxBin));

@@ -2,6 +2,7 @@
 #include "drawExtrap.h"
 #include "fitTools.h"
 #include <TParameter.h>
+#include <TColor.h>
 
 #include "tclap/CmdLine.h"
 
@@ -127,7 +128,7 @@ int main(int argc, char* argv[]) {
     TFile* mcPhotonJetFile = TFile::Open(mc1FileName);
     std::cout << "Opened mc file '" << mc1FileName << "'." << std::endl;
 
-    db->add_mcFile(mcPhotonJetFile, mc_dataset, "#gamma+jet MC", 46);
+    db->add_mcFile(mcPhotonJetFile, mc_dataset, "#gamma + jets MC", TColor::GetColor(217, 91, 67));
 
     if (mc2_dataset != "") {
       TString mc2FileName;
@@ -140,7 +141,7 @@ int main(int argc, char* argv[]) {
       std::cout << "Opened mc file '" << mc2FileName << "'." << std::endl;
 
       if (mc_dataset != mc2_dataset) {
-        db->add_mcFile(mcQCDFile, mc2_dataset, "QCD MC", 38);
+        db->add_mcFile(mcQCDFile, mc2_dataset, "QCD MC", TColor::GetColor(192, 41, 66));
       }
     }
 

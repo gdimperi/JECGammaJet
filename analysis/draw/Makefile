@@ -19,7 +19,7 @@ ROOTCFLAGS = $(shell root-config --cflags)
 ROOTLIBS   = $(shell root-config --libs) -lMinuit -lRooFitCore -lRooFit
 
 CXX           = g++ -g
-CXXFLAGS	    = -std=c++0x -Wall -Werror -fPIC
+CXXFLAGS	    = -std=c++0x -Wall -fPIC
 LD			      = g++
 LDFLAGS		    = $(shell root-config --ldflags) -Wl,--as-needed
 SOFLAGS		    = 
