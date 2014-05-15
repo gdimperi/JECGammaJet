@@ -36,6 +36,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       src = cms.InputTag('offlinePrimaryVertices')
       )
 
+
+  
   # Configure PAT to use PF2PAT instead of AOD sources
   # this function will modify the PAT sequences.
   from PhysicsTools.PatAlgos.tools.coreTools import removeSpecificPATObjects, removeMCMatching
@@ -197,8 +199,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
 
   #runCHS = False
 
-  #postfixes = {'PFlowAK5': 'AK5', 'PFlowAK7': 'AK7'}
-  postfixes = {'PFlowAK5': 'AK5'}
+  postfixes = {'PFlowAK5': 'AK5', 'PFlowAK7': 'AK7'}
+  #postfixes = {'PFlowAK5': 'AK5'}
 
   # Setup quark gluon tagger
   process.load('QuarkGluonTagger.EightTeV.QGTagger_RecoJets_cff')
@@ -327,6 +329,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   process.load('CommonTools.RecoAlgos.HBHENoiseFilter_cfi')
 
   ## The CSC beam halo tight filter ____________________________________________||
+
   process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
 
   ## The HCAL laser filter _____________________________________________________||
@@ -355,6 +358,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   ## The tracking POG filters __________________________________________________||
   process.load('RecoMET.METFilters.trackingPOGFilters_cff')
 
+
   # Count events
   process.nEventsTotal    = cms.EDProducer("EventCountProducer")
   process.nEventsFiltered = cms.EDProducer("EventCountProducer")
@@ -377,6 +381,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
 
       process.goodOfflinePrimaryVertices +
 
+        
       # Physics
       process.analysisSequence +
 
@@ -393,11 +398,33 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       'keep *_photonCore_*_*',
       'keep double_kt6*Jets*_rho_*',
       'keep *_goodOfflinePrimaryVertices_*_*',
-      'keep recoPFCandidates_particleFlow_*_*',
+      #------giulia ------- try to reduce size
+      #'keep recoPFCandidates_particleFlow_*_*',
+      #'keep *_selectedPatPFParticles*_*_*',
+      #------giulia end------------                                               
       # Content of *patEventContentNoCleaning
-      'keep *_selectedPatPhotons*_*_*', 'keep *_selectedPatElectrons*_*_*', 'keep *_selectedPatMuons*_*_*', 'keep *_selectedPatTaus*_*_*', 'keep *_selectedPatJets*_*_*', 'drop *_selectedPatJets_pfCandidates_*', 'drop *_*PF_caloTowers_*', 'drop *_*JPT_pfCandidates_*', 'drop *_*Calo_pfCandidates_*', 'keep *_patMETs*_*_*', 'keep *_selectedPatPFParticles*_*_*', 'keep *_selectedPatTrackCands*_*_*',
-      'keep *_cleanPatPhotons*_*_*', 'keep *_cleanPatElectrons*_*_*', 'keep *_cleanPatMuons*_*_*', 'keep *_cleanPatTaus*_*_*',
-      'keep *_cleanPatJets*_*_*', 'keep *_cleanPatHemispheres*_*_*', 'keep *_cleanPatPFParticles*_*_*',
+      'keep *_selectedPatPhotons*_*_*',
+      'keep *_selectedPatElectrons*_*_*',
+      'keep *_selectedPatMuons*_*_*',
+      'keep *_selectedPatTaus*_*_*',
+      'keep *_selectedPatJets*_*_*',
+      'drop *_selectedPatJets_pfCandidates_*',
+      'drop *_*PF_caloTowers_*',
+      'drop *_*JPT_pfCandidates_*',
+      'drop *_*Calo_pfCandidates_*',
+      #------giulia ------- try to reduce size
+      'drop *_selectedPatJets*_pfCandidates_*',
+      'drop *_genParticles_*_*',
+      #------giulia end-------------
+      'keep *_patMETs*_*_*',
+      'keep *_selectedPatTrackCands*_*_*',
+      'keep *_cleanPatPhotons*_*_*',
+      'keep *_cleanPatElectrons*_*_*',
+      'keep *_cleanPatMuons*_*_*',
+      'keep *_cleanPatTaus*_*_*',
+      'keep *_cleanPatJets*_*_*',
+      'keep *_cleanPatHemispheres*_*_*',
+      'keep *_cleanPatPFParticles*_*_*',
       'keep *_cleanPatTrackCands*_*_*',
       'drop *_*PFlow_caloTowers_*',
       # Type I residual
@@ -410,8 +437,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       # Photon ID
       'keep *_patConversions*_*_*',
       'keep *_photonPFIsolation*_*_*',
-      # Quark Gluon tagging
-      'keep *_QGTagger*_*_*',
+      # Quark Gluon tagging ----giulia switch off to reduce size
+      #'keep *_QGTagger*_*_*',
       'drop *_kt6PFJetsIsoQG_*_PAT',
       'drop *_kt6PFJetsQG_*_PAT',
       # MC truth
@@ -434,12 +461,12 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   #                                         ##
   #process.source.fileNames =  cms.untracked.vstring('file:input_data.root')  ##  (e.g. 'file:AOD.root')
   #                                         ##
-  process.maxEvents.input = 2500
+  process.maxEvents.input = -1
   #                                         ##
   #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
   #                                         ##
   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
-  process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+  process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
   # Remove annoying ecalLaser messages
   process.MessageLogger.suppressError = cms.untracked.vstring ('ecalLaserCorrFilter')

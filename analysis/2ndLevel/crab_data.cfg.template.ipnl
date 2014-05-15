@@ -6,10 +6,12 @@ use_server = 0
 
 [CMSSW]
 
-dbs_url = http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
+use_dbs3=1
+#dbs_url = http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
+dbs_url=phys03
 datasetpath = @datasetname@
 
-pset = runFilter.py
+pset = runFilter_giulia.py
 pycfg_params = globalTag=@globaltag@ datasetName=@dataset_name@
 
 total_number_of_lumis = -1
@@ -24,7 +26,6 @@ output_file = output.root
 
 [USER]
 
-#additional_input_files = Photon_Run2012A-22Jan2013/lumiSummary.json, Photon_Run2012A-22Jan2013/lumibyls.csv
 additional_input_files = @directory@/lumiSummary.json, @directory@/lumibyls.csv
 
 #eMail = @email@
@@ -36,8 +37,11 @@ return_data = 0
 copy_data = 1
 
 #storage_element = T3_FR_IPNL
-storage_element = cmsrm-se01.roma1.infn.it
-storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms/store/
+#storage_element = cmsrm-se01.roma1.infn.it
+#storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms/store/
+
+storage_element = srm-eoscms.cern.ch
+storage_path=/srm/v2/server?SFN=/eos/cms
 
 check_user_remote_dir = 1
 

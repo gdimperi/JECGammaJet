@@ -1339,7 +1339,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
   gr_mcRatio->Draw("Psame");
 
   if (OUTPUT_GRAPHS || ptMin == 155) {
-    sprintf(canvasName_resp_eps, "%s/dataMC_ratio_%s_%s_ptPhot_%d_%d.pdf", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
+    sprintf(canvasName_resp_eps, "%s/dataMC_ratio_%s_%s_ptPhot_%d_%d.png", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
     c1_resp->SaveAs(canvasName_resp_eps);
   }
 
@@ -1959,7 +1959,7 @@ void drawExtrap::drawResponseExtrap(const std::string& etaRegion, const std::str
 
   if (OUTPUT_GRAPHS || ptMin == 155) {
     char output_name[500];
-    sprintf(output_name, "%s/reso_dataMC_ratio_%s_%s_ptPhot_%d_%d.pdf", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
+    sprintf(output_name, "%s/reso_dataMC_ratio_%s_%s_ptPhot_%d_%d.png", get_outputdir().c_str(), rawPostfix.c_str(), etaRegion.c_str(), (int)ptMin, (int)ptMax);
     std::cout << output_name << std::endl;
     c1_reso->SaveAs(output_name);
   }

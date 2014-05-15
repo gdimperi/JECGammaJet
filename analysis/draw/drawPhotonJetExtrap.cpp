@@ -72,6 +72,7 @@ int main(int argc, char* argv[]) {
     std::string postFix = recoType + jetAlgo;
     postFix += "chs";
 
+
     std::string algoType;
     if (recoType == "Calo")
       algoType = jetAlgo;

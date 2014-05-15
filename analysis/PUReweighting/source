@@ -1,0 +1,31 @@
+Sender: LSF System <lsfadmin@lxbrg2007.cern.ch>
+Subject: Job 514967476: </afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting/submit.sh miCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs> in cluster batch Exited
+
+Job </afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting/submit.sh miCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs> was submitted from host <lxplus406> by user <gdimperi> in cluster <batch>.
+Job was executed on host(s) <lxbrg2007.cern.ch>, in queue <8nh>, as user <gdimperi> in cluster <batch>.
+</afs/cern.ch/user/g/gdimperi> was used as the home directory.
+</afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting> was used as the working directory.
+Started at Sun Mar 23 01:09:44 2014
+Results reported at Sun Mar 23 01:14:51 2014
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+/afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting/submit.sh miCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time   :      0.71 sec.
+    Max Memory :        10 MB
+    Max Swap   :       101 MB
+
+    Max Processes  :         4
+    Max Threads    :         4
+
+The output (if any) follows:
+

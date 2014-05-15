@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
   std::string postFix = recoType + jetAlgo;
 
   postFix += "chs";
-
+  
 
   //Float_t etamax = 3.;
   //bool sameEvents = false; //until njets histos have no overflows... or maybe use GetEntries instead of integral?
@@ -183,19 +183,25 @@ int main(int argc, char* argv[]) {
 
   db->set_rebin(2);
 
+  
   // Balancing
   db->setFolder("analysis/balancing");
   for (size_t i = 0; i < etaBinningSize; i++) {
     db->set_legendTitle(etaBinning.getBinTitle(i));
-    
+  
+    //cout << "after set_legendTitle" << endl << endl;
+  
     TString responseName = TString::Format("resp_balancing_%s", etaBinning.getBinName(i).c_str());
     db->drawHisto_vs_pt(ptBins, responseName.Data(), "Balancing Response", "", "Events", log);
+
+    //cout << "after drawHisto_vs_pt" << endl << endl;
 
     // Raw jets
     responseName = TString::Format("resp_balancing_raw_%s", etaBinning.getBinName(i).c_str());
     db->drawHisto_vs_pt(ptBins, responseName.Data(), "Balancing Response (raw jets)", "", "Events", log);
 
   }
+  
   // Special case eta < 1.3
 
   db->set_legendTitle("|#eta| < 1.3");

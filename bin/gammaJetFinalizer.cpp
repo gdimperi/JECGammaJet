@@ -1292,8 +1292,9 @@ void GammaJetFinalizer::cleanTriggerName(std::string& trigger) {
 void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger) {
   static std::string cmsswBase = getenv("CMSSW_BASE");
   static std::string puPrefix = TString::Format("%s/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting", cmsswBase.c_str()).Data();
-  static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
-  std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_75bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
+  static std::string puMC = TString::Format("%s/pu_truth_23Mar14/winter14_computed_mc_%s_pu_truth_Photon_Run2012A-22Jan2013_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
+  std::string puData = TString::Format("%s/pu_truth_23Mar14/pu_truth_data_photon_2012_true_%s_75bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
+
   //std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_75bins.root", puPrefix.c_str()).Data();
 
   if (mNoPUReweighting)

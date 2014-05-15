@@ -29,8 +29,8 @@ void setGraphStyle(TGraphErrors* graph, int markerStyle, int markerColor, int ma
   graph->SetMarkerSize(markerSize);
 }
 
-bool SAVE_EPS = true;
-bool SAVE_PNG = false;
+bool SAVE_EPS = false;
+bool SAVE_PNG = true;
 bool SAVE_ROOT = false;
 void saveCanvas(TCanvas* canvas, const std::string& name) {
   if (SAVE_EPS)

@@ -456,7 +456,12 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
         responseGEN->Add(responseGEN2);
       }
 
+      //giulia  debug
+      //std::cout << std::endl << "scaleFactor_ : " << scaleFactor_ << std::endl;
+      //std::cout << "entries responseGEN : " << responseGEN->GetEntries() <<std::endl;
+
       responseGEN->Scale(scaleFactor_);
+      //std::cout << std::endl << "after scaling" << std::endl;
       responseGEN->SetLineWidth(3);
 
       Float_t genResponse = 0.;
@@ -464,7 +469,17 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
       Float_t genRMS = 0.;
       Float_t genRMSErr = 0.;
 
+      //giulia  debug
+      //std::cout << std::endl << "before fitTools  " << std::endl;
+
       fitTools::getTruncatedMeanAndRMS(responseGEN, genResponse, genResponseErr, genRMS, genRMSErr, meanTruncFraction, rmsTruncFraction);
+
+      //std::cout << std::endl << "after fitTools:  " << std::endl;
+      //std::cout << "genRMS:  " << genRMS << std::endl;
+      //std::cout << "genRMSErr:  " << genRMSErr << std::endl;
+      //std::cout << "genResponse:  " << genResponse << std::endl;
+      //std::cout << "genResponseErr:  " << genResponseErr << std::endl;
+
 
       Float_t genResolution = genRMS / genResponse;
       Float_t genResolutionErr = sqrt(genRMSErr * genRMSErr / (genResponse * genResponse) + genResolution * genResolution * genResponseErr * genResponseErr / (genResponse * genResponse * genResponse * genResponse));

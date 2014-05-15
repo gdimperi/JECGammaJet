@@ -10,9 +10,11 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.load("Configuration/StandardSequences/GeometryDB_cff")
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
-process.GlobalTag.globaltag = cms.string("START53_V7G::All")
+#process.GlobalTag.globaltag = cms.string("START53_V7G::All")
+process.GlobalTag.globaltag = cms.string("START53_V27::All")
 
 process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
+
 
 # Do some CHS stuff
 process.ak5PFchsL1Fastjet  = process.ak5PFL1Fastjet.clone(algorithm = 'AK5PFchs')
@@ -36,8 +38,8 @@ readFiles.extend( [
        #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-30to50.root',
 
        #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step1.root',
-       'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_gammajet/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step0-1_START53_V21.root',
-
+       #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_gammajet/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step0-1_START53_V21.root',
+       'file:../../crab/patTuple_PF2PAT_MC_G-Pt120to170.root'
        #'file:/afs/cern.ch/work/g/gdimperi/CMSSW_5_3_9_patch2/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT_MC_G_Pt-50to80__step1.root',
 
        ])
@@ -73,6 +75,43 @@ options.register ('highPtHat',
 
 options.parseArguments()
 
+
+
+
+##############################################
+#                                            #
+#      connect to a local sqlite file        #
+#                                            # 
+##############################################
+
+process.load("CondCore.DBCommon.CondDBCommon_cfi")
+from CondCore.DBCommon.CondDBSetup_cfi import *
+process.jec = cms.ESSource("PoolDBESSource",
+      DBParameters = cms.PSet(
+       messageLevel = cms.untracked.int32(0)
+       ),
+      timetype = cms.string('runnumber'),
+      toGet = cms.VPSet(
+      cms.PSet(
+          record = cms.string('JetCorrectionsRecord'),
+          #tag    = cms.string('JetCorrectorParametersCollection_Winter14_V1_DATA_AK5PF'),
+          tag    = cms.string('JetCorrectorParametersCollection_Winter14_V1_MC_AK5PFchs'),
+          label  = cms.untracked.string('AK5PFchs')
+          ),
+
+      ##..................................................
+      ## here you add as many jet types as you need
+      ## note that the tag name is specific for the particular sqlite file
+      ),
+      #connect = cms.string('sqlite:Winter14_V1_DATA.db')
+      # uncomment above tag lines and this comment to use MC JEC
+      connect = cms.string('sqlite:Winter14_V1_MC.db')
+)
+## add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
+process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+
+
+
 processedEvents = int(options.processedEvents) if isinstance(options.processedEvents, int) and int(options.processedEvents) != 0 else 1
 crossSection = float(options.crossSection) if isinstance(options.crossSection, float) and float(options.crossSection) != 0 else 1
 ptHatMin = options.lowPtHat if isinstance(options.lowPtHat, float) else -1
@@ -97,22 +136,22 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     dumpAllGenParticles = cms.untracked.bool(False),
 
     runOnNonCHS   = cms.untracked.bool(True),
-    runOnCHS      = cms.untracked.bool(False),
+    runOnCHS      = cms.untracked.bool(True),
 
 
-    runOnPFAK5    = cms.untracked.bool(False),
+    runOnPFAK5    = cms.untracked.bool(True),
     runOnPFAK7    = cms.untracked.bool(False),
-    runOnCA8      = cms.untracked.bool(True),
+    runOnCA8      = cms.untracked.bool(False),
 
     runOnCaloAK5  = cms.untracked.bool(False),
     runOnCaloAK7  = cms.untracked.bool(False),
 
     # JEC
-    doJetCorrection = cms.untracked.bool(False),
+    doJetCorrection = cms.untracked.bool(True),
     correctJecFromRaw = cms.untracked.bool(True),
 
-    #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
-    correctorLabel = cms.untracked.string("ak7PFL1FastL2L3"),                                                            
+    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
+    #correctorLabel = cms.untracked.string("ak7PFchsL1FastL2L3"),                                                            
 
     #correctorLabel = cms.untracked.string("ak5PFResidual")
 
@@ -140,7 +179,7 @@ process.p = cms.Path(process.gammaJet)
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string("output_mc.root")
-    #fileName = cms.string("output_mc_G_Pt-50to80.root")
+    #fileName = cms.string("output_mc_Gj-Pt120to170.root")
     )
 
 #process.out.fileName = 'patTuple_cleaned.root'

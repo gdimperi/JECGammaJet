@@ -6,7 +6,9 @@ use_server = 0
 
 [CMSSW]
 
-dbs_url = http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
+use_dbs3=1
+#dbs_url = http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
+dbs_url=phys03
 datasetpath = @datasetname@
 
 
@@ -17,7 +19,8 @@ pycfg_params = processedEvents=@processed_events@ crossSection=@cross_section@ l
 total_number_of_events = -1
 
 ### Number of events to be processed per job
-events_per_job = 150000
+#events_per_job = 150000
+events_per_job = 50000
 
 ### The output files produced by your application (comma separated list)
 output_file = output_mc.root
@@ -28,19 +31,19 @@ output_file = output_mc.root
 eMail = giulia.dimperio@cern.ch
 
 ui_working_dir = @uiworkingdir@
-
+additional_input_files = Winter14_V1_MC.db	
 
 return_data = 0
 copy_data = 1
 
-#storage_element = T3_FR_IPNL
-#storage_element = srm-eoscms.cern.ch
-storage_element = cmsrm-se01.roma1.infn.it
-#storage_path=/srm/v2/server?SFN=/eos/cms/store
-storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms/store/
+storage_element = srm-eoscms.cern.ch
+#storage_element = cmsrm-se01.roma1.infn.it
+storage_path=/srm/v2/server?SFN=/eos/cms
+#storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms
+
 
 user_remote_dir = @outputdir@
-#user_remote_dir=group/phys_jetmet/gdimperi
+#user_remote_dir=/store/group/phys_jetmet/gdimperi
 check_user_remote_dir=1
 
 #check_user_remote_dir = 0

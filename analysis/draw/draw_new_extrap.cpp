@@ -393,7 +393,7 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
 
 int main(int argc, char* argv[]) {
 
-  if (argc != 7 && argc != 8) {
+  if (argc != 5 && argc != 6) {
     std::cout << "USAGE: ./drawPhotonJet [data_dataset] [mc_SIGNAL_dataset] [mc_BG_dataset] [recoType] [jetAlgo]" << std::endl;
     exit(23);
   }
@@ -422,7 +422,7 @@ int main(int argc, char* argv[]) {
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
 
-  postFix += "chs";
+  //postFix += "chs";
 
   TString dataFileName;
   if (flags.length() > 0) {

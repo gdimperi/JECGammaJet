@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
   postFix += "chs";
 
   //giulia debug
-  postFix = "PFlowCA8";
+  //postFix = "PFlowCA8";
 
   //Float_t etamax = 3.;
   //bool sameEvents = false; //until njets histos have no overflows... or maybe use GetEntries instead of integral?
@@ -75,20 +75,23 @@ int main(int argc, char* argv[]) {
   std::cout << "flags set." << std::endl;
 
   TString dataFileName;
-  if (flags.length() > 0) {
-    
-    dataFileName = TString::Format("PhotonJet_%s_%s_%s.root", data_dataset.c_str(), postFix.c_str(), flags.c_str());
-    //dataFileName = TString::Format("PhotonJet_%s_%s_%s.root", data_dataset.c_str(), "PFlowCA8", flags.c_str());
-  } else {
-    dataFileName = TString::Format("PhotonJet_%s_%s.root", data_dataset.c_str(), postFix.c_str());
-    //dataFileName = TString::Format("PhotonJet_%s_%s.root", data_dataset.c_str(), "PFlowCA8");
-  }
+  TFile* dataFile;
 
-  TFile* dataFile = TFile::Open(dataFileName);
-
-  if (dataFile) {
-    std::cout << "Opened data file '" << dataFileName << "'." << std::endl;
-    db->add_dataFile(dataFile, data_dataset);
+  if(data_dataset!=""){
+    if (flags.length() > 0) {
+      
+      dataFileName = TString::Format("PhotonJet_%s_%s_%s.root", data_dataset.c_str(), postFix.c_str(), flags.c_str());
+      //dataFileName = TString::Format("PhotonJet_%s_%s_%s.root", data_dataset.c_str(), "PFlowCA8", flags.c_str());
+    } else {
+      dataFileName = TString::Format("PhotonJet_%s_%s.root", data_dataset.c_str(), postFix.c_str());
+      //dataFileName = TString::Format("PhotonJet_%s_%s.root", data_dataset.c_str(), "PFlowCA8");
+    }
+    dataFile = TFile::Open(dataFileName);
+  
+    if (dataFile) {
+      std::cout << "Opened data file '" << dataFileName << "'." << std::endl;
+      db->add_dataFile(dataFile, data_dataset);
+    }
   }
 
   TString mc1FileName;
@@ -101,7 +104,7 @@ int main(int argc, char* argv[]) {
 
   TFile* mcPhotonJetFile = TFile::Open(mc1FileName);
   //giulia debug  
-  //TFile* mcPhotonJetFile = TFile::Open("PhotonJet_G_Pt-50to80_PFlowCA8.root");
+  //TFile* mcPhotonJetFile = TFile::Open("../../bin/PhotonJet_Gj-Pt120to170_PFlowAK5chs.root");
 
 
   std::cout << "Opened mc file '" << mc1FileName << "'." << std::endl;
