@@ -25,6 +25,11 @@ Implementation:
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <vector>
+
+#include <stdlib.h>
+
+using namespace std;
 
 // Boost
 #include "boost/shared_ptr.hpp"
@@ -80,6 +85,10 @@ Implementation:
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "JetMETCorrections/GammaJetFilter/interface/json/json.h"
 
+#include </afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
+#include </afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
+
+
 #include <TParameter.h>
 #include <TTree.h>
 #include <TClonesArray.h>
@@ -123,6 +132,7 @@ class GammaJetFilter : public edm::EDFilter {
     virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
     void correctJets(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup);
+    void correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup); 
     void extractRawJets(pat::JetCollection& jets);
 
     //giulia turn off qgtagger
@@ -598,19 +608,25 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle<pat::JetCollection> jetsHandle;
 
+  //gSystem->Load("libFWCoreFWLite.so");
+  //AutoLibraryLoader::enable();
+
   FOREACH(mJetCollections) {
-
+    
     JetInfos infos = mJetCollectionsData[*it];
-
+    
     iEvent.getByLabel(infos.inputTag, jetsHandle);
     pat::JetCollection jets = *jetsHandle;
     if (mDoJEC) {
       correctJets(jets, iEvent, iSetup);
+      //giulia test
+      if(!mIsMC)
+	correctJets_data(jets, iEvent, iSetup);
     } else {
       extractRawJets(jets);
     }
-
-
+    
+    
     //giulia turn off qgtagger
     //edm::Handle<edm::ValueMap<float>>  qgTagHandleMLP;
     //edm::Handle<edm::ValueMap<float>>  qgTagHandleLikelihood;
@@ -631,7 +647,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     edm::Handle<pat::METCollection> rawMets;
     //iEvent.getByLabel(std::string("patPFMetPFlow" + ((*it == "AK5Calo") ? "" : *it)), rawMets);
-     iEvent.getByLabel("patPFMetPFlowAK5", rawMets);
+    iEvent.getByLabel("patPFMetPFlowAK5", rawMets);
     //giulia
     //if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , rawMets);
     //else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , rawMets);
@@ -753,8 +769,8 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<pat::ElectronCollection> electrons;
 
   //giulia 
-  //iEvent.getByLabel("selectedPatElectronsPFlowAK5chs", electrons);
-  iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
+  iEvent.getByLabel("selectedPatElectronsPFlowAK5chs", electrons);
+  //iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
   //if (infos.algo == AK5) iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
   //if (infos.algo == AK7) iEvent.getByLabel("selectedPatElectronsPFlowAK7", electrons);
   //if (infos.algo == CA8) iEvent.getByLabel("selectedPatElectronsPFlowCA8", electrons);
@@ -765,8 +781,8 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<pat::MuonCollection> muons;
 
   //giulia
-  //iEvent.getByLabel("selectedPatMuonsPFlowAK5chs", muons);
-  iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
+  iEvent.getByLabel("selectedPatMuonsPFlowAK5chs", muons);
+  //iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
   //  iEvent.getByLabel(std::string("selectedPatMuonsPFlow" + ((*it == "AK5Calo") ? "" : *it)), muons);
   //if (infos.algo == AK5) iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
   //if (infos.algo == AK7) iEvent.getByLabel("selectedPatMuonsPFlowAK7",  muons);
@@ -805,6 +821,56 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
   // Sort collection by pt
   std::sort(jets.begin(), jets.end(), mSorter);
 }
+
+
+//giulia test
+//--------------------------------------------------
+//-------- add residual corrections for Data ------
+//-------------------------------------------------
+
+void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  
+  
+  // Create the JetCorrectorParameter objects, the order does not matter.
+  // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
+  JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("Winter14_V3_DATA_L2L3Residual_AK5PF.txt"); 
+  JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("Winter14_V1_DATA_L1FastJet_AK5PF.txt");
+  //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
+  std::vector<JetCorrectorParameters> vPar;
+  vPar.push_back(*L1JetPar);
+  vPar.push_back(*ResJetPar);
+  
+  FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(vPar);
+  /*
+  for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it) {
+    pat::Jet& jet = *it;
+
+    edm::Handle<double> rho_;
+    iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
+    
+
+    JetCorrector->setJetEta(jet.eta());
+    JetCorrector->setJetPt(jet.pt());
+    JetCorrector->setJetA(jet.jetArea());
+    JetCorrector->setRho(*rho_); 
+
+    //pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    //jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
+
+    double corrections = JetCorrector->getCorrection();
+    jet.scaleEnergy(corrections);
+  }
+  */
+
+  // Sort collection by pt
+  std::sort(jets.begin(), jets.end(), mSorter);
+}
+
+
+//--------------------------------------------------
+// --------------------  END ------------------------
+
+
 
 void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
   double deltaPx = 0., deltaPy = 0.;
