@@ -16,7 +16,6 @@ Implementation:
 //
 //
 
-
 // system include files
 #include <cmath>
 #include <cstdio>
@@ -28,6 +27,7 @@ Implementation:
 #include <vector>
 
 #include <stdlib.h>
+
 
 using namespace std;
 
@@ -85,8 +85,8 @@ using namespace std;
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "JetMETCorrections/GammaJetFilter/interface/json/json.h"
 
-#include </afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
-#include </afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 
 
 #include <TParameter.h>
@@ -618,9 +618,10 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByLabel(infos.inputTag, jetsHandle);
     pat::JetCollection jets = *jetsHandle;
     if (mDoJEC) {
-      correctJets(jets, iEvent, iSetup);
+      if(mIsMC)
+	correctJets(jets, iEvent, iSetup);
       //giulia test
-      if(!mIsMC)
+      else if(!mIsMC)
 	correctJets_data(jets, iEvent, iSetup);
     } else {
       extractRawJets(jets);
@@ -826,28 +827,44 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
 //giulia test
 //--------------------------------------------------
 //-------- add residual corrections for Data ------
-//-------------------------------------------------
-
+//-------------------------------------------------*
 void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   
   // Create the JetCorrectorParameter objects, the order does not matter.
   // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
-  JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("Winter14_V3_DATA_L2L3Residual_AK5PF.txt"); 
-  JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("Winter14_V1_DATA_L1FastJet_AK5PF.txt");
+  JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt"); 
+  JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt");
+  JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt");
+  JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt");
+
   //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
   std::vector<JetCorrectorParameters> vPar;
   vPar.push_back(*L1JetPar);
+  vPar.push_back(*L2JetPar);
+  vPar.push_back(*L3JetPar);
   vPar.push_back(*ResJetPar);
   
   FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(vPar);
-  /*
+  
   for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it) {
     pat::Jet& jet = *it;
 
+    // Store raw jet, it's not possible to get it after corrections
+    pat::Jet rawJet = jet.correctedJet("Uncorrected");
+    jet.addUserData("rawJet", rawJet, true); // Store raw jet inside our jet. This allow us to correctly sort the resulting collection
+    pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
+
+    if (mJECFromRaw) {
+      double toRaw = jet.jecFactor("Uncorrected");
+      jet.setP4(jet.p4() * toRaw); // It's now a raw jet
+    }
+
+
     edm::Handle<double> rho_;
     iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
-    
+ 
 
     JetCorrector->setJetEta(jet.eta());
     JetCorrector->setJetPt(jet.pt());
@@ -860,10 +877,11 @@ void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEve
     double corrections = JetCorrector->getCorrection();
     jet.scaleEnergy(corrections);
   }
-  */
+
 
   // Sort collection by pt
   std::sort(jets.begin(), jets.end(), mSorter);
+
 }
 
 
