@@ -123,7 +123,7 @@ class GammaJetFilter : public edm::EDFilter {
 
   private:
     virtual void beginJob();
-    virtual bool filter(edm::Event&, const edm::EventSetup&);
+  virtual bool filter(edm::Event&, const edm::EventSetup&/*, FactorizedJetCorrector* jetCorrector*/);
     virtual void endJob();
 
     virtual bool beginRun(edm::Run&, edm::EventSetup const&);
@@ -132,7 +132,7 @@ class GammaJetFilter : public edm::EDFilter {
     virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
     void correctJets(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup);
-    void correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup); 
+  void correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup/*, FactorizedJetCorrector* jetCorrector*/); 
     void extractRawJets(pat::JetCollection& jets);
 
     //giulia turn off qgtagger
@@ -264,6 +264,10 @@ class GammaJetFilter : public edm::EDFilter {
 
     int getMotherIndex(const edm::Handle<reco::GenParticleCollection>& genParticles, const reco::Candidate* mother);
     void genParticlesToTree(const edm::Handle<reco::GenParticleCollection>& genParticles);
+
+  //FactorizedJetCorrector
+  FactorizedJetCorrector *jetCorrector;
+  std::vector<JetCorrectorParameters> vPar;
 };
 
 //
@@ -291,6 +295,24 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     cout << ("csv file = "+mCSVFile).c_str() << endl;
     
     mFilterData = iConfig.getUntrackedParameter<bool>("filterData", true);
+
+    
+    // Create the JetCorrectorParameter objects, the order does not matter.
+    // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
+    JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt"); 
+    JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt");
+    JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt");
+    JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt");
+    
+    //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
+    
+    vPar.push_back(*L1JetPar);
+    vPar.push_back(*L2JetPar);
+    vPar.push_back(*L3JetPar);
+    vPar.push_back(*ResJetPar);
+    
+    jetCorrector = new FactorizedJetCorrector(vPar);
+    
   }
 
   mPhotonsIT = iConfig.getUntrackedParameter<edm::InputTag>("photons", edm::InputTag("selectedPatPhotons"));
@@ -526,7 +548,7 @@ void GammaJetFilter::updateBranchArray(TTree* tree, void* address, const std::st
 //
 
 // ------------ method called on each new Event  ------------
-bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
+bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup/*, FactorizedJetCorrector* jetCorrector*/)
 {
   using namespace edm;
 
@@ -622,7 +644,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	correctJets(jets, iEvent, iSetup);
       //giulia test
       else if(!mIsMC)
-	correctJets_data(jets, iEvent, iSetup);
+	correctJets_data(jets, iEvent, iSetup/*, jetCorrector*/);
     } else {
       extractRawJets(jets);
     }
@@ -828,25 +850,25 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
 //--------------------------------------------------
 //-------- add residual corrections for Data ------
 //-------------------------------------------------*
-void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup/*, FactorizedJetCorrector* jetCorrector*/) {
   
-  
+  /*
   // Create the JetCorrectorParameter objects, the order does not matter.
   // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
   JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt"); 
   JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt");
   JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt");
   JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt");
-
+ 
   //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
-  std::vector<JetCorrectorParameters> vPar;
+  //std::vector<JetCorrectorParameters> vPar;
   vPar.push_back(*L1JetPar);
   vPar.push_back(*L2JetPar);
   vPar.push_back(*L3JetPar);
   vPar.push_back(*ResJetPar);
   
-  FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(vPar);
-  
+  jetCorrector = new FactorizedJetCorrector(vPar);
+  */
   for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it) {
     pat::Jet& jet = *it;
 
@@ -866,15 +888,15 @@ void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEve
     iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
  
 
-    JetCorrector->setJetEta(jet.eta());
-    JetCorrector->setJetPt(jet.pt());
-    JetCorrector->setJetA(jet.jetArea());
-    JetCorrector->setRho(*rho_); 
+    jetCorrector->setJetEta(jet.eta());
+    jetCorrector->setJetPt(jet.pt());
+    jetCorrector->setJetA(jet.jetArea());
+    jetCorrector->setRho(*rho_); 
 
     //pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
     //jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
 
-    double corrections = JetCorrector->getCorrection();
+    double corrections = jetCorrector->getCorrection();
     jet.scaleEnergy(corrections);
   }
 
