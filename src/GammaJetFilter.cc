@@ -16,7 +16,6 @@ Implementation:
 //
 //
 
-
 // system include files
 #include <cmath>
 #include <cstdio>
@@ -25,6 +24,12 @@ Implementation:
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <vector>
+
+#include <stdlib.h>
+
+
+using namespace std;
 
 // Boost
 #include "boost/shared_ptr.hpp"
@@ -67,7 +72,8 @@ Implementation:
 
 #include "PhysicsTools/SelectorUtils/interface/JetIDSelectionFunctor.h"
 
-#include "EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h"
+//#include "EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h"
+#include "EgammaAnalysis/ElectronTools/interface/PFIsolationEstimator.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 
@@ -78,6 +84,10 @@ Implementation:
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "JetMETCorrections/GammaJetFilter/interface/json/json.h"
+
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+
 
 #include <TParameter.h>
 #include <TTree.h>
@@ -94,6 +104,7 @@ enum JetAlgorithm {
   AK5,
   AK7,
   CA8
+
 };
 
 struct JetInfos {
@@ -112,7 +123,7 @@ class GammaJetFilter : public edm::EDFilter {
 
   private:
     virtual void beginJob();
-    virtual bool filter(edm::Event&, const edm::EventSetup&);
+  virtual bool filter(edm::Event&, const edm::EventSetup&/*, FactorizedJetCorrector* jetCorrector*/);
     virtual void endJob();
 
     virtual bool beginRun(edm::Run&, edm::EventSetup const&);
@@ -121,9 +132,12 @@ class GammaJetFilter : public edm::EDFilter {
     virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
     void correctJets(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup);
+  void correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup/*, FactorizedJetCorrector* jetCorrector*/); 
     void extractRawJets(pat::JetCollection& jets);
+
     //giulia turn off qgtagger
     void processJets(const pat::PhotonRef& photon, pat::JetCollection& jets, const JetAlgorithm algo, /*edm::Handle<edm::ValueMap<float>>& qgTagMLP, edm::Handle<edm::ValueMap<float>>& qgTagLikelihood,*/ const edm::Handle<pat::JetCollection>& handleForRef, std::vector<TTree*>& trees);
+
 
     void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
 
@@ -169,8 +183,10 @@ class GammaJetFilter : public edm::EDFilter {
     edm::InputTag mJetsAK7PFlowIT;
     edm::InputTag mJetsAK5CaloIT;
     edm::InputTag mJetsAK7CaloIT;
+
     //add CA8
     edm::InputTag mJetsCA8PFlowIT;
+
 
 
     boost::shared_ptr<JetIDSelectionFunctor> mCaloJetID;
@@ -248,6 +264,10 @@ class GammaJetFilter : public edm::EDFilter {
 
     int getMotherIndex(const edm::Handle<reco::GenParticleCollection>& genParticles, const reco::Candidate* mother);
     void genParticlesToTree(const edm::Handle<reco::GenParticleCollection>& genParticles);
+
+  //FactorizedJetCorrector
+  FactorizedJetCorrector *jetCorrector;
+  std::vector<JetCorrectorParameters> vPar;
 };
 
 //
@@ -265,16 +285,34 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   mIsMC(false), mIsValidLumiBlock(false)
 {
 
-
-
   mIsMC = iConfig.getUntrackedParameter<bool>("isMC", "false");
 
   if (! mIsMC) {
     mJSONFile = iConfig.getParameter<std::string>("json");
+    
     cout << ("json file = "+mJSONFile).c_str() << endl;
     mCSVFile = iConfig.getParameter<std::string>("csv");
     cout << ("csv file = "+mCSVFile).c_str() << endl;
+    
     mFilterData = iConfig.getUntrackedParameter<bool>("filterData", true);
+
+    
+    // Create the JetCorrectorParameter objects, the order does not matter.
+    // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
+    JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt"); 
+    JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt");
+    JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt");
+    JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt");
+    
+    //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
+    
+    vPar.push_back(*L1JetPar);
+    vPar.push_back(*L2JetPar);
+    vPar.push_back(*L3JetPar);
+    vPar.push_back(*ResJetPar);
+    
+    jetCorrector = new FactorizedJetCorrector(vPar);
+    
   }
 
   mPhotonsIT = iConfig.getUntrackedParameter<edm::InputTag>("photons", edm::InputTag("selectedPatPhotons"));
@@ -284,8 +322,10 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   mJetsAK7CaloIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7Calo", edm::InputTag("selectedPatJetsCaloAK7"));
   mDoJEC         = iConfig.getUntrackedParameter<bool>("doJetCorrection", false);
   mRedoTypeI     = iConfig.getUntrackedParameter<bool>("redoTypeIMETCorrection", false);
+
   //add CA8
-  mJetsCA8PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsCA8PFlow", edm::InputTag("selectedPatJetsPFlowCA8"));
+  mJetsCA8PFlowIT = iConfig.getUntrackedParameter<edm::InputTag>("jetsCA8PFlow", edm::InputTag("selectedPatJetsCA8PF"));
+
 
   if (mDoJEC) {
     mJECFromRaw = iConfig.getUntrackedParameter<bool>("correctJecFromRaw", false);
@@ -302,8 +342,10 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   bool runOnPFAK7    = iConfig.getUntrackedParameter<bool>("runOnPFAK7", true);
   bool runOnCaloAK5  = iConfig.getUntrackedParameter<bool>("runOnCaloAK5", true);
   bool runOnCaloAK7  = iConfig.getUntrackedParameter<bool>("runOnCaloAK7", true);
+
   //add CA8 PF
   bool runOnCA8      = iConfig.getUntrackedParameter<bool>("runOnCA8", true);
+
 
   edm::InputTag jetsAK5PFlowITchs = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK5PFlowchs", edm::InputTag("selectedPatJetsPFlowAK5chs"));
   edm::InputTag jetsAK7PFlowITchs = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK7PFlowchs", edm::InputTag("selectedPatJetsPFlowAK7chs"));
@@ -351,13 +393,15 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
       mJetCollections.push_back("PFlowAK7");
       mJetCollectionsData["PFlowAK7"] = {AK7, mJetsAK7PFlowIT};
     }
+
     //------------------ giulia -------------------------
 
     if (runOnCA8) {
-      mJetCollections.push_back("CA8");
-      mJetCollectionsData["CA8"] = {CA8, mJetsCA8PFlowIT};
+      mJetCollections.push_back("PFlowCA8");
+      mJetCollectionsData["PFlowCA8"] = {CA8, mJetsCA8PFlowIT};
     }
     //-------------------giulia end---------------------------
+
   }
 
   if (runOnCHS) {
@@ -504,7 +548,7 @@ void GammaJetFilter::updateBranchArray(TTree* tree, void* address, const std::st
 //
 
 // ------------ method called on each new Event  ------------
-bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
+bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup/*, FactorizedJetCorrector* jetCorrector*/)
 {
   using namespace edm;
 
@@ -586,18 +630,26 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle<pat::JetCollection> jetsHandle;
 
+  //gSystem->Load("libFWCoreFWLite.so");
+  //AutoLibraryLoader::enable();
+
   FOREACH(mJetCollections) {
-
+    
     JetInfos infos = mJetCollectionsData[*it];
-
+    
     iEvent.getByLabel(infos.inputTag, jetsHandle);
     pat::JetCollection jets = *jetsHandle;
     if (mDoJEC) {
-      correctJets(jets, iEvent, iSetup);
+      if(mIsMC)
+	correctJets(jets, iEvent, iSetup);
+      //giulia test
+      else if(!mIsMC)
+	correctJets_data(jets, iEvent, iSetup/*, jetCorrector*/);
     } else {
       extractRawJets(jets);
     }
-
+    
+    
     //giulia turn off qgtagger
     //edm::Handle<edm::ValueMap<float>>  qgTagHandleMLP;
     //edm::Handle<edm::ValueMap<float>>  qgTagHandleLikelihood;
@@ -611,17 +663,19 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<pat::METCollection> metsHandle;
     //iEvent.getByLabel(std::string("patMETsPFlow" + ((*it == "AK5Calo") ? "" : *it)), metsHandle);
     // //giulia
-    if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , metsHandle);
-    else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , metsHandle);
-    else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , metsHandle);
+    iEvent.getByLabel("patMETsPFlowAK5" , metsHandle);			
+    //if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , metsHandle);
+    //else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , metsHandle);
+    //else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , metsHandle);
 
     edm::Handle<pat::METCollection> rawMets;
     //iEvent.getByLabel(std::string("patPFMetPFlow" + ((*it == "AK5Calo") ? "" : *it)), rawMets);
-    // iEvent.getByLabel("patPFMetPFlowAK5", rawMets);
+    iEvent.getByLabel("patPFMetPFlowAK5", rawMets);
     //giulia
-    if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , rawMets);
-    else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , rawMets);
-    else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , rawMets);
+    //if(infos.algo == AK5) iEvent.getByLabel("patMETsPFlowAK5" , rawMets);
+    //else if(infos.algo == AK7) iEvent.getByLabel("patMETsPFlowAK7" , rawMets);
+    //else if(infos.algo == CA8) iEvent.getByLabel("patMETsPFlowCA8" , rawMets);
+
 
     pat::METCollection mets = *metsHandle;
     pat::MET& met = mets[0];
@@ -736,23 +790,27 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   // Electrons
   edm::Handle<pat::ElectronCollection> electrons;
+
   //giulia 
-  //iEvent.getByLabel("selectedPatElectronsPFlowAK5chs", electrons);
-  iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
-  //if (infos2.algo == AK5) iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
-  //if (infos2.algo == AK7) iEvent.getByLabel("selectedPatElectronsPFlowAK7", electrons);
-  //if (infos2.algo == CA8) iEvent.getByLabel("selectedPatElectronsPFlowCA8", electrons);
+  iEvent.getByLabel("selectedPatElectronsPFlowAK5chs", electrons);
+  //iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
+  //if (infos.algo == AK5) iEvent.getByLabel("selectedPatElectronsPFlowAK5", electrons);
+  //if (infos.algo == AK7) iEvent.getByLabel("selectedPatElectronsPFlowAK7", electrons);
+  //if (infos.algo == CA8) iEvent.getByLabel("selectedPatElectronsPFlowCA8", electrons);
+
   electronsToTree(electrons, primaryVertex);
 
   // Muons
   edm::Handle<pat::MuonCollection> muons;
+
   //giulia
-  //iEvent.getByLabel("selectedPatMuonsPFlowAK5chs", muons);
-  iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
+  iEvent.getByLabel("selectedPatMuonsPFlowAK5chs", muons);
+  //iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
   //  iEvent.getByLabel(std::string("selectedPatMuonsPFlow" + ((*it == "AK5Calo") ? "" : *it)), muons);
-  //if (infos2.algo == AK5) iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
-  //if (infos2.algo == AK7) iEvent.getByLabel("selectedPatMuonsPFlowAK7",  muons);
-  //if (infos2.algo == CA8) iEvent.getByLabel("selectedPatMuonsPFlowCA8",  muons);
+  //if (infos.algo == AK5) iEvent.getByLabel("selectedPatMuonsPFlowAK5", muons);
+  //if (infos.algo == AK7) iEvent.getByLabel("selectedPatMuonsPFlowAK7",  muons);
+  //if (infos.algo == CA8) iEvent.getByLabel("selectedPatMuonsPFlowCA8",  muons);
+
   muonsToTree(muons, primaryVertex);
 
   mSelectedEvents->SetVal(mSelectedEvents->GetVal() + 1);
@@ -786,6 +844,73 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
   // Sort collection by pt
   std::sort(jets.begin(), jets.end(), mSorter);
 }
+
+
+//giulia test
+//--------------------------------------------------
+//-------- add residual corrections for Data ------
+//-------------------------------------------------*
+void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup/*, FactorizedJetCorrector* jetCorrector*/) {
+  
+  /*
+  // Create the JetCorrectorParameter objects, the order does not matter.
+  // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
+  JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt"); 
+  JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt");
+  JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt");
+  JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt");
+ 
+  //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
+  //std::vector<JetCorrectorParameters> vPar;
+  vPar.push_back(*L1JetPar);
+  vPar.push_back(*L2JetPar);
+  vPar.push_back(*L3JetPar);
+  vPar.push_back(*ResJetPar);
+  
+  jetCorrector = new FactorizedJetCorrector(vPar);
+  */
+  for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it) {
+    pat::Jet& jet = *it;
+
+    // Store raw jet, it's not possible to get it after corrections
+    pat::Jet rawJet = jet.correctedJet("Uncorrected");
+    jet.addUserData("rawJet", rawJet, true); // Store raw jet inside our jet. This allow us to correctly sort the resulting collection
+    pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
+
+    if (mJECFromRaw) {
+      double toRaw = jet.jecFactor("Uncorrected");
+      jet.setP4(jet.p4() * toRaw); // It's now a raw jet
+    }
+
+
+    edm::Handle<double> rho_;
+    iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
+ 
+
+    jetCorrector->setJetEta(jet.eta());
+    jetCorrector->setJetPt(jet.pt());
+    jetCorrector->setJetA(jet.jetArea());
+    jetCorrector->setRho(*rho_); 
+
+    //pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
+    //jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
+
+    double corrections = jetCorrector->getCorrection();
+    jet.scaleEnergy(corrections);
+  }
+
+
+  // Sort collection by pt
+  std::sort(jets.begin(), jets.end(), mSorter);
+
+}
+
+
+//--------------------------------------------------
+// --------------------  END ------------------------
+
+
 
 void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
   double deltaPx = 0., deltaPy = 0.;
@@ -843,7 +968,9 @@ void GammaJetFilter::extractRawJets(pat::JetCollection& jets) {
 
 }
 
+
 void GammaJetFilter::processJets(const pat::PhotonRef& photon, pat::JetCollection& jets, const JetAlgorithm algo,/* edm::Handle<edm::ValueMap<float>>& qgTagMLP, edm::Handle<edm::ValueMap<float>>& qgTagLikelihood,*/ const edm::Handle<pat::JetCollection>& handleForRef, std::vector<TTree*>& trees) {
+
 
   pat::JetCollection selectedJets;
 
@@ -871,6 +998,7 @@ void GammaJetFilter::processJets(const pat::PhotonRef& photon, pat::JetCollectio
 
     // Extract Quark Gluon tagger value
     pat::JetRef jetRef(handleForRef, index);
+
     //it->addUserFloat("qgTagMLP", (*qgTagMLP)[jetRef]);
     //it->addUserFloat("qgTagLikelihood", (*qgTagLikelihood)[jetRef]);
 
@@ -879,6 +1007,7 @@ void GammaJetFilter::processJets(const pat::PhotonRef& photon, pat::JetCollectio
     if(algo == AK5) deltaR_threshold = 0.5;
     else if(algo == AK7) deltaR_threshold = 0.7;
     else if(algo == CA8) deltaR_threshold = 0.8;
+
 
     if (selectedJets.size() == 0) {
       // First jet selection
@@ -1156,7 +1285,9 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::E
 
   // Isolations are produced at PAT level by the PḧotonPFIsolation producer
   edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT2"), hasMatchedPromptElectronHandle);
+
+  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
+
 
   isValid &= ! (*hasMatchedPromptElectronHandle)[photonRef];
 
@@ -1165,13 +1296,15 @@ bool GammaJetFilter::isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::E
 
   // Now, isolations
   edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT2"), chargedHadronsIsolationHandle);
+
+  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT2"), neutralHadronsIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT2"), photonIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
+
 
   isValid &= getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 0.7;
   isValid &= getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (0.4 + 0.04 * photonRef->pt());
@@ -1332,20 +1465,24 @@ void GammaJetFilter::photonToTree(const pat::PhotonRef& photon, const edm::Event
 
   // Isolations are produced at PAT level by the PḧotonPFIsolation producer
   edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT2"), hasMatchedPromptElectronHandle);
+
+  event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
+
 
   bool hasMatchedPromptElectron = (*hasMatchedPromptElectronHandle)[photon];
   updateBranch(mPhotonTree, &hasMatchedPromptElectron, "hasMatchedPromptElectron", "O");
 
   // Now, isolations
   edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT2"), chargedHadronsIsolationHandle);
+
+  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT2"), neutralHadronsIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
 
   edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT2"), photonIsolationHandle);
+  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
+
 
   float chargedHadronsIsolation = getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photon], rho, photon->eta(), IsolationType::CHARGED_HADRONS);
   float neutralHadronsIsolation = getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photon], rho, photon->eta(), IsolationType::NEUTRAL_HADRONS);
@@ -1427,8 +1564,10 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* 
     float csv = jet->bDiscriminator("combinedSecondaryVertexBJetTags");
 
     // Quark Gluon tagging
+
     //float qgTagMLP = jet->userFloat("qgTagMLP");
     //float qgTagLikelihood = jet->userFloat("qgTagLikelihood");
+
 
     updateBranch(tree, &tcHighEfficiency, "btag_tc_high_eff");
     updateBranch(tree, &tcHighPurity, "btag_tc_high_pur");
@@ -1437,8 +1576,10 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* 
     updateBranch(tree, &jetProbability, "btag_jet_probability");
     updateBranch(tree, &jetBProbability, "btag_jet_b_probability");
     updateBranch(tree, &csv, "btag_csv");
+
     //updateBranch(tree, &qgTagMLP, "qg_tag_mlp");
     //updateBranch(tree, &qgTagLikelihood, "qg_tag_likelihood");
+
 
     tree->Fill(); // This Fill() must be called inside the {} block, otherwise it'll crash. Don't move it!
   } else {

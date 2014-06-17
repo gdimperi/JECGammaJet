@@ -1,0 +1,47 @@
+Sender: LSF System <lsfadmin@lxbsp1220>
+Subject: Job 514967999: <lumiCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/tmp/tmpdmgpCS/lumiSummary_SinglePhoton_Run2012C-22Jan2013_HLT_Photon30_CaloIdVL_199609_208686.csv> in cluster batch Exited
+
+Job <lumiCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/tmp/tmpdmgpCS/lumiSummary_SinglePhoton_Run2012C-22Jan2013_HLT_Photon30_CaloIdVL_199609_208686.csv> was submitted from host <lxplus406> by user <gdimperi> in cluster <batch>.
+Job was executed on host(s) <lxbsp1220>, in queue <8nh>, as user <gdimperi> in cluster <batch>.
+</afs/cern.ch/user/g/gdimperi> was used as the home directory.
+</afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting> was used as the working directory.
+Started at Sun Mar 23 01:15:16 2014
+Results reported at Sun Mar 23 01:15:40 2014
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+lumiCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/tmp/tmpdmgpCS/lumiSummary_SinglePhoton_Run2012C-22Jan2013_HLT_Photon30_CaloIdVL_199609_208686.csv
+------------------------------------------------------------
+
+Exited with exit code 255.
+
+Resource usage summary:
+
+    CPU time   :      1.78 sec.
+    Max Memory :         2 MB
+    Max Swap   :        31 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) follows:
+
+@(#)CERN job starter $Date: 2010/06/23 14:22:16 $
+Working directory is </pool/lsf/gdimperi/514967999> on <lxbsp1220.cern.ch>
+
+Traceback (most recent call last):
+  File "/afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/bin/slc5_amd64_gcc462/lumiCalc2.py", line 10, in ?
+    from RecoLuminosity.LumiDB import sessionManager,lumiTime,inputFilesetParser,csvSelectionParser,selectionParser,csvReporter,argparse,CommonUtil,revisionDML,lumiCalcAPI,lumiReport,RegexValidator,normDML
+  File "/afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/python/RecoLuminosity/LumiDB/sessionManager.py", line 1, in ?
+    import coral,os,os.path
+  File "/afs/cern.ch/cms/slc5_amd64_gcc462/cms/coral/CORAL_2_3_21-cms38/slc5_amd64_gcc462/python/coral.py", line 5, in ?
+    from liblcg_PyCoral import *
+ImportError: /usr/lib64/libstdc++.so.6: version `GLIBCXX_3.4.9' not found (required by /afs/cern.ch/cms/slc5_amd64_gcc462/cms/coral/CORAL_2_3_21-cms38/slc5_amd64_gcc462/lib/liblcg_PyCoral.so)
+
+Job finished at Sun Mar 23 01:15:39 CET 2014 on node 
+ under linux version Scientific Linux CERN SLC release 5.10 (Boron)
+
+CERN statistics: This process used approximately : 0:00:02 KSI2K hours (2 KSI2K seconds)
+                 This process corresponds to     : 0:00:08 HS06  hours (8 HS06  seconds)

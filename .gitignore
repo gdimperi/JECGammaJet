@@ -1,0 +1,40 @@
+*.root
+.*.sw[a-z]
+*.un~
+Session.vim
+# Compiled Object files
+*.d
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.pyc
+__init__.py*
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# crab
+crab.history
+crab_*
+lumiSummary.json
+lumibyls.csv
+files.list
+
+/CVS/*
+*/CVS/*
+.cvsignore
+*/.cvsignore
+
+# JEC
+analysis/jec_payloads/
+analysis/readJECFromPrepDB/*.db
+*xsection
+datasets.list
+*.json
+nohup.out
+*.orig

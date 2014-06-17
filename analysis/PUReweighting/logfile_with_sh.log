@@ -1,0 +1,39 @@
+Sender: LSF System <lsfadmin@lxbsj3515>
+Subject: Job 514968039: <source /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting/submit.sh lumiCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/tmp/tmpdmgpCS/lumiSummary_SinglePhoton_Run2012C-22Jan2013_HLT_Photon30_CaloIdVL_199609_208686.csv> in cluster batch Exited
+
+Job <source /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting/submit.sh lumiCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/tmp/tmpdmgpCS/lumiSummary_SinglePhoton_Run2012C-22Jan2013_HLT_Photon30_CaloIdVL_199609_208686.csv> was submitted from host <lxplus406> by user <gdimperi> in cluster <batch>.
+Job was executed on host(s) <lxbsj3515>, in queue <8nh>, as user <gdimperi> in cluster <batch>.
+</afs/cern.ch/user/g/gdimperi> was used as the home directory.
+</afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting> was used as the working directory.
+Started at Sun Mar 23 01:15:53 2014
+Results reported at Sun Mar 23 01:16:13 2014
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+source /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting/submit.sh lumiCalc2.py --without-checkforupdate --begin 199609 --end 208686 lumibyls -i lumiSummary_SinglePhoton_Run2012C-22Jan2013.json --hltpath HLT_Photon30_CaloIdVL_* -o /afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/tmp/tmpdmgpCS/lumiSummary_SinglePhoton_Run2012C-22Jan2013_HLT_Photon30_CaloIdVL_199609_208686.csv
+------------------------------------------------------------
+
+Exited with exit code 255.
+
+Resource usage summary:
+
+    CPU time   :      1.72 sec.
+    Max Memory :         2 MB
+    Max Swap   :        30 MB
+
+    Max Processes  :         1
+    Max Threads    :         1
+
+The output (if any) follows:
+
+@(#)CERN job starter $Date: 2010/06/23 14:22:16 $
+Working directory is </pool/lsf/gdimperi/514968039> on <lxbsj3515.cern.ch>
+
+
+Job finished at Sun Mar 23 01:16:12 CET 2014 on node 
+ under linux version Scientific Linux CERN SLC release 5.10 (Boron)
+
+CERN statistics: This process used approximately : 0:00:02 KSI2K hours (2 KSI2K seconds)
+                 This process corresponds to     : 0:00:10 HS06  hours (10 HS06  seconds)

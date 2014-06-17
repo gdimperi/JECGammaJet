@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<triggers>
+  <runs from="190450" to="193832">
+    <path>
+      <name>HLT_Photon30_CaloIdVL_IsoL_v.*</name>
+      <pt from="40" to="60" />
+      <weight value="0.000549905962709" />
+    </path>
+    <path>
+      <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
+      <pt from="60" to="100" />
+      <weight value="0.004161728773047" />
+    </path>
+    <path>
+      <name>HLT_Photon90_CaloIdVL_IsoL.*</name>
+      <pt from="100" to="155" />
+      <weight value="0.075628205749574" />
+    </path>
+    <path>
+      <name>HLT_Photon135_.*</name>
+      <pt from="155" to="8000" />
+      <weight value="1" />
+    </path>
+  </runs>
+  <runs from="193833" to="199608">
+    <path>
+      <name>HLT_Photon30_CaloIdVL_IsoL_v.*</name>
+      <pt from="40" to="60" />
+      <weight value="0.000399990825688" />
+    </path>
+    <path>
+      <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
+      <pt from="60" to="100" />
+      <weight value="0.003030098181233" />
+    </path>
+    <path>
+      <name>HLT_Photon90_CaloIdVL_IsoL.*</name>
+      <pt from="100" to="155" />
+      <weight value="0.049995493320457" />
+    </path>
+    <path>
+      <name>HLT_Photon135_.*</name>
+      <pt from="155" to="180" />
+      <weight value="0.033323837115725" />
+    </path>
+    <path>
+      <name>HLT_Photon150_.*</name>
+      <pt from="180" to="8000" />
+      <weight value="1." />
+    </path>
+  </runs>
+  <runs from="199609" to="208686">
+    <path>
+      <name>HLT_Photon30_CaloIdVL_v.*</name>
+      <pt from="40" to="60" />
+      <weight value="0.000142823362497" />
+    </path>
+    <path>
+      <name>HLT_Photon50_CaloIdVL_IsoL.*</name>
+      <pt from="60" to="100" />
+      <weight value="0.003030346023489" />
+    </path>
+    <path>
+      <name>HLT_Photon90_CaloIdVL.*</name>
+      <pt from="100" to="155" />
+      <weight value="0.013766611492078" />
+    </path>
+    <path>
+      <name>HLT_Photon135_.*</name>
+      <pt from="155" to="8000" />
+      <weight value="1." />
+    </path>
+  </runs>
+</triggers>

@@ -1,0 +1,38 @@
+dataset output step 1 (last GT and AOD)
+
+     # name                                #dbs_instance 
+/G_Pt-30to50_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-30to50_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER 	      (phys02) 
+/G_Pt-50to80_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-50to80_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER 	      (phys02) 
+/G_Pt-80to120_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-80to120_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER      (phys03) 
+/G_Pt-120to170_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-120to170_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER    (phys02)  
+/G_Pt-170to300_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-170to300_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER    (phys03)  
+/G_Pt-300to470_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-300to470_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER    (phys02)
+/G_Pt-470to800_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-470to800_START53_V7N_11Feb14-v1-2c333d1ef9021b887ad40a2d99f57d58/USER    (phys02)  
+/G_Pt-800to1400_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-800to1400_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER  (phys02) 
+/G_Pt-1400to1800_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-1400to1800_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER(phys02) 
+/G_Pt-1800_TuneZ2star_8TeV_pythia6/gdimperi-G_Pt-1800_START53_V7N_30Jan14-v1-bff4e2252837464ce6defb764cfbdfcf/USER 	      (phys02)
+
+
+DATA (dbs_instance =  phys03)
+runA : /Photon/gdimperi-Photon_Run2012A-22Jan2013_07Feb14-v1-b852bd0ec059c273b7da762ce891e8df/USER
+     (mancano tutti i job della cartella runA_splitted) 
+runB : /SinglePhoton/gdimperi-SinglePhoton_Run2012B-22Jan2013_07Feb14-v1-b852bd0ec059c273b7da762ce891e8df/USER 
+runC : /SinglePhoton/gdimperi-SinglePhoton_Run2012C-22Jan2013_07Feb14-v1-b852bd0ec059c273b7da762ce891e8df/USER 
+runD : /SinglePhotonParked/gdimperi-SinglePhoton_Run2012D-22Jan2013_07Feb14-v1-b852bd0ec059c273b7da762ce891e8df/USER
+     (manca tutto lo splitted2_1 e splitted2_2, forse da fare un splitted3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
