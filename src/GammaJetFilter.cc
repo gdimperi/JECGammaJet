@@ -139,7 +139,7 @@ class GammaJetFilter : public edm::EDFilter {
     void processJets(const pat::PhotonRef& photon, pat::JetCollection& jets, const JetAlgorithm algo, /*edm::Handle<edm::ValueMap<float>>& qgTagMLP, edm::Handle<edm::ValueMap<float>>& qgTagLikelihood,*/ const edm::Handle<pat::JetCollection>& handleForRef, std::vector<TTree*>& trees);
 
 
-    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets);
+  void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event);
 
     //const EcalRecHitCollection* getEcalRecHitCollection(const reco::BasicCluster& cluster);
     bool isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology);
@@ -267,7 +267,11 @@ class GammaJetFilter : public edm::EDFilter {
 
   //FactorizedJetCorrector
   FactorizedJetCorrector *jetCorrector;
+  FactorizedJetCorrector *jetCorrectorForTypeI;
+  FactorizedJetCorrector *jetCorrectorForTypeIL1;
   std::vector<JetCorrectorParameters> vPar;
+  std::vector<JetCorrectorParameters> vParTypeI;
+  std::vector<JetCorrectorParameters> vParTypeIL1;
 };
 
 //
@@ -299,11 +303,12 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     
     // Create the JetCorrectorParameter objects, the order does not matter.
     // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
-    JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt"); 
-    JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt");
-    JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt");
-    JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt");
-    
+    JetCorrectorParameters *ResJetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt").fullPath()); 
+    JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt").fullPath());
+    JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt").fullPath());
+    JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt").fullPath());
+    //txt file to use for L1 only for typeI
+    JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/corrections/Winter14_V0_DATA_L1FastJetPU_AK5PFchs_pt.txt").fullPath());
     //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
     
     vPar.push_back(*L1JetPar);
@@ -313,6 +318,43 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     
     jetCorrector = new FactorizedJetCorrector(vPar);
     
+    //FAKE vPar for typeI fix
+    vParTypeI.push_back(*L1JetParForTypeI);
+    vParTypeI.push_back(*L2JetPar);
+    vParTypeI.push_back(*L3JetPar);
+    vParTypeI.push_back(*ResJetPar);
+    jetCorrectorForTypeI = new FactorizedJetCorrector(vParTypeI);
+    //FAKE vPar for typeI fix only L1
+    vParTypeIL1.push_back(*L1JetParForTypeI);
+    jetCorrectorForTypeIL1 = new FactorizedJetCorrector(vParTypeIL1);
+
+    delete ResJetPar;
+    delete L3JetPar;
+    delete L2JetPar;
+    delete L1JetPar;
+    delete L1JetParForTypeI;
+  }
+  else{
+    // Create the JetCorrectorParameter objects, the order does not matter.
+    // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
+    JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V1_MC_L3Absolute_AK5PFchs.txt").fullPath());
+    JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V1_MC_L2Relative_AK5PFchs.txt").fullPath());
+    //txt file to use for L1 only for typeI
+    JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V0_MC_L1FastJetPU_AK5PFchs_pt.txt").fullPath());
+    //
+    // Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!!
+    vParTypeI.push_back(*L1JetParForTypeI);
+    vParTypeI.push_back(*L2JetPar);
+    vParTypeI.push_back(*L3JetPar);
+    jetCorrectorForTypeI = new FactorizedJetCorrector(vParTypeI);
+    //FAKE vPar for typeI fix only L1
+    vParTypeIL1.push_back(*L1JetParForTypeI);
+    jetCorrectorForTypeIL1 = new FactorizedJetCorrector(vParTypeIL1);
+    //
+    delete L3JetPar;
+    delete L2JetPar;
+    delete L1JetParForTypeI;
+
   }
 
   mPhotonsIT = iConfig.getUntrackedParameter<edm::InputTag>("photons", edm::InputTag("selectedPatPhotons"));
@@ -682,7 +724,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup/*,
     const pat::MET& rawMet = rawMets->at(0);
 
     if (mDoJEC || mRedoTypeI) {
-      correctMETWithTypeI(rawMet, met, jets);
+      correctMETWithTypeI(rawMet, met, jets, iEvent);
     }
 
     if (rawMets.isValid())
@@ -852,23 +894,6 @@ void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, c
 //-------------------------------------------------*
 void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup/*, FactorizedJetCorrector* jetCorrector*/) {
   
-  /*
-  // Create the JetCorrectorParameter objects, the order does not matter.
-  // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
-  JetCorrectorParameters *ResJetPar = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V3_DATA_L2L3Residual_AK5PFchs.txt"); 
-  JetCorrectorParameters *L3JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L3Absolute_AK5PFchs.txt");
-  JetCorrectorParameters *L2JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_MC_L2Relative_AK5PFchs.txt");
-  JetCorrectorParameters *L1JetPar  = new JetCorrectorParameters("/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/corrections/Winter14_V1_DATA_L1FastJet_AK5PFchs.txt");
- 
-  //  Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!! 
-  //std::vector<JetCorrectorParameters> vPar;
-  vPar.push_back(*L1JetPar);
-  vPar.push_back(*L2JetPar);
-  vPar.push_back(*L3JetPar);
-  vPar.push_back(*ResJetPar);
-  
-  jetCorrector = new FactorizedJetCorrector(vPar);
-  */
   for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it) {
     pat::Jet& jet = *it;
 
@@ -912,26 +937,54 @@ void GammaJetFilter::correctJets_data(pat::JetCollection& jets, edm::Event& iEve
 
 
 
-void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets) {
+void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event) {
   double deltaPx = 0., deltaPy = 0.;
   //static StringCutObjectSelector<reco::Muon> skipMuonSelection("isGlobalMuon | isStandAloneMuon");
 
   // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
   // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
   for (pat::JetCollection::const_iterator it = jets.begin(); it != jets.end(); ++it) {
-    const pat::Jet& jet = *it;
+    //const pat::Jet& jet = *it;
+
+    const pat::Jet* rawJet = it->userData<pat::Jet>("rawJet");
+    //const pat::Jet* L1Jet  = jet.userData<pat::Jet>("L1Jet");
+
+    // ------------------Type-I fix--------------------
+    //apply the ad hoc corrections
+    //calculate the corrections
+    double corrsForTypeI =1.;
+    double corrsForTypeIL1=1.;
+    edm::Handle<double> rho_;
+    event.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
+    //
+    jetCorrectorForTypeIL1->setJetEta(rawJet->eta());
+    jetCorrectorForTypeIL1->setJetPt(rawJet->pt());
+    jetCorrectorForTypeIL1->setJetA(rawJet->jetArea());
+    jetCorrectorForTypeIL1->setRho(*rho_);
+    corrsForTypeIL1 = jetCorrectorForTypeIL1->getCorrection();
+
+    // pat::Jet& jet = *it;
+    pat::Jet jetL1 = *rawJet;
+    //    pat::Jet& jetL1 = *rawJet;
+    jetL1.scaleEnergy(corrsForTypeIL1);
+    //
+    jetCorrectorForTypeI->setJetEta(rawJet->eta()); 
+    jetCorrectorForTypeI->setJetPt(rawJet->pt());
+    jetCorrectorForTypeI->setJetA(rawJet->jetArea());
+    jetCorrectorForTypeI->setRho(*rho_);
+    corrsForTypeI = jetCorrectorForTypeI->getCorrection();
+    pat::Jet jet = *rawJet;
+    jet.scaleEnergy(corrsForTypeI);
+    //go ahead with typeI
 
     if (jet.pt() > 10) {
-
-      const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
-      const pat::Jet* L1Jet  = jet.userData<pat::Jet>("L1Jet");
 
       double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
       if (emEnergyFraction > 0.90)
         continue;
 
       //reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
-      reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
+      reco::Candidate::LorentzVector L1JetP4  = jetL1.p4();
 
       // Skip muons
       /*std::vector<reco::PFCandidatePtr> cands = rawJet->getPFConstituents();
