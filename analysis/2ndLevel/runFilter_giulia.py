@@ -12,6 +12,7 @@ process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
 
 process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
 
+process.load('Calibration.EleNewEnergiesProducer.elenewenergiesproducer_cfi')
 
 # Do some CHS stuff
 process.ak5PFchsL1Fastjet  = process.ak5PFL1Fastjet.clone(algorithm = 'AK5PFchs')
@@ -35,7 +36,7 @@ process.source = cms.Source("PoolSource",
       #'/store/user/sbrochet/Photon/Photon_Run2012A-recover-06Aug2012_18Feb13-v1/298629d7efe53cfa022ca63c838ed612/patTuple_PF2PAT_16_1_Z3z.root'
       #'file:patTuple_PF2PAT.root'
       #'file:/afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/analysis/2ndLevel/patTuple_PF2PAT_182_1_cUM.root'
-      'file:/afs/cern.ch/work/g/gdimperi/GammaJet/CMSSW_5_3_14/src/JetMETCorrections/GammaJetFilter/crab/SiglePhotonParked_runD.root'
+      'file:/cmshome/gdimperi/GammaJet/test2/CMSSW_5_3_16_patch1/src/JetMETCorrections/GammaJetFilter/crab/patTuple_PF2PAT.root'
     )
 )
 
@@ -49,55 +50,19 @@ options.register ('datasetName',
     "The dataset currently processed. A folder named 'datasetName' must exists")
 
 options.register ('globalTag',
-    '',
-    VarParsing.multiplicity.singleton,
-    VarParsing.varType.string,
-    "The globaltag to use")
+                  'FT53_V21A_AN6', #Winter13 2012 A, B, C, D datasets re-reco with CMSSW_5_3_7_patch6 
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.string,
+                  "The globaltag to use")
 
 options.parseArguments()
 if len(options.globalTag) == 0:
-  raise Exception("You _must_ pass a globalTag options to this script. Use --help for more informations")
+    raise Exception("You _must_ pass a globalTag options to this script. Use --help for more informations")
 
 process.GlobalTag.globaltag = cms.string("%s::All" % options.globalTag) ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
-#process.GlobalTag.globaltag = cms.string("FT_53_V21_AN5::All") ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
+
 
 fullPath = os.path.join(os.getcwd(), options.datasetName)
-
-
-
-##############################################
-#                                            #
-#      connect to a local sqlite file        #
-#                                            # 
-##############################################
-
-process.load("CondCore.DBCommon.CondDBCommon_cfi")
-from CondCore.DBCommon.CondDBSetup_cfi import *
-process.jec = cms.ESSource("PoolDBESSource",
-      DBParameters = cms.PSet(
-       messageLevel = cms.untracked.int32(0)
-       ),
-      timetype = cms.string('runnumber'),
-      toGet = cms.VPSet(
-      cms.PSet(
-          record = cms.string('JetCorrectionsRecord'),
-          tag    = cms.string('JetCorrectorParametersCollection_Winter14_V1_DATA_AK5PFchs'),
-          #tag    = cms.string('JetCorrectorParametersCollection_Winter14_V1_MC_AK5PFchs'),
-          label  = cms.untracked.string('AK5PFchs')
-          ),
-
-      ##..................................................
-      ## here you add as many jet types as you need
-      ## note that the tag name is specific for the particular sqlite file
-      ),
-      #connect = cms.string('sqlite:Winter14_V1_DATA.db')
-      # uncomment above tag lines and this comment to use MC JEC
-      connect = cms.string('sqlite:Winter14_V1_MC.db')
-)
-## add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
-process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
-
-
 
 
 process.gammaJet = cms.EDFilter('GammaJetFilter',
@@ -107,8 +72,8 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
 
     #json = cms.string(os.path.join(fullPath, "lumiSummary.json")),
     #csv = cms.string(os.path.join(fullPath, "lumibyls.csv")),
-    json = cms.string("lumiSummary.json"),
-    csv = cms.string("lumibyls.csv"),     
+    json = cms.string("Photon_Run2012A-22Jan2013/lumiSummary.json"),
+    csv = cms.string("Photon_Run2012A-22Jan2013/lumibyls.csv"),     
 
     filterData = cms.untracked.bool(True),
 
@@ -125,15 +90,16 @@ process.gammaJet = cms.EDFilter('GammaJetFilter',
     # JEC
     doJetCorrection = cms.untracked.bool(True),
     correctJecFromRaw = cms.untracked.bool(True),
-    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
-    #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3Residual"),
+    #correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3"),
+    correctorLabel = cms.untracked.string("ak5PFchsL1FastL2L3Residual"),
     #correctorLabel = cms.untracked.string("ak7PFchsL1FastL2L3"),                                                            
 
     # MET
     redoTypeIMETCorrection = cms.untracked.bool(True)
     )
 
-process.p = cms.Path(process.gammaJet)
+mySequence = cms.Sequence(process.eleNewEnergiesProducer * process.gammaJet)
+process.p = cms.Path(mySequence)
 
 process.TFileService = cms.Service("TFileService",
      fileName = cms.string("output.root")
