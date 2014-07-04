@@ -4,7 +4,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing()
 
 options.register ('globalTag',
-          '',
+          'FT53_V21A_AN6' , #Latest analysis GT for data (for CMSSW>=538_patch3)
           VarParsing.multiplicity.singleton,
           VarParsing.varType.string,
           "The globaltag to be used")

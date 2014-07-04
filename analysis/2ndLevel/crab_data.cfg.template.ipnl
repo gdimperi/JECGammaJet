@@ -16,8 +16,10 @@ pycfg_params = globalTag=@globaltag@ datasetName=@dataset_name@
 
 total_number_of_lumis = -1
 
+
 ### Number of events to be processed per job
 lumis_per_job = 1000
+
 
 ### The output files produced by your application (comma separated list)
 output_file = output.root
@@ -37,11 +39,11 @@ return_data = 0
 copy_data = 1
 
 #storage_element = T3_FR_IPNL
-#storage_element = cmsrm-se01.roma1.infn.it
-#storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms/store/
+storage_element = cmsrm-se01.roma1.infn.it
+storage_path=/srm/managerv2?SFN=/pnfs/roma1.infn.it/data/cms/
 
-storage_element = srm-eoscms.cern.ch
-storage_path=/srm/v2/server?SFN=/eos/cms
+#storage_element = srm-eoscms.cern.ch
+#storage_path=/srm/v2/server?SFN=/eos/cms
 
 check_user_remote_dir = 1
 
