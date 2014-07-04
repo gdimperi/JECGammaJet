@@ -329,8 +329,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   process.load('CommonTools.RecoAlgos.HBHENoiseFilter_cfi')
 
   ## The CSC beam halo tight filter ____________________________________________||
-
-  process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
+  process.load('RecoMET.METFilters.metFilters_cff')
+  #process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
 
   ## The HCAL laser filter _____________________________________________________||
   process.load("RecoMET.METFilters.hcalLaserEventFilter_cfi")
@@ -363,6 +363,14 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   process.nEventsTotal    = cms.EDProducer("EventCountProducer")
   process.nEventsFiltered = cms.EDProducer("EventCountProducer")
 
+  process.load('Calibration.EleNewEnergiesProducer.elenewenergiesproducer_cfi')
+  #getattr(process,"patPhotons" + p)
+  process.patPhotons.userData.userFloats.src = [
+        cms.InputTag("eleNewEnergiesProducer","energySCEleJoshPhoSemiParamV5ecorr")
+            ]
+        
+  process.eleNewEnergiesProducer.electronCollection = getattr(process,"patPhotons" + p).photonSource
+    
   # Let it run
   process.p = cms.Path(
       process.nEventsTotal +
@@ -381,7 +389,9 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
 
       process.goodOfflinePrimaryVertices +
 
-        
+      # photon energy regression
+      process.eleNewEnergiesProducer +
+      
       # Physics
       process.analysisSequence +
 
