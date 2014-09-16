@@ -81,7 +81,7 @@ for file in files:
         exitCode = 1
         continue;
     if (appendRFIO):
-      print "rfio://%s" % (absoluteLFN)
+      print "root://lyogrid06.in2p3.fr/%s" % (absoluteLFN)
     else:
       print "%s" % (absoluteLFN)
   except IOError:

@@ -424,6 +424,10 @@ void fitTools::getTruncatedMeanAndRMS(TH1* h1_projection, Float_t& mean, Float_t
 
   rms = newHisto->GetRMS();
   rms_err = newHisto->GetRMSError();
+if(rms<0.000001) {
+ rms = newHisto->GetBinWidth(1);
+ rms_err = newHisto->GetMean();
+}
 
 //std::cout << "rms: " << rms << std::endl;
   while (newHisto->Integral() < percentIntegral_MEAN * integral) {
@@ -445,6 +449,9 @@ void fitTools::getTruncatedMeanAndRMS(TH1* h1_projection, Float_t& mean, Float_t
 
   mean = newHisto->GetMean();
   mean_err = newHisto->GetMeanError();
+if (mean_err<0.000001) {
+ mean_err = mean;
+}
 
   delete newHisto;
 

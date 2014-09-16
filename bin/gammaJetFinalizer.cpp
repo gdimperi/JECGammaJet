@@ -344,9 +344,49 @@ void GammaJetFinalizer::runAnalysis() {
   TH1F* h_ptPhoton_passedID = analysisDir.make<TH1F>("ptPhoton_passedID", "ptPhoton", 200, 5., 1000.);
   TH1F* h_ptFirstJet_passedID = analysisDir.make<TH1F>("ptFirstJet_passedID", "ptFirstJet", 200, 5., 1000.);
   TH1F* h_ptSecondJet_passedID = analysisDir.make<TH1F>("ptSecondJet_passedID", "ptSecondJet", 60, 0., 100.);
-  TH1F* h_MET_passedID = analysisDir.make<TH1F>("MET_passedID", "MET", 150, 0., 300.);
+  TH1F* h_MET_passedID = analysisDir.make<TH1F>("MET_passedID", "MET", 150, 0., 600.);
   TH1F* h_rawMET_passedID = analysisDir.make<TH1F>("rawMET_passedID", "raw MET", 150, 0., 300.);
   TH1F* h_alpha_passedID = analysisDir.make<TH1F>("alpha_passedID", "alpha", 100, 0., 2.);
+  TH1F* h_METResolution_passedID = analysisDir.make<TH1F>("METResolution_passedID", "MET", 100, 0., 600.);
+  TH1F* h_MET_perp_passedID = analysisDir.make<TH1F>("MET_perp_passedID", "MET", 200, -600., 600.);
+  TH1F* h_MET_par_passedID = analysisDir.make<TH1F>("MET_par_passedID", "MET", 200, -600., 600.);
+//jet composition - viola
+  TH1F* h_CHEn_passedID = analysisDir.make<TH1F>("CHEnergy_passedID", "CHEnergy", 40, 0., 500);
+  TH1F* h_NHEn_passedID = analysisDir.make<TH1F>("NHEnergy_passedID", "NHEnergy", 40, 0., 500);
+  TH1F* h_ElEn_passedID = analysisDir.make<TH1F>("ElEnergy_passedID", "ElEnergy", 40, 0., 500);
+  TH1F* h_PhEn_passedID = analysisDir.make<TH1F>("PhEnergy_passedID", "PhEnergy", 40, 0., 500);
+  TH1F* h_MuEn_passedID = analysisDir.make<TH1F>("MuEnergy_passedID", "MuEnergy", 40, 0., 500);
+//jet composition - histos vectors
+  TFileDirectory ecompositionDir = analysisDir.mkdir("ecomposition");
+  std::vector<std::vector<TH1F*> > ChHadronEnergy = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadronEnergy", 40, 0., 500.);
+  std::vector<std::vector<TH1F*> > NHadronEnergy = buildEtaPtVector<TH1F>(ecompositionDir, "NHadronEnergy", 40, 0., 500.);
+  std::vector<std::vector<TH1F*> > ElEnergy = buildEtaPtVector<TH1F>(ecompositionDir, "ElEnergy", 40, 0., 500.);
+  std::vector<std::vector<TH1F*> > PhEnergy = buildEtaPtVector<TH1F>(ecompositionDir, "PhEnergy", 40, 0., 500.);
+  std::vector<std::vector<TH1F*> > MuEnergy = buildEtaPtVector<TH1F>(ecompositionDir, "MuEnergy", 40, 0., 500.);
+  std::vector<std::vector<TH1F*> > TotJetEnergy = buildEtaPtVector<TH1F>(ecompositionDir, "TotJetEnergy", 80, 0., 1000.);
+//jet composition fractions - histos vectors
+  std::vector<std::vector<TH1F*> > ChHadronFraction = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadronFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > NHadronFraction = buildEtaPtVector<TH1F>(ecompositionDir, "NHadronFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > ElFraction = buildEtaPtVector<TH1F>(ecompositionDir, "ElFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > PhFraction = buildEtaPtVector<TH1F>(ecompositionDir, "PhFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > MuFraction = buildEtaPtVector<TH1F>(ecompositionDir, "MuFraction", 40, 0., 1.);
+//
+  std::vector<std::vector<TH1F*> > ChHadron_realFraction = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadron_realFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > NHadron_realFraction = buildEtaPtVector<TH1F>(ecompositionDir, "NHadron_realFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > El_realFraction = buildEtaPtVector<TH1F>(ecompositionDir, "El_realFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > Ph_realFraction = buildEtaPtVector<TH1F>(ecompositionDir, "Ph_realFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > Mu_realFraction = buildEtaPtVector<TH1F>(ecompositionDir, "Mu_realFraction", 40, 0., 1.);
+//
+  std::vector<std::vector<TH1F*> > ChHadron_realFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadron_realFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > NHadron_realFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "NHadron_realFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > El_realFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "El_realFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > Ph_realFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "Ph_realFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > Mu_realFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "Mu_realFractionRaw", 40, 0., 1.);
+//jet multiplicities
+  std::vector<std::vector<TH1F*> > ChHadronMult = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadronMult", 20, 0, 20);
+  std::vector<std::vector<TH1F*> > NHadronMult = buildEtaPtVector<TH1F>(ecompositionDir, "NHadronMult", 20, 0, 20);
+  std::vector<std::vector<TH1F*> > ElMult = buildEtaPtVector<TH1F>(ecompositionDir, "ElMult", 20, 0, 20);
+  std::vector<std::vector<TH1F*> > PhMult = buildEtaPtVector<TH1F>(ecompositionDir, "PhMult", 20, 0, 20);
 
   std::vector<TH1F*> h_ptPhotonBinned_passedID = buildPtVector<TH1F>(analysisDir, "ptPhoton_passedID", 100, -1, -1);
 
@@ -387,7 +427,7 @@ void GammaJetFinalizer::runAnalysis() {
   std::vector<std::vector<TH1F*> > responseMPFRaw = buildEtaPtVector<TH1F>(mpfDir, "resp_mpf_raw", 150, 0., 2.);
   std::vector<std::vector<TH1F*> > responseMPFGen;
   if (mIsMC) {
-    responseMPFGen = buildEtaPtVector<TH1F>(mpfDir, "resp_mpf_gen", 150, 0., 2.);
+    responseMPFGen = buildEtaPtVector<TH1F>(mpfDir, "resp_mpf_gen", 150, 0., 5.);
   }
 
   std::vector<TH1F*> responseMPFEta013 = buildPtVector<TH1F>(mpfDir, "resp_mpf", "eta013", 150, 0., 2.);
@@ -839,6 +879,8 @@ void GammaJetFinalizer::runAnalysis() {
 
     int vertexBin = mVertexBinning.getVertexBin(analysis.nvertex);
 
+    float jetcalcen=0;
+
     if (secondJet.is_present) {
       do {
         int extrapBin = mExtrapBinning.getBin(photon.pt, secondJet.pt, ptBin);
@@ -952,6 +994,7 @@ void GammaJetFinalizer::runAnalysis() {
       } while (false);
     }
 
+float vpar=0.;
     if (secondJetOK) {
 
       do {
@@ -962,6 +1005,12 @@ void GammaJetFinalizer::runAnalysis() {
         h_MET_passedID->Fill(MET.et, eventWeight);
         h_rawMET_passedID->Fill(rawMET.et, eventWeight);
         h_alpha_passedID->Fill(secondJet.pt / photon.pt, eventWeight);
+//jet energy composition
+        h_CHEn_passedID->Fill(firstJet.jet_CHEn, eventWeight);
+        h_NHEn_passedID->Fill(firstJet.jet_NHEn, eventWeight);
+        h_ElEn_passedID->Fill(firstJet.jet_ElEn, eventWeight);
+        h_PhEn_passedID->Fill(firstJet.jet_PhEn, eventWeight);
+        h_MuEn_passedID->Fill(firstJet.jet_MuEn, eventWeight);
 
         h_ptPhotonBinned_passedID[ptBin]->Fill(photon.pt, eventWeight);
 
@@ -974,6 +1023,11 @@ void GammaJetFinalizer::runAnalysis() {
         h_chargedHadronsIsolation_passedID->Fill(photon.chargedHadronsIsolation, eventWeight);
         h_neutralHadronsIsolation_passedID->Fill(photon.neutralHadronsIsolation, eventWeight);
         h_photonIsolation_passedID->Fill(photon.photonIsolation, eventWeight);
+//
+        vpar=(MET.px*photon.px + MET.py*photon.py)/photon.pt;
+        h_METResolution_passedID->Fill(sqrt(pow(MET.px-genMET.px,2)+pow(MET.py-genMET.py,2)), eventWeight);
+        h_MET_par_passedID->Fill((MET.px*photon.px + MET.py*photon.py)/photon.pt, eventWeight);
+        h_MET_perp_passedID->Fill(MET.pt*(1.-pow(vpar/MET.pt,2)), eventWeight);
 
         // Special case
         if (fabs(firstJet.eta) < 1.3) {
@@ -1012,6 +1066,41 @@ void GammaJetFinalizer::runAnalysis() {
           break;
         }
 
+        //fill jet energy composition histo vectors
+        ChHadronEnergy[etaBin][ptBin]->Fill(firstJet.jet_CHEn, eventWeight);
+        NHadronEnergy[etaBin][ptBin]->Fill(firstJet.jet_NHEn, eventWeight);
+        ElEnergy[etaBin][ptBin]->Fill(firstJet.jet_ElEn, eventWeight);
+        PhEnergy[etaBin][ptBin]->Fill(firstJet.jet_PhEn, eventWeight);
+        MuEnergy[etaBin][ptBin]->Fill(firstJet.jet_MuEn, eventWeight);
+        TotJetEnergy[etaBin][ptBin]->Fill(firstJet.e, eventWeight);
+        //fill jet energy composition fractions histo vectors
+       jetcalcen=firstJet.jet_CHEn+firstJet.jet_NHEn+firstJet.jet_ElEn+firstJet.jet_PhEn+firstJet.jet_MuEn;
+        if(firstJet.e > 0.) {
+        ChHadron_realFraction[etaBin][ptBin]->Fill(firstJet.jet_CHEn/firstJet.e, eventWeight);
+        NHadron_realFraction[etaBin][ptBin]->Fill(firstJet.jet_NHEn/firstJet.e, eventWeight);
+        El_realFraction[etaBin][ptBin]->Fill(firstJet.jet_ElEn/firstJet.e, eventWeight);
+        Ph_realFraction[etaBin][ptBin]->Fill(firstJet.jet_PhEn/firstJet.e, eventWeight);
+        Mu_realFraction[etaBin][ptBin]->Fill(firstJet.jet_MuEn/firstJet.e, eventWeight);
+        }
+        if(jetcalcen > 0.) {
+        ChHadronFraction[etaBin][ptBin]->Fill(firstJet.jet_CHEn/jetcalcen, eventWeight);
+        NHadronFraction[etaBin][ptBin]->Fill(firstJet.jet_NHEn/jetcalcen, eventWeight);
+        ElFraction[etaBin][ptBin]->Fill(firstJet.jet_ElEn/jetcalcen, eventWeight);
+        PhFraction[etaBin][ptBin]->Fill(firstJet.jet_PhEn/jetcalcen, eventWeight);
+        MuFraction[etaBin][ptBin]->Fill(firstJet.jet_MuEn/jetcalcen, eventWeight);
+        }
+        if(firstRawJet.e > 0.) {
+        ChHadron_realFractionRaw[etaBin][ptBin]->Fill(firstRawJet.jet_CHEn/firstRawJet.e, eventWeight);
+        NHadron_realFractionRaw[etaBin][ptBin]->Fill(firstRawJet.jet_NHEn/firstRawJet.e, eventWeight);
+        El_realFractionRaw[etaBin][ptBin]->Fill(firstRawJet.jet_ElEn/firstRawJet.e, eventWeight);
+        Ph_realFractionRaw[etaBin][ptBin]->Fill(firstRawJet.jet_PhEn/firstRawJet.e, eventWeight);
+        Mu_realFractionRaw[etaBin][ptBin]->Fill(firstRawJet.jet_MuEn/firstRawJet.e, eventWeight);
+        }
+        //fill jet multiplicities histo vectors
+        ChHadronMult[etaBin][ptBin]->Fill(firstJet.jet_CHMult, eventWeight);
+        NHadronMult[etaBin][ptBin]->Fill(firstJet.jet_NHMult, eventWeight);
+        ElMult[etaBin][ptBin]->Fill(firstJet.jet_ElMult, eventWeight);
+        PhMult[etaBin][ptBin]->Fill(firstJet.jet_PhMult, eventWeight);
 
         responseBalancing[etaBin][ptBin]->Fill(respBalancing, eventWeight);
         responseBalancingRaw[etaBin][ptBin]->Fill(respBalancingRaw, eventWeight);

@@ -1,14 +1,17 @@
 [CRAB]
 jobtype = cmssw
-scheduler = glite
+scheduler = remoteGlideIn
 use_server = 0
 
 [CMSSW]
 
-dbs_url = http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
+allow_NonProductionCMSSW = 1
+use_dbs3 = 1
+dbs_url = phys03 
+##http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
 datasetpath = @datasetname@
 
-pset = runFilter_MC.py
+pset = runFilter_foot_MC.py
 pycfg_params = processedEvents=@processed_events@ crossSection=@cross_section@ lowPtHat=@low_pt_hat@ highPtHat=@high_pt_hat@
 
 total_number_of_events = -1

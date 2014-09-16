@@ -32,10 +32,32 @@ class JetTree: public BaseTree {
     Float_t         btag_csv;
     Float_t         qg_tag_mlp;
     Float_t         qg_tag_likelihood;
+    Float_t         jet_CHEn;
+    Float_t         jet_NHEn;
+    Float_t         jet_PhEn;
+    Float_t         jet_ElEn;
+    Float_t         jet_MuEn;
+    Float_t         jet_CEEn;
+    Float_t         jet_NEEn;
+    Int_t           jet_PhMult;
+    Int_t           jet_NHMult;
+    Int_t           jet_ElMult;
+    Int_t           jet_CHMult;
 
     // List of branches
     TBranch        *b_jet_area;
-
+/*    TBranch        *b_jet_CHEn;   //!
+    TBranch        *b_jet_NHEn;   //!
+    TBranch        *b_jet_PhEn;   //!
+    TBranch        *b_jet_ElEn;   //!
+    TBranch        *b_jet_MuEn;   //!
+    TBranch        *b_jet_CEEn;   //!
+    TBranch        *b_jet_NEEn;   //!
+    TBranch        *b_jet_PhMult;   //!
+    TBranch        *b_jet_NHMult;   //!
+    TBranch        *b_jet_ElMult;   //!
+    TBranch        *b_jet_CHMult;   //!
+*/
     JetTree();
 
     virtual void     Init(TTree *tree);
@@ -67,7 +89,17 @@ void JetTree::Init(TTree *tree)
   fChain->SetBranchAddress("btag_csv", &btag_csv, NULL);
   fChain->SetBranchAddress("qg_tag_mlp", &qg_tag_mlp, NULL);
   fChain->SetBranchAddress("qg_tag_likelihood", &qg_tag_likelihood, NULL);
-
+  fChain->SetBranchAddress("jet_CHEn", &jet_CHEn, NULL);
+  fChain->SetBranchAddress("jet_NHEn", &jet_NHEn, NULL);
+  fChain->SetBranchAddress("jet_PhEn", &jet_PhEn, NULL);
+  fChain->SetBranchAddress("jet_ElEn", &jet_ElEn, NULL);
+  fChain->SetBranchAddress("jet_MuEn", &jet_MuEn, NULL);
+  fChain->SetBranchAddress("jet_CEEn", &jet_CEEn, NULL);
+  fChain->SetBranchAddress("jet_NEEn", &jet_NEEn, NULL);
+  fChain->SetBranchAddress("jet_PhMult", &jet_PhMult, NULL);
+  fChain->SetBranchAddress("jet_NHMult", &jet_NHMult, NULL);
+  fChain->SetBranchAddress("jet_ElMult", &jet_ElMult, NULL);
+  fChain->SetBranchAddress("jet_CHMult", &jet_CHMult, NULL);
   InitCache();
 }
 
@@ -83,4 +115,15 @@ void JetTree::DisableUnrelatedBranches()
   fChain->SetBranchStatus("btag_csv", 0);
   fChain->SetBranchStatus("qg_tag_mlp", 0);
   fChain->SetBranchStatus("qg_tag_likelihood", 0);
+  fChain->SetBranchStatus("jet_CHEn", 0);
+  fChain->SetBranchStatus("jet_NHEn", 0);
+  fChain->SetBranchStatus("jet_PhEn", 0);
+  fChain->SetBranchStatus("jet_ElEn", 0);
+  fChain->SetBranchStatus("jet_MuEn", 0);
+  fChain->SetBranchStatus("jet_CEEn", 0);
+  fChain->SetBranchStatus("jet_NEEn", 0);
+  fChain->SetBranchStatus("jet_PhMult", 0);
+  fChain->SetBranchStatus("jet_NHMult", 0);
+  fChain->SetBranchStatus("jet_ElMult", 0);
+  fChain->SetBranchStatus("jet_CHMult", 0);
 }

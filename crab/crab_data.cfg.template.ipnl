@@ -16,10 +16,13 @@ lumi_mask = @lumi_mask@
 total_number_of_lumis = -1
 
 ### Number of events to be processed per job
-lumis_per_job = 80
+lumis_per_job = 20
 
 ### The output files produced by your application (comma separated list)
 output_file = patTuple_PF2PAT.root
+
+allow_NonProductionCMSSW = 1
+use_dbs3=1 
 
 [USER]
 
@@ -35,7 +38,7 @@ storage_element = T3_FR_IPNL
 check_user_remote_dir = 0
 
 publish_data = 1
-dbs_url_for_publication = https://cmsdbsprod.cern.ch:8443/cms_dbs_ph_analysis_02_writer/servlet/DBSServlet
+dbs_url_for_publication = phys03
 publish_data_name = @publish_data_name@
 
 [GRID]

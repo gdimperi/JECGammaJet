@@ -289,6 +289,8 @@ void drawBase::drawHisto_vs_pt(int nBinsPt, float* ptBins, const std::string& na
 void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, const std::string& name, const std::string& axisName, const std::string& units, const std::string& instanceName, bool log_aussi, int legendQuadrant, const std::string& labelText) {
 
 
+  bool isEComp = TString(name).Contains("Energy", TString::kIgnoreCase);
+
   bool isMPF = TString(name).Contains("mpf", TString::kIgnoreCase);
   // Ignore bin between 3500 - 7000
   //int number_of_plots = ptBins.size() - 1;
@@ -372,6 +374,7 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
     bool hasData = (lastHistos_data_.size() > 0);
     bool hasMC = (lastHistos_mc_.size() > 0);
 
+if(isEComp) hasMC=false;
     //Float_t dataResponse = (noDATA) ? 0. : dataHistos[0]->GetMean();
     //Float_t dataResponseErr = (noDATA) ? 0. : dataHistos[0]->GetMeanError();
     //Float_t dataRMS = (noDATA) ? 0. : dataHistos[0]->GetRMS();
