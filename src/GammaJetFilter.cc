@@ -67,11 +67,9 @@ Implementation:
 
 #include "PhysicsTools/SelectorUtils/interface/JetIDSelectionFunctor.h"
 
-#include "EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h"
-
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 
-#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+#include "EgammaAnalysis/ElectronTools/interface/PFIsolationEstimator.h"
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"

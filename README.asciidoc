@@ -22,53 +22,15 @@ To setup a working area, here the step you must follow:
 
 [source,bash]
 ----
-setenv SCRAM_ARCH slc5_amd64_gcc462 / export SCRAM_ARCH=slc5_amd64_gcc462
 
-cmsrel CMSSW_5_3_9_patch2
-cd CMSSW_5_3_9_patch2/src/
-cmsenv
-
-addpkg DataFormats/PatCandidates   V06-05-06-10
-addpkg PhysicsTools/PatAlgos       V08-09-56
-addpkg PhysicsTools/PatUtils       V03-09-28
-addpkg DataFormats/CaloRecHit      V02-05-11
-addpkg DataFormats/StdDictionaries V00-02-14
-addpkg FWCore/GuiBrowsers          V00-00-70
-addpkg RecoMET/METProducers        V03-03-12-02
-
-addpkg RecoParticleFlow/PFProducer V15-02-06
-
-addpkg RecoTauTag/RecoTau V01-04-23
-addpkg RecoTauTag/Configuration V01-04-10
-addpkg CondFormats/EgammaObjects V00-04-00
-
-cvs update -r 1.19.8.1 PhysicsTools/PatAlgos/python/tools/helpers.py
-
-# LumiCalc
-cvs co  -r V04-02-03 RecoLuminosity/LumiDB
-cvs co -rV04-01-01 RecoLuminosity/LumiDB/python/csvLumibyLSParser.py  # Bug when creating PU profile when trigger is prescaled
-
-# Photon ID
-mkdir EGamma; cd EGamma
-cvs co -r V00-00-30 -d EGammaAnalysisTools UserCode/EGamma/EGammaAnalysisTools
-cd ..
-
-# Quark / Gluon tagging
-mkdir QuarkGluonTagger; cd QuarkGluonTagger
-cvs co -r v1-2-3 -d EightTeV UserCode/tomc/QuarkGluonTagger/EightTeV
-cd ..
-
-# Filters
-
-cvs co -r V00-00-13 RecoMET/METFilters
-cvs co -r V00-00-08 RecoMET/METAnalyzers
-cvs co -r 1.2 RecoMET/METFilters/python/metFilters_cff.py
-
-cd JetMETCorrections
-git clone https://github.com/blinkseb/GammaJetResiduals.git GammaJetFilter
+cmsrel CMSSW_5_3_16_patch1
+git clone -b v1-2-3 https://github.com/amarini/QuarkGluonTagger.git
+git clone git@github.com:sordini/GammaJetResiduals  JetMETCorrections/GammaJetFilter/
+git clone -b V01-07 https://github.com/peruzzim/SCFootprintRemoval.git PFIsolation/SuperClusterFootprintRemoval
 
 cd ..
 scram b -j 9
+USER_CXXFLAGS="-Wno-delete-non-virtual-dtor -Wno-error=unused-but-set-variable -Wno-error=unused-variable" scram b -j 5
 ----
 
 If everything went fine, you should now have a 'JetMETCorrections/GammaJetFilter' directory. It's only here you'll need to work.

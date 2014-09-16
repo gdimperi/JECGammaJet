@@ -17,7 +17,7 @@
 #include <DataFormats/PatCandidates/interface/Photon.h>
 #include "DataFormats/PatCandidates/interface/MET.h"
 
-#include "EGamma/EGammaAnalysisTools/interface/PFIsolationEstimator.h"
+#include "EgammaAnalysis/ElectronTools/interface/PFIsolationEstimator.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
 #include "PFIsolation/SuperClusterFootprintRemoval/interface/SuperClusterFootprintRemoval.h"

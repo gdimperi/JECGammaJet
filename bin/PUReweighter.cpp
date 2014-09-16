@@ -72,7 +72,7 @@ PUReweighter::PUReweighter(const std::string& dataFilePath, PUProfile profile/* 
 
     for (int i = 1; i <= dataHisto->GetNbinsX(); i++) {
       int index = static_cast<int>(dataHisto->GetBinLowEdge(i));
-      double coef = (index - 1) < profile_coefs.size() ? profile_coefs[index - 1] : 0.;
+      double coef = (index - 1) < (int)profile_coefs.size() ? profile_coefs[index - 1] : 0.;
       if (profile == PUProfile::S7 && index <= 4)
         coef = 0; // For low PU runs
 

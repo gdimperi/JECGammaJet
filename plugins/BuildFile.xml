@@ -13,7 +13,7 @@
   <use name="PhysicsTools/UtilAlgos"/>
   <use name="RecoEcal/EgammaCoreTools" />
   <use name="JetMETCorrections/Objects" />
-  <use name="EGamma/EGammaAnalysisTools" />
+  <use name="EgammaAnalysis/ElectronTools" />
   <use name="PFIsolation/SuperClusterFootprintRemoval"/>
   <use name="boost" />
   <flags EDM_PLUGIN="1"/>
