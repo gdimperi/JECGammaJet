@@ -16,4 +16,6 @@
 <use name="EgammaAnalysis/ElectronTools" />
 <use name="PFIsolation/SuperClusterFootprintRemoval"/>
 <use name="boost" />
+<use name="root"/>
+<use name="roofit"/>
 <flags EDM_PLUGIN="1"/>

@@ -21,5 +21,5 @@ from produce_PAT_COMMON import *
 process = createProcess(False, True, True, False, options.globalTag)
 
 #process.source.fileNames =  cms.untracked.vstring('file:input_data.root')
-process.source.fileNames =  cms.untracked.vstring('/store/user/sbrochet/../../data/Run2012B/SinglePhoton/AOD/22Jan2013-v1/20000/FC9D17BE-0C72-E211-BCC8-003048678A80.root')
+process.source.fileNames =  cms.untracked.vstring('/store/data/Run2012B/SinglePhoton/AOD/22Jan2013-v1/20000/00AEEADE-FA71-E211-9F75-0026189438FF.root')
 process.out.fileName = 'patTuple_PF2PAT.root'

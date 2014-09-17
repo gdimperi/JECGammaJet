@@ -312,6 +312,19 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   # HCAL Laser filter : work only on Winter13 rereco
   process.load("EventFilter.HcalRawToDigi.hcallaserFilterFromTriggerResult_cff")
 
+  #needed fot photon energy regression calculation
+  process.load('Calibration.EleNewEnergiesProducer.elenewenergiesproducer_cfi')
+  #getattr(process,"patPhotons" + p)
+  process.patPhotons.userData.userFloats.src = [
+        cms.InputTag("eleNewEnergiesProducer","energySCEleJoshPhoSemiParamV5ecorr")
+            ]
+
+  process.eleNewEnergiesProducer.regrPhoJoshV5_SemiParamFile = cms.string('../../../../src/HiggsAnalysis/GBRLikelihoodEGTools/data/regweights_v5_forest_ph.root')
+  process.eleNewEnergiesProducer.regrEleJoshV5_SemiParamFile = cms.string('../../../../src/HiggsAnalysis/GBRLikelihoodEGTools/data/regweights_v5_forest_ele.root')
+
+        
+  process.eleNewEnergiesProducer.electronCollection = getattr(process,"patPhotons" + p).photonSource
+
   # Let it run
   process.p = cms.Path(
       process.nEventsTotal +
@@ -323,7 +336,8 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       process.metFilters +
 
       process.goodOfflinePrimaryVertices +
-
+      # photon energy regression
+      process.eleNewEnergiesProducer +
       # Physics
       process.analysisSequence +
 
