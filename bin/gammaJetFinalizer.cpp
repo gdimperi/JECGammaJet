@@ -350,6 +350,24 @@ void GammaJetFinalizer::runAnalysis() {
   TH1F* h_METResolution_passedID = analysisDir.make<TH1F>("METResolution_passedID", "MET", 100, 0., 600.);
   TH1F* h_MET_perp_passedID = analysisDir.make<TH1F>("MET_perp_passedID", "MET", 200, -600., 600.);
   TH1F* h_MET_par_passedID = analysisDir.make<TH1F>("MET_par_passedID", "MET", 200, -600., 600.);
+//resolution plots for mc only
+//  if (mIsMC) {
+//photon eergy resolution
+  TH1F* h_phPt_resolution = analysisDir.make<TH1F>("phPt_resolution","phPt_resolution", 300, -15, 15);
+  TH1F* h_phPx_resolution = analysisDir.make<TH1F>("phPx_resolution", "phPx_resolution", 300, -15, 15);
+  TH1F* h_phPy_resolution = analysisDir.make<TH1F>("phPy_resolution", "phPy_resolution", 300, -15, 15);
+  TH1F* h_phPt_regression_resolution = analysisDir.make<TH1F>("phPt_regression_resolution", "phPt_regression_resolution", 300, -15, 15);
+  TH1F* h_phPx_regression_resolution = analysisDir.make<TH1F>("phPx_regression_resolution", "phPx_regression_resolution", 300, -15, 15);
+  TH1F* h_phPy_regression_resolution = analysisDir.make<TH1F>("phPy_regression_resolution", "phPy_regression_resolution", 300, -15, 15);
+//MET resolution
+  TH1F* h_MET_resolution = analysisDir.make<TH1F>("MET_resolution", "MET_resolution", 100, 0., 60);
+  TH1F* h_MET_par_resolution = analysisDir.make<TH1F>("MET_par_resolution", "MET_par_resolution", 100, -300, 300);
+  TH1F* h_MET_perp_resolution = analysisDir.make<TH1F>("MET_perp_resolution", "MET_perp_resolution", 100, 0, 300);
+  TH1F* h_MET_footprint_resolution = analysisDir.make<TH1F>("MET_footprint_resolution", "MET_footprint_resolution", 100, 0., 600);
+  TH1F* h_MET_par_footprint_resolution = analysisDir.make<TH1F>("MET_par_footprint_resolution", "MET_par_footprint_resolution", 100, -300., 300);
+  TH1F* h_MET_perp_footprint_resolution = analysisDir.make<TH1F>("MET_perp_footprint_resolution", "MET_perp_footprint_resolution", 100, -300, 300);
+//  }
+
 //jet composition - viola
   TH1F* h_CHEn_passedID = analysisDir.make<TH1F>("CHEnergy_passedID", "CHEnergy", 40, 0., 500);
   TH1F* h_NHEn_passedID = analysisDir.make<TH1F>("NHEnergy_passedID", "NHEnergy", 40, 0., 500);
@@ -370,6 +388,28 @@ void GammaJetFinalizer::runAnalysis() {
   std::vector<std::vector<TH1F*> > ElFraction = buildEtaPtVector<TH1F>(ecompositionDir, "ElFraction", 40, 0., 1.);
   std::vector<std::vector<TH1F*> > PhFraction = buildEtaPtVector<TH1F>(ecompositionDir, "PhFraction", 40, 0., 1.);
   std::vector<std::vector<TH1F*> > MuFraction = buildEtaPtVector<TH1F>(ecompositionDir, "MuFraction", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > LeptFraction = buildEtaPtVector<TH1F>(ecompositionDir, "LeptFraction", 40, 0., 1.);
+  //
+  std::vector<std::vector<TH1F*> > ChHadronFraction_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadronFraction_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > NHadronFraction_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "NHadronFraction_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > ElFraction_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "ElFraction_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > PhFraction_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "PhFraction_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > MuFraction_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "MuFraction_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > LeptFraction_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "LeptFraction_mpf", 40, 0., 1.);
+//
+  std::vector<std::vector<TH1F*> > ChHadronFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadronFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > NHadronFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "NHadronFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > ElFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "ElFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > PhFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "PhFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > MuFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "MuFractionRaw", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > LeptFractionRaw = buildEtaPtVector<TH1F>(ecompositionDir, "LeptFractionRaw", 40, 0., 1.);
+//
+  std::vector<std::vector<TH1F*> > ChHadronFractionRaw_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadronFractionRaw_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > NHadronFractionRaw_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "NHadronFractionRaw_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > ElFractionRaw_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "ElFractionRaw_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > PhFractionRaw_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "PhFractionRaw_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > MuFractionRaw_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "MuFractionRaw_mpf", 40, 0., 1.);
+  std::vector<std::vector<TH1F*> > LeptFractionRaw_mpf = buildEtaPtVector<TH1F>(ecompositionDir, "LeptFractionRaw_mpf", 40, 0., 1.);
 //
   std::vector<std::vector<TH1F*> > ChHadron_realFraction = buildEtaPtVector<TH1F>(ecompositionDir, "ChHadron_realFraction", 40, 0., 1.);
   std::vector<std::vector<TH1F*> > NHadron_realFraction = buildEtaPtVector<TH1F>(ecompositionDir, "NHadron_realFraction", 40, 0., 1.);
@@ -387,7 +427,10 @@ void GammaJetFinalizer::runAnalysis() {
   std::vector<std::vector<TH1F*> > NHadronMult = buildEtaPtVector<TH1F>(ecompositionDir, "NHadronMult", 20, 0, 20);
   std::vector<std::vector<TH1F*> > ElMult = buildEtaPtVector<TH1F>(ecompositionDir, "ElMult", 20, 0, 20);
   std::vector<std::vector<TH1F*> > PhMult = buildEtaPtVector<TH1F>(ecompositionDir, "PhMult", 20, 0, 20);
+//check Nvtx vs ptphoton
+  std::vector<std::vector<TH1F*> > Nvertices = buildEtaPtVector<TH1F>(ecompositionDir, "Nvertices", 50, 0., 50.);
 
+//
   std::vector<TH1F*> h_ptPhotonBinned_passedID = buildPtVector<TH1F>(analysisDir, "ptPhoton_passedID", 100, -1, -1);
 
   TH1F* h_rho_passedID = analysisDir.make<TH1F>("rho_passedID", "rho", 100, 0, 50);
@@ -438,7 +481,15 @@ void GammaJetFinalizer::runAnalysis() {
   }
   std::vector<TH1F*> responseMPFEta024 = buildPtVector<TH1F>(mpfDir, "resp_mpf", "eta024", 150, 0., 2.);
 
-  // vs number of vertices
+  TFileDirectory trueDir = analysisDir.mkdir("trueresp");
+  std::vector<std::vector<TH1F*> > responseTrue;
+  std::vector<std::vector<TH1F*> > responsePLI;
+  if (mIsMC) {
+  responseTrue = buildEtaPtVector<TH1F>(trueDir, "true_resp", 150, 0., 2.);
+  responsePLI = buildEtaPtVector<TH1F>(trueDir, "pli", 150, 0., 2.);
+}
+ 
+ // vs number of vertices
   TFileDirectory vertexDir = analysisDir.mkdir("vertex");
   std::vector<std::vector<TH1F*>> vertex_responseBalancing = buildEtaVertexVector<TH1F>(vertexDir, "resp_balancing", 150, 0., 2.);
   std::vector<std::vector<TH1F*>> vertex_responseBalancingRaw = buildEtaVertexVector<TH1F>(vertexDir, "resp_balancing_raw", 150, 0., 2.);
@@ -449,6 +500,8 @@ void GammaJetFinalizer::runAnalysis() {
   std::vector<std::vector<TH1F*>> vertex_responseMPFRaw = buildEtaVertexVector<TH1F>(vertexDir, "resp_mpf_raw", 150, 0., 2.);
   std::vector<TH1F*> vertex_responseMPFEta013 = buildVertexVector<TH1F>(vertexDir, "resp_mpf", "eta013", 150, 0., 2.);
   std::vector<TH1F*> vertex_responseMPFRawEta013 = buildVertexVector<TH1F>(vertexDir, "resp_mpf_raw", "eta013", 150, 0., 2.);
+//
+  std::vector<TH1F*> vertex_DeltapT = buildVertexVector<TH1F>(vertexDir, "vertex_DeltapT", "eta013", 100, -50., 50.);
 
   // Extrapolation
   int extrapolationBins = 50;
@@ -804,7 +857,7 @@ void GammaJetFinalizer::runAnalysis() {
 
     if (mDoMCComparison) {
       // Lowest unprescaled trigger for 2012 if at 150 GeV
-      if (photon.pt < 165)
+      if (photon.pt < 200.)
         continue;
     }
 
@@ -880,6 +933,7 @@ void GammaJetFinalizer::runAnalysis() {
     int vertexBin = mVertexBinning.getVertexBin(analysis.nvertex);
 
     float jetcalcen=0;
+    float jetcalcenraw=0;
 
     if (secondJet.is_present) {
       do {
@@ -995,6 +1049,10 @@ void GammaJetFinalizer::runAnalysis() {
     }
 
 float vpar=0.;
+float vparRaw=0.;
+float vparGen=0.;
+
+
     if (secondJetOK) {
 
       do {
@@ -1029,8 +1087,29 @@ float vpar=0.;
         h_MET_par_passedID->Fill((MET.px*photon.px + MET.py*photon.py)/photon.pt, eventWeight);
         h_MET_perp_passedID->Fill(MET.pt*(1.-pow(vpar/MET.pt,2)), eventWeight);
 
+//fill resolution histos (for mc only)
+       if (mIsMC && genPhoton.pt!=0. && genMET.pt!=0.) {
+        h_METResolution_passedID->Fill(sqrt(pow(MET.px-genMET.px,2)+pow(MET.py-genMET.py,2)), eventWeight);
+         if(photon.regressionEnergy!=0.){
+         h_phPt_resolution->Fill( sqrt(pow((photon.px*photon.originalEnergy/photon.regressionEnergy)-genPhoton.px,2)+pow((photon.py*photon.originalEnergy/photon.regressionEnergy)-genPhoton.py,2)) , eventWeight); 
+         h_phPx_resolution->Fill((photon.px*photon.originalEnergy/photon.regressionEnergy)-genPhoton.px, eventWeight);
+         h_phPy_resolution->Fill((photon.py*photon.originalEnergy/photon.regressionEnergy)-genPhoton.py, eventWeight);
+          }
+         h_phPt_regression_resolution->Fill(sqrt(pow(photon.px-genPhoton.px,2)+pow(photon.py-genPhoton.py,2)) , eventWeight);
+         h_phPx_regression_resolution->Fill(photon.px-genPhoton.px, eventWeight);
+         h_phPy_regression_resolution->Fill(photon.py-genPhoton.py, eventWeight);
+         vparRaw=(rawMET.px*photon.px + rawMET.py*photon.py)/photon.pt;
+         vparGen=(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt;
+         h_MET_resolution->Fill(sqrt(pow(rawMET.px-genMET.px,2)+pow(rawMET.py-genMET.py,2)), eventWeight);
+         h_MET_par_resolution->Fill(vparRaw - (genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt , eventWeight);
+         h_MET_perp_resolution->Fill( rawMET.pt*(1.-pow(vparRaw/rawMET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+         h_MET_footprint_resolution->Fill(sqrt(pow(photon.footprintMExCorr-genMET.px,2) + pow(photon.footprintMEyCorr-genMET.py,2) ), eventWeight);
+         h_MET_par_footprint_resolution->Fill( vpar-(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt  , eventWeight);
+         h_MET_perp_footprint_resolution->Fill( MET.pt*(1.-pow(vpar/MET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+      }
+
         // Special case
-        if (fabs(firstJet.eta) < 1.3) {
+        if (fabs(firstJet.eta) < 2.1) {
           responseBalancingEta013[ptBin]->Fill(respBalancing, eventWeight);
           responseBalancingRawEta013[ptBin]->Fill(respBalancingRaw, eventWeight);
 
@@ -1043,12 +1122,13 @@ float vpar=0.;
 
             vertex_responseMPFEta013[vertexBin]->Fill(respMPF, eventWeight);
             vertex_responseMPFRawEta013[vertexBin]->Fill(respMPF, eventWeight);
+
+            vertex_DeltapT[vertexBin]->Fill(firstJet.pt-(photon.pt*fabs(cos(deltaPhi))),eventWeight);
           }
 
           if (mIsMC && ptBinGen >= 0) {
             responseBalancingGenEta013[ptBinGen]->Fill(respBalancingGen, eventWeight);
             responseBalancingRawGenEta013[ptBinGen]->Fill(respBalancingRawGen, eventWeight);
-
             responseMPFGenEta013[ptBinGen]->Fill(respMPFGen, eventWeight);
           }
         }
@@ -1066,6 +1146,21 @@ float vpar=0.;
           break;
         }
 
+
+
+       if (mIsMC) {
+        if(firstGenJet.pt>0.) {
+//       std::cout<< "responsetrue = "<< firstJet.pt / firstGenJet.pt<< " and weight "<< eventWeight<< std::endl;
+        responseTrue[etaBin][ptBin]->Fill(firstJet.pt / firstGenJet.pt, eventWeight);
+         }
+        if(photon.pt>0.) {
+//       std::cout << "responsePLI = "<< firstGenJet.pt / photon.pt << " and weight "<< eventWeight<<  std::endl;
+         responsePLI[etaBin][ptBin]->Fill(firstGenJet.pt / photon.pt, eventWeight);
+        }
+        }
+       //fill N vertices as a function of eta/pT
+        Nvertices[etaBin][ptBin]->Fill(analysis.nvertex, eventWeight);
+
         //fill jet energy composition histo vectors
         ChHadronEnergy[etaBin][ptBin]->Fill(firstJet.jet_CHEn, eventWeight);
         NHadronEnergy[etaBin][ptBin]->Fill(firstJet.jet_NHEn, eventWeight);
@@ -1075,6 +1170,7 @@ float vpar=0.;
         TotJetEnergy[etaBin][ptBin]->Fill(firstJet.e, eventWeight);
         //fill jet energy composition fractions histo vectors
        jetcalcen=firstJet.jet_CHEn+firstJet.jet_NHEn+firstJet.jet_ElEn+firstJet.jet_PhEn+firstJet.jet_MuEn;
+       jetcalcenraw=firstRawJet.jet_CHEn+firstRawJet.jet_NHEn+firstRawJet.jet_ElEn+firstRawJet.jet_PhEn+firstRawJet.jet_MuEn;
         if(firstJet.e > 0.) {
         ChHadron_realFraction[etaBin][ptBin]->Fill(firstJet.jet_CHEn/firstJet.e, eventWeight);
         NHadron_realFraction[etaBin][ptBin]->Fill(firstJet.jet_NHEn/firstJet.e, eventWeight);
@@ -1088,6 +1184,29 @@ float vpar=0.;
         ElFraction[etaBin][ptBin]->Fill(firstJet.jet_ElEn/jetcalcen, eventWeight);
         PhFraction[etaBin][ptBin]->Fill(firstJet.jet_PhEn/jetcalcen, eventWeight);
         MuFraction[etaBin][ptBin]->Fill(firstJet.jet_MuEn/jetcalcen, eventWeight);
+        LeptFraction[etaBin][ptBin]->Fill((firstJet.jet_MuEn+firstJet.jet_ElEn)/jetcalcen, eventWeight);
+	//
+        ChHadronFraction_mpf[etaBin][ptBin]->Fill(firstJet.jet_CHEn*respMPF/jetcalcen, eventWeight);
+        NHadronFraction_mpf[etaBin][ptBin]->Fill(firstJet.jet_NHEn*respMPF/jetcalcen, eventWeight);
+        ElFraction_mpf[etaBin][ptBin]->Fill(firstJet.jet_ElEn*respMPF/jetcalcen, eventWeight);
+        PhFraction_mpf[etaBin][ptBin]->Fill(firstJet.jet_PhEn*respMPF/jetcalcen, eventWeight);
+        MuFraction_mpf[etaBin][ptBin]->Fill(firstJet.jet_MuEn*respMPF/jetcalcen, eventWeight);
+        LeptFraction_mpf[etaBin][ptBin]->Fill((firstJet.jet_MuEn+firstJet.jet_ElEn)*respMPF/jetcalcen, eventWeight);
+        }
+        if(jetcalcenraw > 0.) {
+        ChHadronFractionRaw[etaBin][ptBin]->Fill(firstRawJet.jet_CHEn/jetcalcenraw, eventWeight);
+        NHadronFractionRaw[etaBin][ptBin]->Fill(firstJet.jet_NHEn/jetcalcenraw, eventWeight);
+        ElFractionRaw[etaBin][ptBin]->Fill(firstJet.jet_ElEn/jetcalcenraw, eventWeight);
+        PhFractionRaw[etaBin][ptBin]->Fill(firstJet.jet_PhEn/jetcalcenraw, eventWeight);
+        MuFractionRaw[etaBin][ptBin]->Fill(firstJet.jet_MuEn/jetcalcenraw, eventWeight);
+        LeptFractionRaw[etaBin][ptBin]->Fill((firstJet.jet_MuEn+firstJet.jet_ElEn)/jetcalcenraw, eventWeight);
+	//
+        ChHadronFractionRaw_mpf[etaBin][ptBin]->Fill(firstRawJet.jet_CHEn*respMPFRaw/jetcalcenraw, eventWeight);
+        NHadronFractionRaw_mpf[etaBin][ptBin]->Fill(firstJet.jet_NHEn*respMPFRaw/jetcalcenraw, eventWeight);
+        ElFractionRaw_mpf[etaBin][ptBin]->Fill(firstJet.jet_ElEn*respMPFRaw/jetcalcenraw, eventWeight);
+        PhFractionRaw_mpf[etaBin][ptBin]->Fill(firstJet.jet_PhEn*respMPFRaw/jetcalcenraw, eventWeight);
+        MuFractionRaw_mpf[etaBin][ptBin]->Fill(firstJet.jet_MuEn*respMPFRaw/jetcalcenraw, eventWeight);
+        LeptFractionRaw_mpf[etaBin][ptBin]->Fill((firstJet.jet_MuEn+firstJet.jet_ElEn)*respMPFRaw/jetcalcenraw, eventWeight);
         }
         if(firstRawJet.e > 0.) {
         ChHadron_realFractionRaw[etaBin][ptBin]->Fill(firstRawJet.jet_CHEn/firstRawJet.e, eventWeight);
