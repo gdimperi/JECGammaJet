@@ -87,7 +87,7 @@ For now, we'll assume you have launched crab for data and MC. After some ( (very
 
 .Publishing
 [IMPORTANT]
-It's very important your write somewhere the published dataset path crab will give you. You'll need these for the step 2. One possibility is to create a twiki page at CERN, and write them here, as I do. See for exemple my page: https://twiki.cern.ch/twiki/bin/view/Main/SebastienBrochet
+It's very important your write somewhere the published dataset path crab will give you. You'll need these for the step 2. One possibility is to create a twiki page at CERN, and write them here, as I do. See for exemple my page: https://twiki.cern.ch/twiki/bin/view/Main/ViolaSordini
 
 == Step 2 - Convert PAT tuples to plain root trees
 
