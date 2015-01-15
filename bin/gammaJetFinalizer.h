@@ -131,7 +131,10 @@ class GammaJetFinalizer
     int checkTrigger(std::string& passedTrigger, float& weight);
 
     void cleanTriggerName(std::string& trigger);
-    void computePUWeight(const std::string& passedTrigger);
+//new RD PU reweighting
+    void computePUWeight(const std::string& passedTrigger, int run_period);
+//old wrong S10 pu reweighting
+//    void computePUWeight(const std::string& passedTrigger);
 
     template<typename T>
       std::vector<std::vector<T*> > buildEtaPtVector(TFileDirectory dir, const std::string& branchName, int nBins, double xMin, double xMax);
@@ -199,7 +202,11 @@ class GammaJetFinalizer
     bool   mVerbose;
     bool   mUncutTrees;
 
-    std::unordered_map<std::string, boost::shared_ptr<PUReweighter>> mLumiReweighting;
+//new RD PU rweighting
+    std::map<std::pair<std::string,int>, boost::shared_ptr<PUReweighter>> mLumiReweighting;
+//old wrong S10 PU reweigting
+//    std::unordered_map<std::string, boost::shared_ptr<PUReweighter>> mLumiReweighting;
+
     float mPUWeight;
 
     float respMPF;

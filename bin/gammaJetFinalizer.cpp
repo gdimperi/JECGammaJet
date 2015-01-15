@@ -322,12 +322,14 @@ void GammaJetFinalizer::runAnalysis() {
 
   TH1F* h_nvertex = analysisDir.make<TH1F>("nvertex", "nvertex", 50, 0., 50.);
   TH1F* h_nvertex_reweighted = analysisDir.make<TH1F>("nvertex_reweighted", "nvertex_reweighted", 50, 0., 50.);
+  TH1F* h_ntrue_interactions_reweighted = analysisDir.make<TH1F>("ntrue_interactions_reweighted", "ntrue_interactions_reweighted", 75, 0., 75.);
+  TH1F* h_ntrue_interactions = analysisDir.make<TH1F>("ntrue_interactions", "ntrue_interactions", 75, 0., 75.);
 
   TH1F* h_deltaPhi = analysisDir.make<TH1F>("deltaPhi", "deltaPhi", 60, M_PI / 2, M_PI);
   TH1F* h_deltaPhi_2ndJet = analysisDir.make<TH1F>("deltaPhi_2ndjet", "deltaPhi of 2nd jet", 60, M_PI / 2., M_PI);
   TH1F* h_ptPhoton = analysisDir.make<TH1F>("ptPhoton", "ptPhoton", 200, 5., 1000.);
-  TH1F* h_ptFirstJet = analysisDir.make<TH1F>("ptFirstJet", "ptFirstJet", 200, 5., 1000.);
-  TH1F* h_ptSecondJet = analysisDir.make<TH1F>("ptSecondJet", "ptSecondJet", 60, 0., 100.);
+  TH1F* h_ptFirstJet = analysisDir.make<TH1F>("ptFirstJet", "ptFirstJet", 100, 10., 1000.);
+  TH1F* h_ptSecondJet = analysisDir.make<TH1F>("ptSecondJet", "ptSecondJet", 90, 10., 200.);
   TH1F* h_MET = analysisDir.make<TH1F>("MET", "MET", 150, 0., 300.);
   TH1F* h_alpha = analysisDir.make<TH1F>("alpha", "alpha", 100, 0., 2.);
 
@@ -343,9 +345,9 @@ void GammaJetFinalizer::runAnalysis() {
   TH1F* h_deltaPhi_passedID = analysisDir.make<TH1F>("deltaPhi_passedID", "deltaPhi", 40, M_PI / 2, M_PI);
   TH1F* h_ptPhoton_passedID = analysisDir.make<TH1F>("ptPhoton_passedID", "ptPhoton", 200, 5., 1000.);
   TH1F* h_ptFirstJet_passedID = analysisDir.make<TH1F>("ptFirstJet_passedID", "ptFirstJet", 200, 5., 1000.);
-  TH1F* h_ptSecondJet_passedID = analysisDir.make<TH1F>("ptSecondJet_passedID", "ptSecondJet", 60, 0., 100.);
-  TH1F* h_MET_passedID = analysisDir.make<TH1F>("MET_passedID", "MET", 150, 0., 600.);
-  TH1F* h_rawMET_passedID = analysisDir.make<TH1F>("rawMET_passedID", "raw MET", 150, 0., 300.);
+  TH1F* h_ptSecondJet_passedID = analysisDir.make<TH1F>("ptSecondJet_passedID", "ptSecondJet", 45, 10., 100.);
+  TH1F* h_MET_passedID = analysisDir.make<TH1F>("MET_passedID", "MET", 75, 0., 600.);
+  TH1F* h_rawMET_passedID = analysisDir.make<TH1F>("rawMET_passedID", "raw MET", 75, 0., 300.);
   TH1F* h_alpha_passedID = analysisDir.make<TH1F>("alpha_passedID", "alpha", 100, 0., 2.);
   TH1F* h_METResolution_passedID = analysisDir.make<TH1F>("METResolution_passedID", "MET", 100, 0., 600.);
   TH1F* h_MET_perp_passedID = analysisDir.make<TH1F>("MET_perp_passedID", "MET", 200, -600., 600.);
@@ -750,9 +752,18 @@ void GammaJetFinalizer::runAnalysis() {
     //  continue;
     
     if (mIsMC) {
+
+     int run_period=0;
+      if (analysis.run>190456 && analysis.run<196531) run_period=1;
+      if (analysis.run>198022 && analysis.run<203742) run_period=2;
+      if (analysis.run>203768 && analysis.run<208686) run_period=3;
+
       cleanTriggerName(passedTrigger);
-      computePUWeight(passedTrigger);
-      triggerWeight = 1.;
+//new RD PU reweighting
+      computePUWeight(passedTrigger, run_period);
+//old wrong S10 PU reweighting
+//      computePUWeight(passedTrigger);
+    triggerWeight = 1.;
     } else {
       triggerWeight = 1. / triggerWeight;
     }
@@ -772,7 +783,6 @@ void GammaJetFinalizer::runAnalysis() {
     double generatorWeight = (mIsMC) ? analysis.generator_weight : 1.;
     if (generatorWeight == 0.)
       generatorWeight = 1.;
-    
     double eventWeight = (mIsMC) ? mPUWeight * analysis.event_weight * generatorWeight : triggerWeight;
 #if ADD_TREES
     double oldAnalysisWeight = analysis.event_weight;
@@ -866,11 +876,14 @@ void GammaJetFinalizer::runAnalysis() {
 
 #if ADD_TREES
     h_nvertex->Fill(analysis.nvertex, oldAnalysisWeight);
+    h_ntrue_interactions->Fill(analysis.ntrue_interactions, oldAnalysisWeight);
 #else
     h_nvertex->Fill(analysis.nvertex, analysis.event_weight);
+    h_ntrue_interactions->Fill(analysis.ntrue_interactions, analysis.event_weight);
 #endif
 
     h_nvertex_reweighted->Fill(analysis.nvertex, eventWeight);
+    h_ntrue_interactions_reweighted->Fill(analysis.ntrue_interactions, eventWeight);
 
     double deltaPhi_2ndJet = fabs(reco::deltaPhi(secondJet.phi, photon.phi));
     h_deltaPhi->Fill(deltaPhi, eventWeight);
@@ -1099,13 +1112,14 @@ float vparGen=0.;
          h_phPx_regression_resolution->Fill(photon.px-genPhoton.px, eventWeight);
          h_phPy_regression_resolution->Fill(photon.py-genPhoton.py, eventWeight);
          vparRaw=(rawMET.px*photon.px + rawMET.py*photon.py)/photon.pt;
-         vparGen=(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt;
+         vparGen=(genMET.px*photon.px + genMET.py*photon.py)/photon.pt;
          h_MET_resolution->Fill(sqrt(pow(rawMET.px-genMET.px,2)+pow(rawMET.py-genMET.py,2)), eventWeight);
-         h_MET_par_resolution->Fill(vparRaw - (genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt , eventWeight);
-         h_MET_perp_resolution->Fill( rawMET.pt*(1.-pow(vparRaw/rawMET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
-         h_MET_footprint_resolution->Fill(sqrt(pow(photon.footprintMExCorr-genMET.px,2) + pow(photon.footprintMEyCorr-genMET.py,2) ), eventWeight);
-         h_MET_par_footprint_resolution->Fill( vpar-(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt  , eventWeight);
-         h_MET_perp_footprint_resolution->Fill( MET.pt*(1.-pow(vpar/MET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+         h_MET_par_resolution->Fill(vpar -  vparGen, eventWeight);
+         h_MET_perp_resolution->Fill(sqrt(pow((MET.px-(vpar*photon.px/photon.pt)),2)+pow((MET.py-(vpar*photon.py/photon.pt)),2))  , eventWeight);
+//         h_MET_perp_resolution->Fill( rawMET.pt*(1.-pow(vparRaw/rawMET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+//         h_MET_footprint_resolution->Fill(sqrt(pow(photon.footprintMExCorr-genMET.px,2) + pow(photon.footprintMEyCorr-genMET.py,2) ), eventWeight);
+//         h_MET_par_footprint_resolution->Fill( vpar-(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt  , eventWeight);
+//         h_MET_perp_footprint_resolution->Fill( MET.pt*(1.-pow(vpar/MET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
       }
 
         // Special case
@@ -1446,7 +1460,6 @@ std::vector<std::shared_ptr<GaussianProfile>> GammaJetFinalizer::buildNewExtrapo
     std::shared_ptr<GaussianProfile> object = buildNewExtrapolationVector(dir, branchName, etaName, nBins, xMin, xMax);
     etaBinning.push_back(object);
   }
-
   return etaBinning;
 }
 
@@ -1455,36 +1468,77 @@ void GammaJetFinalizer::cleanTriggerName(std::string& trigger) {
   boost::replace_first(trigger, ".*", "");
 }
 
+// // new PU reweighting RD
+void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger, int run_period) {
+  static std::string cmsswBase = getenv("CMSSW_BASE");
+  static std::string puPrefix = TString::Format("%s/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting", cmsswBase.c_str()).Data();
+//  static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
+  std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_75bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
+  std::string puMC = TString::Format("%s/", puPrefix.c_str()).Data();
+ if (run_period==1) { puMC = TString::Format("%s/PURDMCRun2012AB.root", puPrefix.c_str()).Data();}
+ if (run_period==2) { puMC = TString::Format("%s/PURDMCRun2012C.root", puPrefix.c_str()).Data();}
+ if (run_period==3) { puMC = TString::Format("%s/PURDMCRun2012D.root", puPrefix.c_str()).Data();}
+
+  //std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_75bins.root", puPrefix.c_str()).Data();
+
+  if (mNoPUReweighting)
+    return;
+
+  boost::shared_ptr<PUReweighter> reweighter = mLumiReweighting[std::make_pair(passedTrigger,run_period)];
+
+ PUProfile profile;
+ if (run_period==1) profile = PUProfile::RDAB;
+ if (run_period==2) profile = PUProfile::RDC;
+ if (run_period==3) profile = PUProfile::RDD;
+
+  if (! reweighter.get()) {
+
+// //    if (! boost::filesystem::exists(puMC)) {
+// //      std::cout << "Warning: " << MAKE_RED << "pileup histogram for MC was not found. No PU reweighting." << RESET_COLOR << std::endl;
+// //      std::cout << "File missing: " << puMC << std::endl;
+// //      mNoPUReweighting = true;
+// //      mPUWeight = 1.;
+// //      return;
+// //    } else {
+
+      std::cout << MAKE_BLUE << "Create PU reweighting profile for " << passedTrigger << RESET_COLOR << std::endl;
+ //      reweighter = boost::shared_ptr<PUReweighter>(new PUReweighter(puData)); //, puMC));
+      reweighter = boost::shared_ptr<PUReweighter>(new PUReweighter(puData, puMC));
+      mLumiReweighting[std::make_pair(passedTrigger,run_period)] = reweighter;
+// //    }
+
+  }
+
+  mPUWeight = reweighter->weight(analysis.ntrue_interactions);
+}
+
+
+//old PU reweighting NO RD
+//
+/*
 void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger) {
   static std::string cmsswBase = getenv("CMSSW_BASE");
   static std::string puPrefix = TString::Format("%s/src/JetMETCorrections/GammaJetFilter/analysis/PUReweighting", cmsswBase.c_str()).Data();
   static std::string puMC = TString::Format("%s/summer12_computed_mc_%s_pu_truth_75bins.root", puPrefix.c_str(), mDatasetName.c_str()).Data();
   std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_%s_75bins.root", puPrefix.c_str(), passedTrigger.c_str()).Data();
-  //std::string puData = TString::Format("%s/pu_truth_data_photon_2012_true_75bins.root", puPrefix.c_str()).Data();
-
-  if (mNoPUReweighting)
+ if (mNoPUReweighting)
     return;
 
   boost::shared_ptr<PUReweighter> reweighter = mLumiReweighting[passedTrigger];
 
   if (! reweighter.get()) {
 
-    /*if (! boost::filesystem::exists(puMC)) {
-      std::cout << "Warning: " << MAKE_RED << "pileup histogram for MC was not found. No PU reweighting." << RESET_COLOR << std::endl;
-      std::cout << "File missing: " << puMC << std::endl;
-      mNoPUReweighting = true;
-      mPUWeight = 1.;
-      return;
-    } else {*/
       std::cout << MAKE_BLUE << "Create PU reweighting profile for " << passedTrigger << RESET_COLOR << std::endl;
-      reweighter = boost::shared_ptr<PUReweighter>(new PUReweighter(puData/*, puMC*/));
+      reweighter = boost::shared_ptr<PUReweighter>(new PUReweighter(puData));
       mLumiReweighting[passedTrigger] = reweighter;
-    /*}*/
+
 
   }
 
   mPUWeight = reweighter->weight(analysis.ntrue_interactions);
 }
+*/
+
 
 void GammaJetFinalizer::checkInputFiles() {
   for (std::vector<std::string>::iterator it = mInputFiles.begin(); it != mInputFiles.end();) {

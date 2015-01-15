@@ -106,17 +106,13 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     # ... And for PAT
     adaptPFIsoElectrons(process, getattr(process, "pfElectrons" + p), p, "03")
 
-    
-    if runOnMC:
-      cloneProcessingSnippet(process, getattr(process, "makePatMuons" + p), "Loose" + p, p)
-      getattr(process, "muonMatchLoose" + p).src = cms.InputTag("pfMuons" + p)
-      getattr(process, "patMuonsLoose" + p).pfMuonSource = cms.InputTag("pfMuons" + p)
-      getattr(process, "patDefaultSequence" + p).replace(getattr(process, "makePatMuons" + p), getattr(process, "makePatMuons" + p) + getattr(process, "makePatMuonsLoose" + p))
-    else:
-      setattr(process, "patMuonsLoose" + p, getattr(process, "patMuons" + p).clone(
-          pfMuonSource = cms.InputTag("pfMuons" + p)
-        )
+##there used to be a modulo to keep track of muons gen info, doesnt work anymore and we don't use that info - so removed for now.
+    setattr(process, "patMuonsLoose" + p, getattr(process, "patMuons" + p).clone(
+        pfMuonSource = cms.InputTag("pfMuons" + p),
+        embedGenMatch = False,
+        addGenMatch = False
       )
+    )
 
     setattr(process, "selectedPatMuonsLoose" + p, getattr(process, "selectedPatMuons" + p).clone(
         src = cms.InputTag("patMuonsLoose" + p)
@@ -124,8 +120,7 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
     )
     sequence = getattr(process, "patDefaultSequence" + p)
 
-    if not runOnMC:
-      sequence += getattr(process, "patMuonsLoose" + p)
+    sequence += getattr(process, "patMuonsLoose" + p)
 
     sequence += (getattr(process, "selectedPatMuonsLoose" + p))
 
@@ -318,9 +313,9 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
   process.patPhotons.userData.userFloats.src = [
         cms.InputTag("eleNewEnergiesProducer","energySCEleJoshPhoSemiParamV5ecorr")
             ]
-
-  process.eleNewEnergiesProducer.regrPhoJoshV5_SemiParamFile = cms.string('../../../../src/HiggsAnalysis/GBRLikelihoodEGTools/data/regweights_v5_forest_ph.root')
-  process.eleNewEnergiesProducer.regrEleJoshV5_SemiParamFile = cms.string('../../../../src/HiggsAnalysis/GBRLikelihoodEGTools/data/regweights_v5_forest_ele.root')
+## uncomment to run interactive
+##  process.eleNewEnergiesProducer.regrPhoJoshV5_SemiParamFile = cms.string('../../../../src/HiggsAnalysis/GBRLikelihoodEGTools/data/regweights_v5_forest_ph.root')
+##  process.eleNewEnergiesProducer.regrEleJoshV5_SemiParamFile = cms.string('../../../../src/HiggsAnalysis/GBRLikelihoodEGTools/data/regweights_v5_forest_ele.root')
 
         
   process.eleNewEnergiesProducer.electronCollection = getattr(process,"patPhotons" + p).photonSource
@@ -377,7 +372,13 @@ def createProcess(runOnMC, runCHS, correctMETWithT1, processCaloJets, globalTag)
       'drop *_kt6PFJetsIsoQG_*_PAT',
       'drop *_kt6PFJetsQG_*_PAT',
       # MC truth
-      'keep *_genParticles_*_*'
+      'keep *_genParticles_*_*',
+      # RecHits
+      'keep *EcalRecHit*_*_*_*',
+      # Beam spot
+      'keep *_offlineBeamSpot_*_*',
+      #photon energy regression
+      'keep *_eleNewEnergiesProducer_*_*' 
       )
 
   if runOnMC:

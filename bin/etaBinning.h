@@ -47,6 +47,7 @@ class EtaBinning {
 
     void fillEtaBins() {
       EtaBin bin = {std::make_pair(0., 0.8), "eta008", "|#eta| < 0.8"};
+//      EtaBin bin = {std::make_pair(0., 1.3), "eta_lt_13", "|#eta| < 1.3"};
       mEtaBins.push_back(bin);
 
       bin.bin = std::make_pair(0.8, 1.3);

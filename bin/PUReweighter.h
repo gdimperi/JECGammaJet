@@ -5,7 +5,10 @@
 enum class PUProfile : uint8_t {
   S6,
   S7,
-  S10
+  S10,
+  RDAB,
+  RDC,
+  RDD
 };
 
 class PUReweighter {

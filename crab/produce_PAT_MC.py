@@ -9,10 +9,13 @@ process = createProcess(True, True, True, False, "START53_V27")
 
 #process.source.fileNames =  cms.untracked.vstring('file:input_mc.root')
 process.source.fileNames =  cms.untracked.vstring(
+#just for testing interactively! Z' file!
+'/store//mc/Summer12_DR53X/ZPrimeToTTJets_M500GeV_W50GeV_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/00000/B25CC4B6-8903-E211-9C4C-00215E21DF96.root',
+# old files
 #'/store/mc/Summer12_DR53X/G_Pt-1400to1800_TuneZ2star_8TeV_pythia6/AODSIM/PU_S10_START53_V7A-v1/00000/043C2EB6-371A-E211-AA0F-003048F0E18C.root'
 #'/store/mc/Summer12_DR53X/G_Pt-470to800_TuneZ2star_8TeV_pythia6/AODSIM/PU_S10_START53_V7A-v1/00000/044A52B2-DF16-E211-8F33-0030487F172B.root',
 #
-'/store/mc/Summer12_DR53X/G_Pt-300to470_TuneZ2star_8TeV_pythia6/AODSIM/PU_S10_START53_V7A-v1/00000/028B7F68-2518-E211-9FAF-002481E0D480.root',
+#'/store/mc/Summer12_DR53X/G_Pt-300to470_TuneZ2star_8TeV_pythia6/AODSIM/PU_S10_START53_V7A-v1/00000/028B7F68-2518-E211-9FAF-002481E0D480.root',
 #'/store/mc/Summer12_DR53X/G_Pt-300to470_TuneZ2star_8TeV_pythia6/AODSIM/PU_S10_START53_V7A-v1/00000/02CD4824-4A18-E211-9E48-0030487FA349.root',
 #'/store/mc/Summer12_DR53X/G_Pt-300to470_TuneZ2star_8TeV_pythia6/AODSIM/PU_S10_START53_V7A-v1/00000/0434834B-2518-E211-B153-003048F0E1EA.root',
 #'/store/mc/Summer12_DR53X/G_Pt-300to470_TuneZ2star_8TeV_pythia6/AODSIM/PU_S10_START53_V7A-v1/00000/04A1A0BE-0E18-E211-B34E-0030487F932D.root',
