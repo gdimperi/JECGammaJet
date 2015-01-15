@@ -675,9 +675,11 @@ if (mCorrPhotonWRegression) {
   iEvent.getByLabel(edm::InputTag("eleNewEnergiesProducer", "energySCEleJoshPhoSemiParamV5ecorr", "PAT"),regressionEnergyHandle);
   edm::Ptr<reco::Candidate> GoodrecoObject = GoodphotonRef->originalObjectRef();
   float GoodregressionEnergy = (*regressionEnergyHandle)[GoodrecoObject] ;
-  regressionCorr = GoodregressionEnergy/(GoodphotonRef->energy());
+//correct this january 15
+//  regressionCorr = GoodregressionEnergy/(GoodphotonRef->energy());
 //rescale the photon to the regression energy (rescale the whole p4 by the ratio of regression energy over uncorrected energy)
-  photon.setP4(photon.p4()*regressionCorr);
+//correct this january 15
+//  photon.setP4(photon.p4()*regressionCorr);
 //now apply the additional correction (data) or smearing (mc)
 int processingdata=1;
 if(mIsMC) processingdata=0;
@@ -1038,7 +1040,7 @@ double footprintMEyCorr = (*footprintMEyCorrHandle)[photonRef];
   }
 //used for footprint correction
   double correctedMetPx = footprintMExCorr + photonRef->px() - photon.px() - deltaPx;
-  double correctedMetPy = footprintMEyCorr - + photonRef->py() - photon.py() - deltaPy;
+  double correctedMetPy = footprintMEyCorr  + photonRef->py() - photon.py() - deltaPy;
   double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
 /*
 cout<< "old MET = "<<rawMet.pt()  << endl;
