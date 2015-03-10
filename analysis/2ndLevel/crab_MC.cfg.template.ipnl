@@ -11,7 +11,7 @@ dbs_url = phys03
 ##http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
 datasetpath = @datasetname@
 
-pset = runFilter_foot_MC.py
+pset = runFilter_MC.py
 pycfg_params = processedEvents=@processed_events@ crossSection=@cross_section@ lowPtHat=@low_pt_hat@ highPtHat=@high_pt_hat@
 
 total_number_of_events = -1
@@ -24,14 +24,13 @@ output_file = output_mc.root
 
 [USER]
 
-eMail = @email@
 
 ui_working_dir = @uiworkingdir@
 
 return_data = 0
 copy_data = 1
 
-storage_element = T3_FR_IPNL
+storage_element = T2_IT_Rome
 
 user_remote_dir = @outputdir@
 check_user_remote_dir = 0

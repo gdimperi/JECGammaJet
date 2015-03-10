@@ -11,29 +11,13 @@ datasets = [
     # Format
     #["dataset publish name", "dataset name", "Low pt hat", "High pt hat", "Number of processed events", "Cross section"]
     # Gamma + jets
-    ["/G_Pt-30to50_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-30to50_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-30to50", 30, 50, 1993325, 19931.62],
-    ["/G_Pt-50to80_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-50to80_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-50to80", 50, 80, 1995062, 3322.309],
-    ["/G_Pt-80to120_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-80to120_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-80to120", 80, 120, 1992627, 558.2865],
-    ["/G_Pt-120to170_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-120to170_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-120to170", 120, 170, 2000043, 108.0068],
-    ["/G_Pt-170to300_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-170to300_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-170to300", 170, 300, 2000069, 30.12207],
-    ["/G_Pt-300to470_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-300to470_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-300to470", 300, 470, 2000130, 2.138632],
-    ["/G_Pt-470to800_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-470to800_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-470to800", 470, 800, 1975231, 0.2119244],
-    ["/G_Pt-800to1400_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-800to1400_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-800to1400", 800, 1400, 1973504, 0.007077847],
-    ["/G_Pt-1400to1800_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-1400to1800_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-1400to1800", 1400, 1800, 1984890, 4.510327E-5],
-    ["/G_Pt-1800_TuneZ2star_8TeV_pythia6/sbrochet-G_Pt-1800_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "G_Pt-1800", 1800, 8000, 1939122, 1.867141E-6],
-
-    # QCD
-    #["/QCD_Pt-15to3000_TuneZ2star_Flat_8TeV_pythia6/sbrochet-QCD_Pt-15-3000_START53_V7A_22Feb13-v1-31346b79deb97ac1b786d692cd650a21/USER", "QCD_Pt-15-3000", -1, -1, 9991674, 2.99815997E10],
-    ["/QCD_Pt_30_80_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt-30to80_START53_V7A_24Apr13-v1-31346b79deb97ac1b786d692cd650a21/USER", "QCD_Pt-30to80", 30, 80, 31660888, 7.433E7],
-    ["/QCD_Pt_80_170_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt-80to170_START53_V7A_24Apr13-v1-31346b79deb97ac1b786d692cd650a21/USER", "QCD_Pt-80to170", 30, 170, 31070763, 1191000.0],
-    ["/QCD_Pt_170_250_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt-170to250_START53_V7A_24Apr13-v1-31346b79deb97ac1b786d692cd650a21/USER", "QCD_Pt-170to250", 170, 250, 31053066, 30990.0],
-    ["/QCD_Pt_250_350_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt-250to350_START53_V7A_06May13-v1-60ae21afeccdf6fcfeaa8da24f363022/USER", "QCD_Pt-250to350", 250, 350, 33091322, 4250.0],
-    ["/QCD_Pt_350_EMEnriched_TuneZ2star_8TeV_pythia6/sbrochet-QCD_Pt-350_START53_V7A_06May13-v1-60ae21afeccdf6fcfeaa8da24f363022/USER", "QCD_Pt-350", 350, 8000, 33060562, 810.0],
+    ["/GJets_HT-100to200_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-100to200", 100, 200, 407798, 1534 ],
+    ["/GJets_HT-200to400_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-200to400", 200, 400, 459368, 489.9],
+    ["/GJets_HT-400to600_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-400to600", 400, 600, 393507, 62.05],
+    ["/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-600toinf", 600, 100000, 483900, 20.87],
     ]
-
-# Get email address
-email = "%s@ipnl.in2p3.fr" % (pwd.getpwuid(os.getuid()).pw_name)
-
+    # QCD
+email = "giulia.dimperio@cern.ch"
 d = datetime.datetime.now().strftime("%d%b%y")
 
 version = 1
