@@ -6,9 +6,6 @@ use_server = 0
 [CMSSW]
 
 allow_NonProductionCMSSW = 1
-use_dbs3 = 1
-dbs_url = phys03 
-##http://cmsdbsprod.cern.ch/cms_dbs_ph_analysis_02/servlet/DBSServlet
 datasetpath = @datasetname@
 
 pset = runFilter_MC.py
@@ -33,7 +30,7 @@ copy_data = 1
 storage_element = T2_IT_Rome
 
 user_remote_dir = @outputdir@
-check_user_remote_dir = 0
+check_user_remote_dir = 1
 
 [GRID]
 rb = CERN

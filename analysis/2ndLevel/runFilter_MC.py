@@ -150,4 +150,4 @@ process.TFileService = cms.Service("TFileService",
 # set True if you want long output
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(False))
 
-process.outpath = cms.EndPath(process.out)
+#process.outpath = cms.EndPath(process.out)
