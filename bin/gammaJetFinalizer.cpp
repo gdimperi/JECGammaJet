@@ -1116,10 +1116,10 @@ float vparGen=0.;
          h_MET_resolution->Fill(sqrt(pow(rawMET.px-genMET.px,2)+pow(rawMET.py-genMET.py,2)), eventWeight);
          h_MET_par_resolution->Fill(vpar -  vparGen, eventWeight);
          h_MET_perp_resolution->Fill(sqrt(pow((MET.px-(vpar*photon.px/photon.pt)),2)+pow((MET.py-(vpar*photon.py/photon.pt)),2))  , eventWeight);
-//         h_MET_perp_resolution->Fill( rawMET.pt*(1.-pow(vparRaw/rawMET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
-//         h_MET_footprint_resolution->Fill(sqrt(pow(photon.footprintMExCorr-genMET.px,2) + pow(photon.footprintMEyCorr-genMET.py,2) ), eventWeight);
-//         h_MET_par_footprint_resolution->Fill( vpar-(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt  , eventWeight);
-//         h_MET_perp_footprint_resolution->Fill( MET.pt*(1.-pow(vpar/MET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+         h_MET_perp_resolution->Fill( rawMET.pt*(1.-pow(vparRaw/rawMET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+         h_MET_footprint_resolution->Fill(sqrt(pow(photon.footprintMExCorr-genMET.px,2) + pow(photon.footprintMEyCorr-genMET.py,2) ), eventWeight);
+         h_MET_par_footprint_resolution->Fill( vpar-(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt  , eventWeight);
+         h_MET_perp_footprint_resolution->Fill( MET.pt*(1.-pow(vpar/MET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
       }
 
         // Special case
@@ -1486,10 +1486,10 @@ void GammaJetFinalizer::computePUWeight(const std::string& passedTrigger, int ru
 
   boost::shared_ptr<PUReweighter> reweighter = mLumiReweighting[std::make_pair(passedTrigger,run_period)];
 
- PUProfile profile;
- if (run_period==1) profile = PUProfile::RDAB;
- if (run_period==2) profile = PUProfile::RDC;
- if (run_period==3) profile = PUProfile::RDD;
+ //PUProfile profile;
+ //if (run_period==1) profile = PUProfile::RDAB;
+ //if (run_period==2) profile = PUProfile::RDC;
+ //if (run_period==3) profile = PUProfile::RDD;
 
   if (! reweighter.get()) {
 
