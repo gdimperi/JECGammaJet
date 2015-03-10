@@ -11,10 +11,11 @@ datasets = [
     # Format
     #["dataset publish name", "dataset name", "Low pt hat", "High pt hat", "Number of processed events", "Cross section"]
     # Gamma + jets
-    ["/GJets_HT-100to200_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-100to200", 100, 200, 407798, 1534 ],
-    ["/GJets_HT-200to400_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-200to400", 200, 400, 459368, 489.9],
-    ["/GJets_HT-400to600_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-400to600", 400, 600, 393507, 62.05],
-    ["/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "G_HT-600toinf", 600, 100000, 483900, 20.87],
+    #giulia -- put the correct number of events 
+    ["/GJets_HT-100to200_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/MINIAODSIM", "G_HT-100to200", 100, 200, 407798, 1534 ],
+    ["/GJets_HT-200to400_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/MINIAODSIM", "G_HT-200to400", 200, 400, 459368, 489.9],
+    ["/GJets_HT-400to600_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/MINIAODSIM", "G_HT-400to600", 400, 600, 393507, 62.05],
+    ["/GJets_HT-600toInf_Tune4C_13TeV-madgraph-tauola/Phys14DR-PU20bx25_PHYS14_25_V1-v1/MINIAODSIM", "G_HT-600toinf", 600, 100000, 483900, 20.87],
     ]
     # QCD
 email = "giulia.dimperio@cern.ch"
