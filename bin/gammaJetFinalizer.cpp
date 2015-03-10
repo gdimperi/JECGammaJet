@@ -1711,8 +1711,8 @@ int main(int argc, char** argv) {
     TCLAP::ValueArg<std::string> typeArg("", "type", "jet type", true, "pf", &allowedJetTypes, cmd);
 
     std::vector<std::string> algoTypes;
-    algoTypes.push_back("ak5");
-    algoTypes.push_back("ak7");
+    algoTypes.push_back("ak4");
+    algoTypes.push_back("ak8");
     TCLAP::ValuesConstraint<std::string> allowedAlgoTypes(algoTypes);
 
     TCLAP::ValueArg<std::string> algoArg("", "algo", "jet algo", true, "ak5", &allowedAlgoTypes, cmd);

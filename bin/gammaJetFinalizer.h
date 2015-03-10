@@ -41,8 +41,8 @@ class TChain;
 class TFileDirectory;
 
 enum JetAlgo {
-  AK5,
-  AK7
+  AK4,
+  AK8
 };
 
 enum JetType {
@@ -80,10 +80,10 @@ class GammaJetFinalizer
         mJetType = CALO;
       }
 
-      if (jetAlgo == "ak5") {
-        mJetAlgo = AK5;
+      if (jetAlgo == "ak4") {
+        mJetAlgo = AK4;
       } else {
-        mJetAlgo = AK7;
+        mJetAlgo = AK8;
       }
     }
 
