@@ -70,7 +70,7 @@ GammaJetFinalizer::~GammaJetFinalizer() {
 }
 
 std::string GammaJetFinalizer::buildPostfix() {
-  std::string algo = mJetAlgo == AK5 ? "AK5" : "AK7";
+  std::string algo = mJetAlgo == AK4 ? "AK4" : "AK8";
   std::string type = mJetType == PF ? "PFlow" : "Calo";
 
   std::string postfix = type + algo;
@@ -295,7 +295,7 @@ void GammaJetFinalizer::runAnalysis() {
   //void* jetCorrector = NULL;
   if (mUseExternalJECCorrecion) {
 
-    std::string jecJetAlgo = "AK5";
+    std::string jecJetAlgo = "AK4";
     if (mJetType == PF)
       jecJetAlgo += "PF";
     else/* if (recoType == "calo")*/
