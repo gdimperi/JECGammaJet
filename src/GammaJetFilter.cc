@@ -137,6 +137,7 @@ class GammaJetFilter : public edm::EDFilter {
 
     bool isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology);
     bool isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::Event& event);
+    bool isValidPhotonEB_PHYS14(const pat::PhotonRef& photonRef, edm::Event& event);
     bool isValidJet(const pat::Jet& jet);
 
     void readJSONFile();
@@ -660,7 +661,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     pho_tmp=*it;
     if (fabs(it->eta()) <= 1.3) {
       pat::PhotonRef PhotonReftmp(photons, index);
-      if (isValidPhotonEB2012(PhotonReftmp, iEvent)) {
+      if (isValidPhotonEB_PHYS14(PhotonReftmp, iEvent)) {
       	photonsVec.push_back(*it);
 	goodPhoIndex=index;
       }
@@ -1389,59 +1390,59 @@ enum class IsolationType {
 };
 
 
-//giulia --- have the old effective areas sense??
+//updated effective areas for PHYS14 -> https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonIdentificationRun2
 float getEffectiveArea(float eta, IsolationType type) {
   eta = fabs(eta);
   switch (type) {
     case IsolationType::CHARGED_HADRONS:
       if (eta < 1.0)
-        return 0.012;
+        return 0.0130;
       else if (eta < 1.479)
-      	return 0.010;
+      	return 0.0096;
       else if (eta < 2.0)
-        return 0.014;
+        return 0.0107;
       else if (eta < 2.2)
-      	return 0.012;
+      	return 0.0077;
       else if (eta < 2.3)
-      	return 0.016;
+      	return 0.0088;
       else if (eta < 2.4)
-        return 0.020;
+        return 0.0065;
       else
-        return 0.012;
+        return 0.0030;
       break;
 
     case IsolationType::NEUTRAL_HADRONS:
       if (eta < 1.0)
-        return 0.030;
+        return 0.0056;
       else if (eta < 1.479)
-        return 0.057;
+        return 0.0107;
       else if (eta < 2.0)
-        return 0.039;
+        return 0.0019;
       else if (eta < 2.2)
-      	return 0.015;
+      	return 0.0011;
       else if (eta < 2.3)
-      	return 0.024;
+      	return 0.0077;
       else if (eta < 2.4)
-	return 0.039;
+	return 0.0178;
       else
-      	return 0.072;
+      	return 0.1675;
       break;
 
     case IsolationType::PHOTONS:
       if (eta < 1.0)
-        return 0.148;
+        return 0.0896;
       else if (eta < 1.479)
-      	return 0.130;
+      	return 0.0762;
       else if (eta < 2.0)
-      	return 0.112;
+      	return 0.0383;
       else if (eta < 2.2)
-	return 0.216;
+	return 0.0534;
       else if (eta < 2.3)
-      	return 0.262;
+      	return 0.0846;
       else if (eta < 2.4)
-        return 0.260;
+        return 0.1032;
       else
-        return 0.266;
+        return 0.1598;
       break;
   }
 
@@ -1453,6 +1454,75 @@ double getCorrectedPFIsolation(double isolation, double rho, float eta, Isolatio
 
   return std::max(isolation - rho * effectiveArea, 0.);
 }
+
+//-----------------
+// See https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonIdentificationRun2 -- tight WP 76% 
+bool GammaJetFilter::isValidPhotonEB_PHYS14(const pat::PhotonRef& photonRef, edm::Event& event) {
+  if (mIsMC && !photonRef->genPhoton())
+    return false;
+
+  bool isValid = true;
+
+  isValid &= photonRef->hadTowOverEm() < 0.011;
+  isValid &= photonRef->sigmaIetaIeta() < 0.0099;
+
+  if (! isValid)
+    return false;
+
+  edm::Handle<double> rhos;
+  event.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rhos);
+  double rho = *rhos;
+
+
+  //giulia --  use the method " passElectronVeto" for the PAT
+  // Isolations are produced at PAT level by the PḧotonPFIsolation producer
+  //edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
+  //event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
+
+  //isValid &= ! (*hasMatchedPromptElectronHandle)[photonRef];
+  isValid &= photonRef->passElectronVeto();
+
+
+  if (! isValid)
+    return false;
+  //giulia -- use isolation stored in the pat::photon
+
+
+ // // Now, isolations
+ // edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
+ // event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
+
+ // edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
+ // event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
+
+ // edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
+ // event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
+  /*
+     edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
+     event.getByLabel(edm::InputTag("photonPFIsolation", "footchargediso", "PAT"), chargedHadronsIsolationHandle);
+
+     edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
+     event.getByLabel(edm::InputTag("photonPFIsolation", "footneutraliso", "PAT"), neutralHadronsIsolationHandle);
+
+     edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
+     event.getByLabel(edm::InputTag("photonPFIsolation", "footphotoniso", "PAT"), photonIsolationHandle);
+     */
+
+//  isValid &= getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 1.86;
+//  isValid &= getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (2.64 + 0.0025 * photonRef->pt());
+//  isValid &= getCorrectedPFIsolation((*photonIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS) < (1.2 + 0.001 * photonRef->pt());
+//
+  //giulia -- use isolation stored in the pat::photon
+
+  isValid &= getCorrectedPFIsolation(photonRef->chargedHadronIso() ,rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 1.86;
+  isValid &= getCorrectedPFIsolation(photonRef->neutralHadronIso(), rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (2.64 + 0.0025 * photonRef->pt());
+  isValid &= getCorrectedPFIsolation(photonRef->photonIso(), rho, photonRef->eta(), IsolationType::PHOTONS) < (1.2 + 0.001 * photonRef->pt());
+
+
+  return isValid;
+}
+//---------------------
+
 
 // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonID2012
 bool GammaJetFilter::isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::Event& event) {
