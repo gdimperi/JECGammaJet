@@ -26,7 +26,7 @@ void setGraphStyle(TGraphErrors* graph, int markerStyle, int markerColor, int ma
 }
 
 bool SAVE_EPS = true;
-bool SAVE_PNG = false;
+bool SAVE_PNG = true;
 bool SAVE_ROOT = false;
 void saveCanvas(TCanvas* canvas, const std::string& name) {
   if (SAVE_EPS)
@@ -64,10 +64,10 @@ int main(int argc, char* argv[]) {
     algoType = jetAlgo;
   else
     algoType = recoType + jetAlgo;
-  if (recoType == "jpt" && jetAlgo == "akt5") algoType = "jptak5";
-  if (recoType == "jpt" && jetAlgo == "akt7") algoType = "jptak7";
+  if (recoType == "jpt" && jetAlgo == "akt4") algoType = "jptak4";
+  if (recoType == "jpt" && jetAlgo == "akt8") algoType = "jptak8";
 
-  jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
+  jetAlgo = (jetAlgo == "ak4") ? "AK4" : "AK8";
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
   postFix += "chs";

@@ -47,11 +47,11 @@ gROOT->ForceStyle();
   } else {
     algoType = recoType + jetAlgo;
   }
-  if (recoType == "jpt" && jetAlgo == "akt5") {
-    algoType = "jptak5";
+  if (recoType == "jpt" && jetAlgo == "akt4") {
+    algoType = "jptak4";
   }
 
-  jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
+  jetAlgo = (jetAlgo == "ak4") ? "AK4" : "AK8";
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
 

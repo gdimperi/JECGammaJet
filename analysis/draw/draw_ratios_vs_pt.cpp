@@ -32,7 +32,7 @@ void setGraphStyle(TGraphErrors* graph, int markerStyle, int markerColor, int ma
 }
 
 bool SAVE_EPS = true;
-bool SAVE_PNG = false;
+bool SAVE_PNG = true;
 bool SAVE_ROOT = false;
 void saveCanvas(TCanvas* canvas, const std::string& name) {
   if (SAVE_EPS)
@@ -70,10 +70,10 @@ int main(int argc, char* argv[]) {
     algoType = jetAlgo;
   else
     algoType = recoType + jetAlgo;
-  if (recoType == "jpt" && jetAlgo == "akt5") algoType = "jptak5";
-  if (recoType == "jpt" && jetAlgo == "akt7") algoType = "jptak7";
+  if (recoType == "jpt" && jetAlgo == "akt4") algoType = "jptak4";
+  if (recoType == "jpt" && jetAlgo == "akt8") algoType = "jptak8";
 
-  jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
+  jetAlgo = (jetAlgo == "ak4") ? "AK4" : "AK8";
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
   postFix += "chs";
@@ -233,60 +233,62 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
   line_minus_resp->SetLineWidth(2);
   line_minus_resp->SetLineStyle(2);
 
-  TGraphErrors* gr_resp_ratio = db->get_graphRatio(data, mc);
-  gr_resp_ratio->SetName("response_ratio");
-  gr_resp_ratio->SetMarkerStyle(20);
-  gr_resp_ratio->SetMarkerSize(1.5);
-  gr_resp_ratio->SetMarkerColor(BALANCING);
-  gr_resp_ratio->SetLineColor(BALANCING);
+  //giulia
+ // TGraphErrors* gr_resp_ratio = db->get_graphRatio(data, mc);
+ // gr_resp_ratio->SetName("response_ratio");
+ // gr_resp_ratio->SetMarkerStyle(20);
+ // gr_resp_ratio->SetMarkerSize(1.5);
+ // gr_resp_ratio->SetMarkerColor(BALANCING);
+ // gr_resp_ratio->SetLineColor(BALANCING);
 
-  TF1* ratioFit = new TF1("ratioFit", "pol0", xMin, xMax);
-  ratioFit->SetParameter(0, 1.);
-  //ratioFit->SetParameter(1, 0.);
-  ratioFit->SetLineColor(TColor::GetColor("#C02942"));
-  ratioFit->SetLineWidth(1.0);
-  gr_resp_ratio->Fit(ratioFit, "RQNF EX0");
+ // TF1* ratioFit = new TF1("ratioFit", "pol0", xMin, xMax);
+ // ratioFit->SetParameter(0, 1.);
+ // //ratioFit->SetParameter(1, 0.);
+ // ratioFit->SetLineColor(TColor::GetColor("#C02942"));
+ // ratioFit->SetLineWidth(1.0);
+ // gr_resp_ratio->Fit(ratioFit, "RQNF EX0");
 
-  TH1D* errors = new TH1D("errors", "errors", xMax - xMin, xMin, xMax);
-  (TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors, 0.68);
-  errors->SetStats(false);
-  //errors->SetFillColor(TColor::GetColor("#556270"));
-  errors->SetFillColor(TColor::GetColor("#ECD078"));
-  errors->SetFillStyle(1001);
+ // TH1D* errors = new TH1D("errors", "errors", xMax - xMin, xMin, xMax);
+ // (TVirtualFitter::GetFitter())->GetConfidenceIntervals(errors, 0.68);
+ // errors->SetStats(false);
+ // //errors->SetFillColor(TColor::GetColor("#556270"));
+ // errors->SetFillColor(TColor::GetColor("#ECD078"));
+ // errors->SetFillStyle(1001);
 
-  double fitValue = ratioFit->GetParameter(0);
-  double fitError = ratioFit->GetParError(0);
+  //double fitValue = ratioFit->GetParameter(0);
+  //double fitError = ratioFit->GetParError(0);
 
-  TString str = TString::Format("\\num{%.4f \\pm %.4f} & \\num{%.4f \\pm %.4f}", fitValue, fitError, 1. / fitValue, 1. / fitValue * fitError / fitValue);
-  std::cout << str << std::endl;
+  //TString str = TString::Format("\\num{%.4f \\pm %.4f} & \\num{%.4f \\pm %.4f}", fitValue, fitError, 1. / fitValue, 1. / fitValue * fitError / fitValue);
+  //std::cout << str << std::endl;
 
-  float height = 0.81 - 0.77;
-  float labelYPos = isResponse ? 0.77 : 0.37;
+  //float height = 0.81 - 0.77;
+  //float labelYPos = isResponse ? 0.77 : 0.37;
 
-  TPaveText* fitlabel = new TPaveText(0.43, labelYPos, 0.78, labelYPos + height, "brNDC");
-  fitlabel->SetTextSize(0.08);
-  fitlabel->SetFillColor(0);
-  fitlabel->SetTextFont(42);
-  //TString fitLabelText = TString::Format("#font[42]{Fit: %.4f #pm %.4f + (%.2e #pm %.2e)x}", fitValue, fitError, ratioFit->GetParameter(1), ratioFit->GetParError(1));
-  TString fitLabelText = TString::Format("Fit: %.4f #pm %.4f", fitValue, fitError);
-  fitlabel->AddText(fitLabelText);
+  //TPaveText* fitlabel = new TPaveText(0.43, labelYPos, 0.78, labelYPos + height, "brNDC");
+  //fitlabel->SetTextSize(0.08);
+  //fitlabel->SetFillColor(0);
+  //fitlabel->SetTextFont(42);
+  ////TString fitLabelText = TString::Format("#font[42]{Fit: %.4f #pm %.4f + (%.2e #pm %.2e)x}", fitValue, fitError, ratioFit->GetParameter(1), ratioFit->GetParError(1));
+  //TString fitLabelText = TString::Format("Fit: %.4f #pm %.4f", fitValue, fitError);
+  //fitlabel->AddText(fitLabelText);
 
-  gr_resp_ratio->Draw("P same");
-  /*
-  if (showErrors)
-    errors->Draw("same");
-  */
-  errors->Draw("e3 same");
+  //giulia
+  //gr_resp_ratio->Draw("P same");
+  ///*
+  //if (showErrors)
+  //  errors->Draw("same");
+  //*/
+  //errors->Draw("e3 same");
 
-  line_one->Draw("same");
-  line_plus_resp->Draw("same");
-  line_minus_resp->Draw("same");
+  //line_one->Draw("same");
+  //line_plus_resp->Draw("same");
+  //line_minus_resp->Draw("same");
 
-  ratioFit->Draw("same");
+  //ratioFit->Draw("same");
 
-  fitlabel->Draw("same");
+  //fitlabel->Draw("same");
 
-  gr_resp_ratio->Draw("P same");
+  //gr_resp_ratio->Draw("P same");
 
   gPad->RedrawAxis();
 
@@ -306,10 +308,10 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
   float ymin, ymax;
   if (prefix == "response") {
     ymin = (db->get_recoType() == "calo") ? 0.0 : 0.7;
-    ymax = (db->get_recoType() == "jpt") ? 1.15 : 1.10;
+    ymax = (db->get_recoType() == "jpt") ? 1.4 : 1.3;
     if (! rawJets) {
       ymin = 0.7;
-      ymax = 1.10;
+      ymax = 1.3;
     }
   } else {
     ymin = 0.;
@@ -372,7 +374,9 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
   data->SetMarkerColor(MPF);
   data->SetLineColor(MPF);
 
-  data->Draw("Psame");
+
+  //giulia
+  //data->Draw("Psame");
 
   gPad->RedrawAxis();
 
@@ -384,10 +388,12 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, double xMin, double xMax, 
   delete line_one;
   delete line_plus_resp;
   delete line_minus_resp;
-  delete gr_resp_ratio;
-  delete ratioFit;
-  delete errors;
-  delete fitlabel;
+  
+  //giulia
+ // delete gr_resp_ratio;
+ // delete ratioFit;
+ // delete errors;
+ // delete fitlabel;
   delete h2_axes;
   delete label_algo;
   delete legend;
@@ -557,10 +563,10 @@ void draw_vs_pt_plots(const std::string& resp_reso, const std::string& etaRegion
   float ymin, ymax;
   if (resp_reso == "response") {
     ymin = (db->get_recoType() == "calo") ? 0.0 : 0.7;
-    ymax = (db->get_recoType() == "jpt") ? 1.15 : 1.10;
+    ymax = (db->get_recoType() == "jpt") ? 1.3 : 1.40;
     if (! rawJets) {
       ymin = 0.7;
-      ymax = 1.10;
+      ymax = 1.30;
       //ymin = (db->get_recoType()=="calo") ? 0.3 : 0.7;
       //ymax = (db->get_recoType()=="calo") ? 1.3 : 1.2;
     }

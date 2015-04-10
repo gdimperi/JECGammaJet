@@ -370,11 +370,13 @@ void drawBase::drawHisto_vs_pt(std::vector<std::pair<float, float> > ptBins, con
 
     // save vs pt info:
 
-
-    bool hasData = (lastHistos_data_.size() > 0);
+    //giulia -- TO BE CHANGED
+    //bool hasData = (lastHistos_data_.size() > 0);
     bool hasMC = (lastHistos_mc_.size() > 0);
+    bool hasData = false;
+    //bool hasMC = true;
 
-if(isEComp) hasMC=false;
+//giulia --- ?  //if(isEComp) hasMC=false;
     //Float_t dataResponse = (noDATA) ? 0. : dataHistos[0]->GetMean();
     //Float_t dataResponseErr = (noDATA) ? 0. : dataHistos[0]->GetMeanError();
     //Float_t dataRMS = (noDATA) ? 0. : dataHistos[0]->GetRMS();
@@ -387,6 +389,7 @@ if(isEComp) hasMC=false;
     Float_t dataResponseErr = 0.;
     Float_t dataRMS = 0.;
     Float_t dataRMSErr = 0.;
+
 
     if (hasData) {
       fitTools::getTruncatedMeanAndRMS(lastHistos_data_[0], dataResponse, dataResponseErr, dataRMS, dataRMSErr, meanTruncFraction, rmsTruncFraction);
@@ -410,10 +413,15 @@ if(isEComp) hasMC=false;
 
     }
 
+    std::cout << "debug: hasData = " << hasData << std::endl;
+    std::cout << "debug: hasMC = " << hasMC << std::endl;
+   
     Float_t mcResponse = 0.;
     Float_t mcResponseErr = 0.;
     Float_t mcRMS = 0.;
     Float_t mcRMSErr = 0.;
+    
+    std::cout << "debug: fitTools::getTruncatedMeanAndRMS" << std::endl;
 
     if (hasMC) {
       fitTools::getTruncatedMeanAndRMS(lastHistos_mcHistoSum_, mcResponse, mcResponseErr, mcRMS, mcRMSErr, meanTruncFraction, rmsTruncFraction);
@@ -429,10 +437,12 @@ if(isEComp) hasMC=false;
 
       //gr_resolutionMC_vs_pt->SetPoint(iplot, ptMeanMC, mcResolution);
       //gr_resolutionMC_vs_pt->SetPointError(iplot, ptMeanErrMC, mcResolutionErr);
-
+      std::cout << "debug: set points on the graph" << std::endl;
+      std::cout << ptMean << "  " << mcResponse << std::endl;
       gr_responseMC_vs_pt->SetPoint(iplot, ptMean, mcResponse);
       gr_responseMC_vs_pt->SetPointError(iplot, 0., mcResponseErr);
 
+      std::cout << ptMean << "  " << mcResolution << std::endl;
       gr_resolutionMC_vs_pt->SetPoint(iplot, ptMean, mcResolution);
       gr_resolutionMC_vs_pt->SetPointError(iplot, 0., mcResolutionErr);
 
@@ -452,34 +462,41 @@ if(isEComp) hasMC=false;
       gr_purity_vs_pt->SetPoint(iplot, ptMean, purity);
       gr_purity_vs_pt->SetPointError(iplot, 0., purityErr);
 
+      std::cout << "debug : get gen information" << std::endl;
+      
+      ////giulia debug
+      //// Get gen informations. To do that, we need to transform
+      //// resp_balancing_eta* in resp_balancing_gen_eta*
+      //std::string responseGenName = std::string(name + "_" + ptRange);
+      //boost::replace_all(responseGenName, "eta", "gen_eta");
+      //if (isMPF) {
+      //  // For MPF, we don't have raw_gen
+      //  boost::replace_all(responseGenName, "_raw", "");
+      //}
+      //std::cout << "debug : " << responseGenName << std::endl; 
 
-      // Get gen informations. To do that, we need to transform
-      // resp_balancing_eta* in resp_balancing_gen_eta*
-      std::string responseGenName = std::string(name + "_" + ptRange);
-      boost::replace_all(responseGenName, "eta", "gen_eta");
-      if (isMPF) {
-        // For MPF, we don't have raw_gen
-        boost::replace_all(responseGenName, "_raw", "");
-      }
+      //TH1* responseGEN = static_cast<TH1*>(mcGet(0, responseGenName));
+      //for (unsigned i = 1; i < mcFiles_.size(); ++i) {
+      //  TH1* responseGEN2 = static_cast<TH1*>(mcGet(i, responseGenName));
+      //  responseGEN->Add(responseGEN2);
+      //}
 
-      TH1* responseGEN = static_cast<TH1*>(mcGet(0, responseGenName));
-      for (unsigned i = 1; i < mcFiles_.size(); ++i) {
-        TH1* responseGEN2 = static_cast<TH1*>(mcGet(i, responseGenName));
-        responseGEN->Add(responseGEN2);
-      }
-
-      responseGEN->Scale(scaleFactor_);
-      responseGEN->SetLineWidth(3);
+      //responseGEN->Scale(scaleFactor_);
+      //responseGEN->SetLineWidth(3);
 
       Float_t genResponse = 0.;
       Float_t genResponseErr = 0.;
       Float_t genRMS = 0.;
       Float_t genRMSErr = 0.;
 
-      fitTools::getTruncatedMeanAndRMS(responseGEN, genResponse, genResponseErr, genRMS, genRMSErr, meanTruncFraction, rmsTruncFraction);
+      //giulia
+      //std::cout << "do fitTools::getTruncatedMeanAndRMS for gen" << std::endl;  
+      //fitTools::getTruncatedMeanAndRMS(responseGEN, genResponse, genResponseErr, genRMS, genRMSErr, meanTruncFraction, rmsTruncFraction);
 
-      Float_t genResolution = genRMS / genResponse;
-      Float_t genResolutionErr = sqrt(genRMSErr * genRMSErr / (genResponse * genResponse) + genResolution * genResolution * genResponseErr * genResponseErr / (genResponse * genResponse * genResponse * genResponse));
+      //Float_t genResolution = genRMS / genResponse;
+      //Float_t genResolutionErr = sqrt(genRMSErr * genRMSErr / (genResponse * genResponse) + genResolution * genResolution * genResponseErr * genResponseErr / (genResponse * genResponse * genResponse * genResponse));
+      Float_t genResolution = 0.; 
+      Float_t genResolutionErr = 0.;
 
       //TH1D* h1_thisPtJetGen = (TH1D*)h2_ptJetGen_mc->ProjectionY("thisPtJetGen", iplot + 1, iplot + 1);
 
@@ -494,18 +511,22 @@ if(isEComp) hasMC=false;
 
       gr_responseGEN_vs_pt->SetPoint(iplot, ptMean, genResponse);
       gr_responseGEN_vs_pt->SetPointError(iplot, 0., genResponseErr);
+      std::cout << ptMean << "  " << genResponse << std::endl;
 
       gr_resolutionGEN_vs_pt->SetPoint(iplot, ptMean, genResolution);
       gr_resolutionGEN_vs_pt->SetPointError(iplot, 0., genResolutionErr);
+      std::cout << ptMean << "  " << genResolution << std::endl;
 
     }
 
   } // for pt bins
 
+  std::cout << "debug: now do plots" << std::endl;
 
   std::string graphFileName = "PhotonJetGraphs_" + get_fullSuffix() + ".root";
   TFile* graphFile = TFile::Open(graphFileName.c_str(), "update");
   graphFile->cd();
+
 
   TString graphName = TString::Format("%s_data_vs_pt", name.c_str()); // something like resp_balancing_eta011_data_vs_pt
   gr_response_vs_pt->SetName(graphName);
@@ -544,10 +565,13 @@ if(isEComp) hasMC=false;
 //gStyle->SetPadTickX(1);
 //gStyle->SetPadTickY(1);
 
-  bool noDATA = (gr_response_vs_pt->GetN() == 0);
+
+  //giulia --- TO BE CHANGED -- NO DATA!
+  //bool noDATA = (gr_response_vs_pt->GetN() == 0);
+  bool noDATA = true;
   bool noMC = (gr_responseMC_vs_pt->GetN() == 0);
 
-  int canvasHeight = (noMC) ? 600 : 800;
+  int canvasHeight = (noMC || noDATA) ? 600 : 800;
   TCanvas* c1 = new TCanvas("c1", "c1", 600, canvasHeight);
   c1->cd();
 
@@ -750,12 +774,14 @@ if(isEComp) hasMC=false;
   if (noMC) {
     std::string canvName_eps = canvName + ".eps";
     c1->SaveAs(canvName_eps.c_str());
-    //std::string canvName_png = canvName + ".png";
-    //c1->SaveAs(canvName_png.c_str());
+    std::string canvName_png = canvName + ".png";
+    c1->SaveAs(canvName_png.c_str());
   }
 
   std::string canvName_fit_eps = canvName + "_FITLINE.eps";
   c1->SaveAs(canvName_fit_eps.c_str());
+  std::string canvName_fit_png = canvName + "_FITLINE.png";
+  c1->SaveAs(canvName_fit_png.c_str());
 
   // ----------------------------------------------------
   //             and now resolutions:
@@ -1090,7 +1116,9 @@ void drawBase::drawHisto_fromTree(const std::string& treeName, const std::string
 
 void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH1*> mcHistos, std::vector<TH1*> mcHistos_superimp, const std::string& name, const std::string& axisName, const std::string& units, const std::string& instanceName, bool log_aussi, int legendQuadrant, const std::string& flags, const std::string& labelText, bool add_jetAlgoText, bool drawRatio/* = true*/, double fitMin/* = 0*/, double fitMax/* = 8000*/) {
 
-  bool noDATA = false;
+
+  //giulia --- TO BE CHANGED --- NO DATA!
+  bool noDATA = true;
   bool noMC = false;
 
   if (dataHistos.size() == 0) {
@@ -1477,7 +1505,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   }
   label_bonus->AddText(labelText.c_str());
 
-  TCanvas* c1 = new TCanvas("c1", "c1", 800, (drawRatio) ? 1000 : 800);
+  TCanvas* c1 = new TCanvas("c1", "c1", 800, (drawRatio && !noDATA && !noMC) ? 1000 : 800);
   c1->SetLeftMargin(0);
   c1->cd();
 
@@ -1493,9 +1521,9 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   float foo = 0;
 
   fitTools::getTruncatedMeanAndRMS(mcHisto_sum, meanMC, meanMC_err, foo, foo, 0.99, 0.99);
-  fitTools::getTruncatedMeanAndRMS(dataHistos[0], meanData, meanData_err, foo, foo, 0.99, 0.99);
+  if (!noDATA) fitTools::getTruncatedMeanAndRMS(dataHistos[0], meanData, meanData_err, foo, foo, 0.99, 0.99);
   
-  if (drawRatio) {
+  if (drawRatio && !noDATA && !noMC) {
     pad_hi = new TPad("pad_hi", "", 0., 0.33, 0.99, 0.99);
     pad_hi->Draw();
     //pad_hi->SetLogx();
@@ -1564,7 +1592,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   mcHisto_sum->SetFillColor(color);
 
   mcHisto_sum->Draw("E2 same");
-
+//giulia
+  if (!noDATA){
   for (unsigned i = 0; i < dataHistos.size(); ++i) {
     if (dataHistos.size() == 1 && poissonAsymmErrors_) {
       std::cout << "drawing poisson" << std::endl;
@@ -1583,7 +1612,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     //else
     //  dataHistos[i]->Draw("E same");
   }
-
+  }
   // Draw lines for response
   TLine line_mc(meanMC, 0, meanMC, yMax);
   line_mc.SetLineColor(TColor::GetColor("#036564"));
@@ -1726,6 +1755,8 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     
     mcHisto_sum->Draw("E2 same");
 
+    //giulia
+    if(!noDATA){
     for (unsigned i = 0; i < dataHistos.size(); ++i) {
       if (dataHistos.size() == 1 && poissonAsymmErrors_) {
         graph_data_poisson->Draw("Psame");
@@ -1742,7 +1773,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       //else
       //  dataHistos[i]->Draw("E same");
     }
-
+    }
     gPad->RedrawAxis();
     label_cms->Draw("same");
     label_sqrt->Draw("same");
@@ -2291,9 +2322,9 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     label_sqrt->SetTextFont(42);
     std::string label_sqrt_text;
     if (isData) {
-      label_sqrt_text = "#sqrt{s} = 8 TeV, DATA";
+      label_sqrt_text = "#sqrt{s} = 13 TeV, DATA";
     } else {
-      label_sqrt_text = "#sqrt{s} = 8 TeV, MC";
+      label_sqrt_text = "#sqrt{s} = 13 TeV, MC";
     }
     label_sqrt->AddText(label_sqrt_text.c_str());
 
@@ -3044,12 +3075,12 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
     char label_sqrt_text[150];
     if (isCMSArticle_) {
-      sprintf(label_sqrt_text, "#sqrt{s} = 8 TeV");
+      sprintf(label_sqrt_text, "#sqrt{s} = 13 TeV");
     } else {
       if (lumi_ == 0.) {
-        sprintf(label_sqrt_text, "#sqrt{s} = 8 TeV");
+        sprintf(label_sqrt_text, "#sqrt{s} = 13 TeV");
       } else {
-        sprintf(label_sqrt_text, "#sqrt{s} = 8 TeV, L = %s", lumiText.c_str());
+        sprintf(label_sqrt_text, "#sqrt{s} = 13 TeV, L = %s", lumiText.c_str());
       }
     }
 
@@ -3064,10 +3095,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
     if (recoType_ == "calo") {
       return jetAlgo_;
-    } else if (recoType_ == "jpt" && jetAlgo_ == "akt5") {
-      return "jptak5";
-    } else if (recoType_ == "jpt" && jetAlgo_ == "akt7") {
-      return "jptak7";
+    } else if (recoType_ == "jpt" && jetAlgo_ == "akt4") {
+      return "jptak4";
+    } else if (recoType_ == "jpt" && jetAlgo_ == "akt8") {
+      return "jptak8";
     } else {
       return ((std::string)recoType_ + jetAlgo_);
     }
@@ -3080,10 +3111,10 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
     std::string algoName;
 
-    if (jetAlgo_ == "AK5") {
-      algoName = "anti-k_{T} 0.5 ";
-    } else if (jetAlgo_ == "AK7") {
-      algoName = "anti-k_{T} 0.7 ";
+    if (jetAlgo_ == "AK4") {
+      algoName = "anti-k_{T} 0.4 ";
+    } else if (jetAlgo_ == "AK8") {
+      algoName = "anti-k_{T} 0.8 ";
     } else if (jetAlgo_ == "KT4") {
       algoName = "k_{T} 0.4 ";
     } else if (jetAlgo_ == "KT6") {
@@ -3122,15 +3153,15 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
 
     label_cmstop->SetTextAlign(31); // align right
     //latex->DrawLatex(wide ? 0.98 : 0.95, 0.96, "#sqrt{s} = 7 TeV");
-    label_cmstop->AddText("#sqrt{s} = 8 TeV");
+    label_cmstop->AddText("#sqrt{s} = 13 TeV");
     std::string leftText;
     if (dataFiles_.size() == 0) {
-      leftText = "CMS Simulation 2012";
+      leftText = "CMS Simulation 2015";
     } else {
       if (isCMSArticle_) {
-        leftText = "CMS 2012";
+        leftText = "CMS 2015";
       } else {
-        leftText = "CMS Preliminary 2012";
+        leftText = "CMS Preliminary 2015";
       }
     }
 
@@ -3198,12 +3229,12 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     } else {
       std::string leftText;
       if (dataFiles_.size() == 0) {
-        leftText = "CMS Simulation 2012";
+        leftText = "CMS Simulation 2015";
       } else {
         if (isCMSArticle_) {
-          leftText = "CMS 2012";
+          leftText = "CMS 2015";
         } else {
-          leftText = "CMS Preliminary 2012";
+          leftText = "CMS Preliminary 2015";
         }
       }
       if (lumi_ > 0.) {
@@ -3264,7 +3295,7 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
       label_sqrt->AddText(label_sqrt_text.c_str());
     } else {
       label_sqrt->SetTextAlign(31); // align right
-      label_sqrt->AddText("#sqrt{s} = 8 TeV");
+      label_sqrt->AddText("#sqrt{s} = 13 TeV");
     }
 
     return label_sqrt;
@@ -3325,13 +3356,13 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     std::string returnString;
 
     if (dataFiles_.size() == 0) {
-      returnString = "CMS Simulation 2012";
+      returnString = "CMS Simulation 2015";
     } else {
       if (isCMSArticle_) {
         std::string lumiText = this->get_lumiText();
-        returnString = "CMS 2012, " + lumiText;
+        returnString = "CMS 2015, " + lumiText;
       } else {
-        returnString = "CMS Preliminary 2012";
+        returnString = "CMS Preliminary 2015";
       }
     }
 
@@ -3372,11 +3403,11 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
     if (recoType_ != "calo") {
       algoName = recoType_ + algoName;
     }
-    if (recoType_ == "jpt" && jetAlgo_ == "akt5") {
-      algoName = "jptak5";
+    if (recoType_ == "jpt" && jetAlgo_ == "akt4") {
+      algoName = "jptak4";
     }
-    if (recoType_ == "jpt" && jetAlgo_ == "akt7") {
-      algoName = "jptak7";
+    if (recoType_ == "jpt" && jetAlgo_ == "akt8") {
+      algoName = "jptak8";
     }
     if (algoName != "") {
       suffix += ("_" + algoName);
@@ -3783,8 +3814,9 @@ void drawBase::drawHisto_fromHistos(std::vector<TH1*> dataHistos, std::vector<TH
   
 //gStyle->SetPadTickX(1);
 //gStyle->SetPadTickY(1);
-
-  bool noDATA = (gr_response_vs_pt->GetN() == 0);
+//giulia --- TO BE CHANGED
+  //bool noDATA = (gr_response_vs_pt->GetN() == 0);
+  bool noDATA = true;
   bool noMC = (gr_responseMC_vs_pt->GetN() == 0);
 
   TCanvas* c1 = new TCanvas("c1", "c1", 600, 800);

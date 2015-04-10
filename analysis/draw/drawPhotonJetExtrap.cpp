@@ -25,11 +25,11 @@ int main(int argc, char* argv[]) {
     TCLAP::ValueArg<std::string> typeArg("", "type", "jet type", false, "pf", &allowedJetTypes, cmd);
 
     std::vector<std::string> algoTypes;
-    algoTypes.push_back("ak5");
-    algoTypes.push_back("ak7");
+    algoTypes.push_back("ak4");
+    algoTypes.push_back("ak8");
     TCLAP::ValuesConstraint<std::string> allowedAlgoTypes(algoTypes);
 
-    TCLAP::ValueArg<std::string> algoArg("", "algo", "jet algo", false, "ak5", &allowedAlgoTypes, cmd);
+    TCLAP::ValueArg<std::string> algoArg("", "algo", "jet algo", false, "ak4", &allowedAlgoTypes, cmd);
 
     std::vector<std::string> resoTypes;
     resoTypes.push_back("FIT");
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
       }*/
 
 
-    std::string jetAlgo = (algoArg.getValue() == "ak5") ? "AK5" : "AK7";
+    std::string jetAlgo = (algoArg.getValue() == "ak4") ? "AK4" : "AK8";
     std::string recoType = (typeArg.getValue() == "pf") ? "PFlow" : "Calo";
 
     std::string postFix = recoType + jetAlgo;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
       algoType = recoType + jetAlgo;
 
     if (recoType == "JPT" && jetAlgo == "AK5")
-      algoType = "jptak5";
+      algoType = "jptak4";
 
     //std::string mcFlags = (useGenJets) ? "GENJETS_" + flags : flags;
 

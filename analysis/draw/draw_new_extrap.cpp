@@ -135,7 +135,7 @@ void drawGraphs(TGraphErrors* data, TGraphErrors* mc, const std::string& method,
   tl.DrawLatex(0.18, 0.96, sLumi);
 
   // Energy
-  tl.DrawLatex(0.80, 0.96, "#sqrt{s} = 8 TeV");
+  tl.DrawLatex(0.80, 0.96, "#sqrt{s} = 13 TeV");
 
   canvas->Print(outputName.c_str());
 
@@ -277,7 +277,7 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
   tl.DrawLatex(0.18, 0.96, sLumi);
 
   // Energy
-  tl.DrawLatex(0.80, 0.96, "#sqrt{s} = 8 TeV");
+  tl.DrawLatex(0.80, 0.96, "#sqrt{s} = 13 TeV");
 
   // Ratios
   tl.DrawLatex(0.18, 0.515, balancing_ratio_legend);
@@ -372,7 +372,7 @@ void drawCombinedGraphs(TGraphErrors* balancingData, TGraphErrors* balancingMC, 
   tl.DrawLatex(0.18, 0.96, sLumi);
 
   // Energy
-  tl.DrawLatex(0.80, 0.96, "#sqrt{s} = 8 TeV");
+  tl.DrawLatex(0.80, 0.96, "#sqrt{s} = 13 TeV");
 
   // Fit
   tl.DrawLatex(0.18, 0.47, balancing_ratio_legend);
@@ -412,13 +412,13 @@ int main(int argc, char* argv[]) {
   } else {
     algoType = recoType + jetAlgo;
   }
-  if (recoType == "jpt" && jetAlgo == "akt5") {
-    algoType = "jptak5";
+  if (recoType == "jpt" && jetAlgo == "akt4") {
+    algoType = "jptak4";
   }
 
   std::string flags = "";
 
-  jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
+  jetAlgo = (jetAlgo == "ak4") ? "AK4" : "AK8";
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
 

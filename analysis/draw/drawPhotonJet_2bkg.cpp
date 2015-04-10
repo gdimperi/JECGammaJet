@@ -47,11 +47,11 @@ int main(int argc, char* argv[]) {
   } else {
     algoType = recoType + jetAlgo;
   }
-  if (recoType == "jpt" && jetAlgo == "akt5") {
-    algoType = "jptak5";
+  if (recoType == "jpt" && jetAlgo == "akt4") {
+    algoType = "jptak4";
   }
 
-  jetAlgo = (jetAlgo == "ak5") ? "AK5" : "AK7";
+  jetAlgo = (jetAlgo == "ak4") ? "AK4" : "AK8";
   recoType = (recoType == "pf") ? "PFlow" : "Calo";
   std::string postFix = recoType + jetAlgo;
 
@@ -188,35 +188,37 @@ int main(int argc, char* argv[]) {
   EtaBinning etaBinning;
   size_t etaBinningSize = etaBinning.size();
 
-  db->set_rebin(2);
-//Jet energy composition
-  db->setFolder("analysis/ecomposition");
-  for (size_t i = 0; i < etaBinningSize; i++) {
-    db->set_legendTitle(etaBinning.getBinTitle(i));
 
-    TString histoName = TString::Format("ChHadronEnergy_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Charged Hadron Energy", "", "Events", false);
-/*    histoName = TString::Format("NHadronEnergy_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Neutral Hadron Energy", "", "Events", log);
-    histoName = TString::Format("ElEnergy_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Electron Energy", "", "Events", log);
-    histoName = TString::Format("PhEnergy_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Photon Energy", "", "Events", log);
-    histoName = TString::Format("MuEnergy_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Muon Energy", "", "Events", log);
-//multiplicities
-    histoName = TString::Format("ChHadronMult_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Charged Hadron Multiplicity", "", "Events", log);
-    histoName = TString::Format("NHadronMult_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Neutral Hadron Multiplicity", "", "Events", log);
-    histoName = TString::Format("ElMult_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Electron Multiplicity", "", "Events", log);
-    histoName = TString::Format("PhMult_%s", etaBinning.getBinName(i).c_str());
-    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Electron Multiplicity", "", "Events", log);
-*/
-  }
-
-
+  //giulia --- not useful
+//  db->set_rebin(2);
+////Jet energy composition
+//  db->setFolder("analysis/ecomposition");
+//  for (size_t i = 0; i < etaBinningSize; i++) {
+//    db->set_legendTitle(etaBinning.getBinTitle(i));
+//
+//    TString histoName = TString::Format("ChHadronEnergy_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Charged Hadron Energy", "", "Events", false);
+///*    histoName = TString::Format("NHadronEnergy_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Neutral Hadron Energy", "", "Events", log);
+//    histoName = TString::Format("ElEnergy_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Electron Energy", "", "Events", log);
+//    histoName = TString::Format("PhEnergy_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Photon Energy", "", "Events", log);
+//    histoName = TString::Format("MuEnergy_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Muon Energy", "", "Events", log);
+////multiplicities
+//    histoName = TString::Format("ChHadronMult_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Charged Hadron Multiplicity", "", "Events", log);
+//    histoName = TString::Format("NHadronMult_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Neutral Hadron Multiplicity", "", "Events", log);
+//    histoName = TString::Format("ElMult_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Electron Multiplicity", "", "Events", log);
+//    histoName = TString::Format("PhMult_%s", etaBinning.getBinName(i).c_str());
+//    db->drawHisto_vs_pt(ptBins, histoName.Data(), "Electron Multiplicity", "", "Events", log);
+//*/
+//  }
+//
+//
 
   // Balancing
   db->setFolder("analysis/balancing");
