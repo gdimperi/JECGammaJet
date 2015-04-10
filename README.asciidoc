@@ -42,7 +42,7 @@ General notes (work in progress):
 - At the moment we have only MC and no data, therefore:
   - pileup reweighting for MC is not necessary 
   - lumicalc part to compute the luminosity of the prescaled triggers in data is not necessary
-- Replace `AK5` and `ak5` in old instruction with `AK4` and `ak4`
+- When following the old instructions replace `AK5`, `ak5` with `AK4`, `ak4` and `AK7`, `ak7` with `AK8`, `ak8`, since `ak4` and `ak8` are the new supported jet alogs.
 
 === Step 1
 
@@ -52,15 +52,14 @@ Follow Step 2 of old instructions.
 
 Follow Step 3 of old instructions. 
 
-To keep the structure of the macros used in the following step to draw plots you have to run over a "fake" data sample. 
-Run the finalizer over a small number of events without the option --mc
+In order to keep the structure of the macros used in the following step, you have to run over a "fake" data sample. 
+In any case, for the moment, data are not drawn in the final plots, so you can run the finalizer over whatever rootfile without the option `--mc`.
 
 === Step 3
-Follow step 4 of old instructions *BUT*
-the Makefile doesn't compile in CMSSW_7_3_2. The temporary solution is to download a CMSSW_5_3_14 release, download the repository and do `make` in the `analysis/draw/` folder in this release.
-
-
-
+Follow step 4 of old instructions +
+*BUT* +
+the Makefile doesn't compile in CMSSW_7_3_2. 
+The temporary solution is to download a CMSSW_5_3_14 release, download the repository there, and do plots in this release.
 
 
 
