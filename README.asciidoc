@@ -31,7 +31,7 @@ scram b -j 9
 
 ----
 
-The new analysis code starts from MINIAOD format instad of AOD. MINIAOD basically contains PAT objets: this allow to use basically the old structure skipping Step 1.
+The new analysis code starts from MINIAOD format instad of AOD. MINIAOD contains PAT objets: this allow to use basically the old structure skipping Step 1.
 
 General notes (work in progress):
 
