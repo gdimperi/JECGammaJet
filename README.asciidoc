@@ -33,15 +33,15 @@ scram b -j 9
 
 The new analysis code starts from MINIAOD format instad of AOD. MINIAOD contains PAT objets: this allow to use basically the old structure skipping Step 1.
 
-General notes (work in progress):
+=== General notes (work in progress)
 
 - At the moment the FootPrint removal of the photon for the MET calculation is *NOT* implemented. 
   The following package have to be downloaded and adapted:  https://github.com/peruzzim/SCFootprintRemoval.git V01-07
 - Energy regression for the photon is now directly implemented in the `photon->energy()`(to be understood if this is propagated to PAT MET)
-- For flavor studies, QG tagging, b-tagging reclustering have to be implemented. At the moment the ak4 PAT jets stored in the MINIAOD are used directly, changing on-the-fly the JEC for jets and MET.
+- For flavor studies, QG-tagging, b-tagging,  reclustering is needed and have to be implemented. Now ak4 PAT jets stored in the MINIAOD are used directly, changing on-the-fly the JEC for jets and MET.
 - At the moment we have only MC and no data, therefore:
-  - pileup reweighting for MC is not necessary 
-  - lumicalc part to compute the luminosity of the prescaled triggers in data is not necessary
+  ** pileup reweighting for MC is not necessary 
+  ** lumicalc part to compute the luminosity collected by the triggers in data is not necessary
 - When following the old instructions replace `AK5`, `ak5` with `AK4`, `ak4` and `AK7`, `ak7` with `AK8`, `ak8`, since ak4 and ak8 are the new supported jet alogs.
 
 === Step 1
