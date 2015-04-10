@@ -1,3 +1,4 @@
+
 // To compile, simply run 'asciidoc manual.txt'
 = Gamma + jets analysis
 Sébastien Brochet <s.brochet@ipnl.in2p3.fr>
@@ -13,6 +14,31 @@ Sébastien Brochet <s.brochet@ipnl.in2p3.fr>
 == Presentation
 
 This is a documentation for the gamma + jets framework.
+
+== New instructions (13 TeV)
+
+=== Get a working area
+
+[source,bash]
+----
+
+export SCRAM_ARCH=slc6_amd64_gcc491
+cmsrel CMSSW_7_3_2
+cd CMSSW_7_3_2/src
+git clone https://github.com/gdimperi/JECGammaJet.git JetMETCorrections/GammaJetFilter/
+cd ..
+scram b -j 9
+
+----
+
+Note:
+
+- For the moment the FootPrint removal of the photon for the MET calculation is *NOT* implemented. 
+  The following package have to be downloaded and adapted:  https://github.com/peruzzim/SCFootprintRemoval.git V01-07
+- Energy regression for the photon is now directly implemented in the photon->energy()  
+
+
+== Old instructions (8 TeV)
 
 === Get a working area
 
