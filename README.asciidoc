@@ -42,7 +42,7 @@ General notes (work in progress):
 - At the moment we have only MC and no data, therefore:
   - pileup reweighting for MC is not necessary 
   - lumicalc part to compute the luminosity of the prescaled triggers in data is not necessary
-- When following the old instructions replace `AK5`, `ak5` with `AK4`, `ak4` and `AK7`, `ak7` with `AK8`, `ak8`, since `ak4` and `ak8` are the new supported jet alogs.
+- When following the old instructions replace `AK5`, `ak5` with `AK4`, `ak4` and `AK7`, `ak7` with `AK8`, `ak8`, since ak4 and ak8 are the new supported jet alogs.
 
 === Step 1
 
