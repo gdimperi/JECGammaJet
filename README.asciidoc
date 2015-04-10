@@ -31,11 +31,37 @@ scram b -j 9
 
 ----
 
-Note:
+The new analysis code starts from MINIAOD format instad of AOD. MINIAOD basically contains PAT objets: this allow to use basically the old structure skipping Step 1.
 
-- For the moment the FootPrint removal of the photon for the MET calculation is *NOT* implemented. 
+General notes (work in progress):
+
+- At the moment the FootPrint removal of the photon for the MET calculation is *NOT* implemented. 
   The following package have to be downloaded and adapted:  https://github.com/peruzzim/SCFootprintRemoval.git V01-07
-- Energy regression for the photon is now directly implemented in the photon->energy()  
+- Energy regression for the photon is now directly implemented in the `photon->energy()`(to be understood if this is propagated to PAT MET)
+- For flavor studies, QG tagging, b-tagging reclustering have to be implemented. At the moment the ak4 PAT jets stored in the MINIAOD are used directly, changing on-the-fly the JEC for jets and MET.
+- At the moment we have only MC and no data, therefore:
+  - pileup reweighting for MC is not necessary 
+  - lumicalc part to compute the luminosity of the prescaled triggers in data is not necessary
+- Replace `AK5` and `ak5` in old instruction with `AK4` and `ak4`
+
+=== Step 1
+
+Follow Step 2 of old instructions.
+
+=== Step 2
+
+Follow Step 3 of old instructions. 
+
+To keep the structure of the macros used in the following step to draw plots you have to run over a "fake" data sample. 
+Run the finalizer over a small number of events without the option --mc
+
+=== Step 3
+Follow step 4 of old instructions *BUT*
+the Makefile doesn't compile in CMSSW_7_3_2. The temporary solution is to download a CMSSW_5_3_14 release, download the repository and do `make` in the `analysis/draw/` folder in this release.
+
+
+
+
 
 
 == Old instructions (8 TeV)
@@ -325,6 +351,7 @@ In order to produce the full set of plots, you'll have to run 3 differents utili
 - Finally, to produce the final plot, one last utility, +draw_ratios_vs_pt+, like this
 ----
 ../../../draw/draw_ratios_vs_pt Photon_Run2012 G QCD pf ak5
+../../../draw/draw_all_methods_vs_pt Photon_Run2012 G QCD pf ak5
 ----
 
 The names to pass to the script depends on what you use for the +-d+ option in step 3. You can find what you used from the name of the root file.
