@@ -23,15 +23,15 @@ class JetTree: public BaseTree {
 
     // Declaration of leaf types
     Float_t         jet_area;
-    Float_t         btag_tc_high_eff;
-    Float_t         btag_tc_high_pur;
-    Float_t         btag_ssv_high_eff;
-    Float_t         btag_ssv_high_pur;
-    Float_t         btag_jet_probability;
-    Float_t         btag_jet_b_probability;
-    Float_t         btag_csv;
-    Float_t         qg_tag_mlp;
-    Float_t         qg_tag_likelihood;
+//    Float_t         btag_tc_high_eff;
+//    Float_t         btag_tc_high_pur;
+//    Float_t         btag_ssv_high_eff;
+//    Float_t         btag_ssv_high_pur;
+//    Float_t         btag_jet_probability;
+//    Float_t         btag_jet_b_probability;
+//    Float_t         btag_csv;
+//    Float_t         qg_tag_mlp;
+//    Float_t         qg_tag_likelihood;
     Float_t         jet_CHEn;
     Float_t         jet_NHEn;
     Float_t         jet_PhEn;
@@ -43,10 +43,11 @@ class JetTree: public BaseTree {
     Int_t           jet_NHMult;
     Int_t           jet_ElMult;
     Int_t           jet_CHMult;
+    Float_t         ptAK4matchCaloJet;
 
     // List of branches
     TBranch        *b_jet_area;
-/*    TBranch        *b_jet_CHEn;   //!
+    TBranch        *b_jet_CHEn;   //!
     TBranch        *b_jet_NHEn;   //!
     TBranch        *b_jet_PhEn;   //!
     TBranch        *b_jet_ElEn;   //!
@@ -57,7 +58,8 @@ class JetTree: public BaseTree {
     TBranch        *b_jet_NHMult;   //!
     TBranch        *b_jet_ElMult;   //!
     TBranch        *b_jet_CHMult;   //!
-*/
+    TBranch        *b_ptAK4matchCaloJet;   //!
+
     JetTree();
 
     virtual void     Init(TTree *tree);
@@ -80,15 +82,15 @@ void JetTree::Init(TTree *tree)
   BaseTree::Init(tree);
 
   fChain->SetBranchAddress("jet_area", &jet_area, &b_jet_area);
-  fChain->SetBranchAddress("btag_tc_high_eff", &btag_tc_high_eff, NULL);
-  fChain->SetBranchAddress("btag_tc_high_pur", &btag_tc_high_pur, NULL);
-  fChain->SetBranchAddress("btag_ssv_high_eff", &btag_tc_high_eff, NULL);
-  fChain->SetBranchAddress("btag_ssv_high_pur", &btag_tc_high_pur, NULL);
-  fChain->SetBranchAddress("btag_jet_probability", &btag_jet_probability, NULL);
-  fChain->SetBranchAddress("btag_jet_b_probability", &btag_jet_b_probability, NULL);
-  fChain->SetBranchAddress("btag_csv", &btag_csv, NULL);
-  fChain->SetBranchAddress("qg_tag_mlp", &qg_tag_mlp, NULL);
-  fChain->SetBranchAddress("qg_tag_likelihood", &qg_tag_likelihood, NULL);
+//  fChain->SetBranchAddress("btag_tc_high_eff", &btag_tc_high_eff, NULL);
+//  fChain->SetBranchAddress("btag_tc_high_pur", &btag_tc_high_pur, NULL);
+//  fChain->SetBranchAddress("btag_ssv_high_eff", &btag_tc_high_eff, NULL);
+//  fChain->SetBranchAddress("btag_ssv_high_pur", &btag_tc_high_pur, NULL);
+//  fChain->SetBranchAddress("btag_jet_probability", &btag_jet_probability, NULL);
+//  fChain->SetBranchAddress("btag_jet_b_probability", &btag_jet_b_probability, NULL);
+//  fChain->SetBranchAddress("btag_csv", &btag_csv, NULL);
+//  fChain->SetBranchAddress("qg_tag_mlp", &qg_tag_mlp, NULL);
+//  fChain->SetBranchAddress("qg_tag_likelihood", &qg_tag_likelihood, NULL);
   fChain->SetBranchAddress("jet_CHEn", &jet_CHEn, NULL);
   fChain->SetBranchAddress("jet_NHEn", &jet_NHEn, NULL);
   fChain->SetBranchAddress("jet_PhEn", &jet_PhEn, NULL);
@@ -100,21 +102,22 @@ void JetTree::Init(TTree *tree)
   fChain->SetBranchAddress("jet_NHMult", &jet_NHMult, NULL);
   fChain->SetBranchAddress("jet_ElMult", &jet_ElMult, NULL);
   fChain->SetBranchAddress("jet_CHMult", &jet_CHMult, NULL);
+  fChain->SetBranchAddress("ptAK4matchCaloJet", &ptAK4matchCaloJet, NULL);
   InitCache();
 }
 
 void JetTree::DisableUnrelatedBranches()
 {
   fChain->SetBranchStatus("jet_area", 0);
-  fChain->SetBranchStatus("btag_tc_high_eff", 0);
-  fChain->SetBranchStatus("btag_tc_high_pur", 0);
-  fChain->SetBranchStatus("btag_ssv_high_eff", 0);
-  fChain->SetBranchStatus("btag_ssv_high_pur", 0);
-  fChain->SetBranchStatus("btag_jet_probability", 0);
-  fChain->SetBranchStatus("btag_jet_b_probability", 0);
-  fChain->SetBranchStatus("btag_csv", 0);
-  fChain->SetBranchStatus("qg_tag_mlp", 0);
-  fChain->SetBranchStatus("qg_tag_likelihood", 0);
+//  fChain->SetBranchStatus("btag_tc_high_eff", 0);
+//  fChain->SetBranchStatus("btag_tc_high_pur", 0);
+//  fChain->SetBranchStatus("btag_ssv_high_eff", 0);
+//  fChain->SetBranchStatus("btag_ssv_high_pur", 0);
+//  fChain->SetBranchStatus("btag_jet_probability", 0);
+//  fChain->SetBranchStatus("btag_jet_b_probability", 0);
+//  fChain->SetBranchStatus("btag_csv", 0);
+//  fChain->SetBranchStatus("qg_tag_mlp", 0);
+//  fChain->SetBranchStatus("qg_tag_likelihood", 0);
   fChain->SetBranchStatus("jet_CHEn", 0);
   fChain->SetBranchStatus("jet_NHEn", 0);
   fChain->SetBranchStatus("jet_PhEn", 0);
@@ -126,4 +129,5 @@ void JetTree::DisableUnrelatedBranches()
   fChain->SetBranchStatus("jet_NHMult", 0);
   fChain->SetBranchStatus("jet_ElMult", 0);
   fChain->SetBranchStatus("jet_CHMult", 0);
+  fChain->SetBranchStatus("ptAK4matchCaloJet", 0);
 }

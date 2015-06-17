@@ -89,5 +89,8 @@ class PtBinning {
       mPtBins.push_back(std::make_pair(600., 800.));
       mPtBins.push_back(std::make_pair(800., 5000.));
     } 
-
+// //for nominal g+j analysis
+//   void fillPtBins() {
+//      mPtBins.push_back(std::make_pair(10., 5000.));
+//   }
 };

@@ -25,10 +25,10 @@ class PhotonTree: public BaseTree {
     Float_t         chargedHadronsIsolation;
     Float_t         neutralHadronsIsolation;
     Float_t         photonIsolation; 
-    Float_t         originalEnergy;
+//    Float_t         originalEnergy;
     Float_t         regressionEnergy;
-    Float_t         footprintMExCorr;
-    Float_t         footprintMEyCorr;
+//    Float_t         footprintMExCorr;
+//    Float_t         footprintMEyCorr;
 
     // List of branches
     TBranch        *b_jet_area;
@@ -52,9 +52,9 @@ void PhotonTree::Init(TTree *tree)
   fChain->SetBranchAddress("chargedHadronsIsolation", &chargedHadronsIsolation, NULL);
   fChain->SetBranchAddress("neutralHadronsIsolation", &neutralHadronsIsolation, NULL);
   fChain->SetBranchAddress("photonIsolation", &photonIsolation, NULL);
-  fChain->SetBranchAddress("footprintMExCorr", &footprintMExCorr, NULL);
-  fChain->SetBranchAddress("footprintMEyCorr", &footprintMEyCorr, NULL);
-  fChain->SetBranchAddress("originalEnergy", &originalEnergy, NULL);
+//  fChain->SetBranchAddress("footprintMExCorr", &footprintMExCorr, NULL);
+//  fChain->SetBranchAddress("footprintMEyCorr", &footprintMEyCorr, NULL);
+//  fChain->SetBranchAddress("originalEnergy", &originalEnergy, NULL);
   fChain->SetBranchAddress("regressionEnergy", &regressionEnergy, NULL);
 
   BaseTree::InitCache();
