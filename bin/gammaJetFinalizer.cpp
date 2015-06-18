@@ -352,23 +352,23 @@ void GammaJetFinalizer::runAnalysis() {
   TH1F* h_METResolution_passedID = analysisDir.make<TH1F>("METResolution_passedID", "MET", 100, 0., 600.);
   TH1F* h_MET_perp_passedID = analysisDir.make<TH1F>("MET_perp_passedID", "MET", 200, -600., 600.);
   TH1F* h_MET_par_passedID = analysisDir.make<TH1F>("MET_par_passedID", "MET", 200, -600., 600.);
-//resolution plots for mc only
-//  if (mIsMC) {
-//photon eergy resolution
-  TH1F* h_phPt_resolution = analysisDir.make<TH1F>("phPt_resolution","phPt_resolution", 300, -15, 15);
-  TH1F* h_phPx_resolution = analysisDir.make<TH1F>("phPx_resolution", "phPx_resolution", 300, -15, 15);
-  TH1F* h_phPy_resolution = analysisDir.make<TH1F>("phPy_resolution", "phPy_resolution", 300, -15, 15);
-  TH1F* h_phPt_regression_resolution = analysisDir.make<TH1F>("phPt_regression_resolution", "phPt_regression_resolution", 300, -15, 15);
-  TH1F* h_phPx_regression_resolution = analysisDir.make<TH1F>("phPx_regression_resolution", "phPx_regression_resolution", 300, -15, 15);
-  TH1F* h_phPy_regression_resolution = analysisDir.make<TH1F>("phPy_regression_resolution", "phPy_regression_resolution", 300, -15, 15);
-//MET resolution
-  TH1F* h_MET_resolution = analysisDir.make<TH1F>("MET_resolution", "MET_resolution", 100, 0., 60);
-  TH1F* h_MET_par_resolution = analysisDir.make<TH1F>("MET_par_resolution", "MET_par_resolution", 100, -300, 300);
-  TH1F* h_MET_perp_resolution = analysisDir.make<TH1F>("MET_perp_resolution", "MET_perp_resolution", 100, 0, 300);
-  TH1F* h_MET_footprint_resolution = analysisDir.make<TH1F>("MET_footprint_resolution", "MET_footprint_resolution", 100, 0., 600);
-  TH1F* h_MET_par_footprint_resolution = analysisDir.make<TH1F>("MET_par_footprint_resolution", "MET_par_footprint_resolution", 100, -300., 300);
-  TH1F* h_MET_perp_footprint_resolution = analysisDir.make<TH1F>("MET_perp_footprint_resolution", "MET_perp_footprint_resolution", 100, -300, 300);
-//  }
+////resolution plots for mc only
+////  if (mIsMC) {
+////photon eergy resolution
+//  TH1F* h_phPt_resolution = analysisDir.make<TH1F>("phPt_resolution","phPt_resolution", 300, -15, 15);
+//  TH1F* h_phPx_resolution = analysisDir.make<TH1F>("phPx_resolution", "phPx_resolution", 300, -15, 15);
+//  TH1F* h_phPy_resolution = analysisDir.make<TH1F>("phPy_resolution", "phPy_resolution", 300, -15, 15);
+//  TH1F* h_phPt_regression_resolution = analysisDir.make<TH1F>("phPt_regression_resolution", "phPt_regression_resolution", 300, -15, 15);
+//  TH1F* h_phPx_regression_resolution = analysisDir.make<TH1F>("phPx_regression_resolution", "phPx_regression_resolution", 300, -15, 15);
+//  TH1F* h_phPy_regression_resolution = analysisDir.make<TH1F>("phPy_regression_resolution", "phPy_regression_resolution", 300, -15, 15);
+////MET resolution
+//  TH1F* h_MET_resolution = analysisDir.make<TH1F>("MET_resolution", "MET_resolution", 100, 0., 60);
+//  TH1F* h_MET_par_resolution = analysisDir.make<TH1F>("MET_par_resolution", "MET_par_resolution", 100, -300, 300);
+//  TH1F* h_MET_perp_resolution = analysisDir.make<TH1F>("MET_perp_resolution", "MET_perp_resolution", 100, 0, 300);
+//  TH1F* h_MET_footprint_resolution = analysisDir.make<TH1F>("MET_footprint_resolution", "MET_footprint_resolution", 100, 0., 600);
+//  TH1F* h_MET_par_footprint_resolution = analysisDir.make<TH1F>("MET_par_footprint_resolution", "MET_par_footprint_resolution", 100, -300., 300);
+//  TH1F* h_MET_perp_footprint_resolution = analysisDir.make<TH1F>("MET_perp_footprint_resolution", "MET_perp_footprint_resolution", 100, -300, 300);
+////  }
 
 //jet composition - viola
   TH1F* h_CHEn_passedID = analysisDir.make<TH1F>("CHEnergy_passedID", "CHEnergy", 40, 0., 500);
@@ -1062,8 +1062,8 @@ void GammaJetFinalizer::runAnalysis() {
     }
 
 float vpar=0.;
-float vparRaw=0.;
-float vparGen=0.;
+//float vparRaw=0.;
+//float vparGen=0.;
 
 
     if (secondJetOK) {
@@ -1100,27 +1100,27 @@ float vparGen=0.;
         h_MET_par_passedID->Fill((MET.px*photon.px + MET.py*photon.py)/photon.pt, eventWeight);
         h_MET_perp_passedID->Fill(MET.pt*(1.-pow(vpar/MET.pt,2)), eventWeight);
 
-//fill resolution histos (for mc only)
-       if (mIsMC && genPhoton.pt!=0. && genMET.pt!=0.) {
-        h_METResolution_passedID->Fill(sqrt(pow(MET.px-genMET.px,2)+pow(MET.py-genMET.py,2)), eventWeight);
-         if(photon.regressionEnergy!=0.){
-         h_phPt_resolution->Fill( sqrt(pow((photon.px*photon.originalEnergy/photon.regressionEnergy)-genPhoton.px,2)+pow((photon.py*photon.originalEnergy/photon.regressionEnergy)-genPhoton.py,2)) , eventWeight); 
-         h_phPx_resolution->Fill((photon.px*photon.originalEnergy/photon.regressionEnergy)-genPhoton.px, eventWeight);
-         h_phPy_resolution->Fill((photon.py*photon.originalEnergy/photon.regressionEnergy)-genPhoton.py, eventWeight);
-          }
-         h_phPt_regression_resolution->Fill(sqrt(pow(photon.px-genPhoton.px,2)+pow(photon.py-genPhoton.py,2)) , eventWeight);
-         h_phPx_regression_resolution->Fill(photon.px-genPhoton.px, eventWeight);
-         h_phPy_regression_resolution->Fill(photon.py-genPhoton.py, eventWeight);
-         vparRaw=(rawMET.px*photon.px + rawMET.py*photon.py)/photon.pt;
-         vparGen=(genMET.px*photon.px + genMET.py*photon.py)/photon.pt;
-         h_MET_resolution->Fill(sqrt(pow(rawMET.px-genMET.px,2)+pow(rawMET.py-genMET.py,2)), eventWeight);
-         h_MET_par_resolution->Fill(vpar -  vparGen, eventWeight);
-         h_MET_perp_resolution->Fill(sqrt(pow((MET.px-(vpar*photon.px/photon.pt)),2)+pow((MET.py-(vpar*photon.py/photon.pt)),2))  , eventWeight);
-         h_MET_perp_resolution->Fill( rawMET.pt*(1.-pow(vparRaw/rawMET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
-         h_MET_footprint_resolution->Fill(sqrt(pow(photon.footprintMExCorr-genMET.px,2) + pow(photon.footprintMEyCorr-genMET.py,2) ), eventWeight);
-         h_MET_par_footprint_resolution->Fill( vpar-(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt  , eventWeight);
-         h_MET_perp_footprint_resolution->Fill( MET.pt*(1.-pow(vpar/MET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
-      }
+////fill resolution histos (for mc only)
+//       if (mIsMC && genPhoton.pt!=0. && genMET.pt!=0.) {
+//        h_METResolution_passedID->Fill(sqrt(pow(MET.px-genMET.px,2)+pow(MET.py-genMET.py,2)), eventWeight);
+//         if(photon.regressionEnergy!=0.){
+//         h_phPt_resolution->Fill( sqrt(pow((photon.px*photon.originalEnergy/photon.regressionEnergy)-genPhoton.px,2)+pow((photon.py*photon.originalEnergy/photon.regressionEnergy)-genPhoton.py,2)) , eventWeight); 
+//         h_phPx_resolution->Fill((photon.px*photon.originalEnergy/photon.regressionEnergy)-genPhoton.px, eventWeight);
+//         h_phPy_resolution->Fill((photon.py*photon.originalEnergy/photon.regressionEnergy)-genPhoton.py, eventWeight);
+//          }
+//         h_phPt_regression_resolution->Fill(sqrt(pow(photon.px-genPhoton.px,2)+pow(photon.py-genPhoton.py,2)) , eventWeight);
+//         h_phPx_regression_resolution->Fill(photon.px-genPhoton.px, eventWeight);
+//         h_phPy_regression_resolution->Fill(photon.py-genPhoton.py, eventWeight);
+//         vparRaw=(rawMET.px*photon.px + rawMET.py*photon.py)/photon.pt;
+//         vparGen=(genMET.px*photon.px + genMET.py*photon.py)/photon.pt;
+//         h_MET_resolution->Fill(sqrt(pow(rawMET.px-genMET.px,2)+pow(rawMET.py-genMET.py,2)), eventWeight);
+//         h_MET_par_resolution->Fill(vpar -  vparGen, eventWeight);
+//         h_MET_perp_resolution->Fill(sqrt(pow((MET.px-(vpar*photon.px/photon.pt)),2)+pow((MET.py-(vpar*photon.py/photon.pt)),2))  , eventWeight);
+//         h_MET_perp_resolution->Fill( rawMET.pt*(1.-pow(vparRaw/rawMET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+//         h_MET_footprint_resolution->Fill(sqrt(pow(photon.footprintMExCorr-genMET.px,2) + pow(photon.footprintMEyCorr-genMET.py,2) ), eventWeight);
+//         h_MET_par_footprint_resolution->Fill( vpar-(genMET.px*genPhoton.px + genMET.py*genPhoton.py)/genPhoton.pt  , eventWeight);
+//         h_MET_perp_footprint_resolution->Fill( MET.pt*(1.-pow(vpar/MET.pt,2))-genMET.pt*(1.-pow(vparGen/genMET.pt,2)), eventWeight);
+//      }
 
         // Special case
         if (fabs(firstJet.eta) < 2.1) {
