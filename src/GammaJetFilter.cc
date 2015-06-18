@@ -185,6 +185,7 @@ class GammaJetFilter : public edm::EDFilter {
 
     double mPtHatMin;
     double mPtHatMax;
+    //double sum_GenWeights;
 
     // Trees
     void createTrees(const std::string& rootName, TFileService& fs);
@@ -211,6 +212,9 @@ class GammaJetFilter : public edm::EDFilter {
     TParameter<bool>*             mFirstJetPtCutParameter;
     TParameter<double>*           mFirstJetThresholdParameter;
 
+    // to store sum of event weights
+    TH1F* h_sumW;
+    
     // DEBUG
     TH1F* mFirstJetPhotonDeltaPhi;
     TH1F* mFirstJetPhotonDeltaR;
@@ -285,8 +289,10 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
 
   mIsMC = iConfig.getUntrackedParameter<bool>("isMC", "false");
 
+  //sum_GenWeights = 0;
+
   //giulia --- no more necessary, regression integrated in release 73X
-//Photon energy regression corrector (need to define it once for data once for mc)
+  //Photon energy regression corrector (need to define it once for data once for mc)
 //if (mIsMC) {
 //  RegressionCorrector = new EnergyScaleCorrection_class("",edm::FileInPath("JetMETCorrections/GammaJetFilter/data/step8-stochasticSmearing-invMass_SC_regrCorrSemiParV5_pho-loose-Et_20-trigger-noPF-HggRunEtaR9Et.dat").fullPath());
 //  } else {
@@ -305,27 +311,27 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L3Absolute_AK4PFchs.txt").fullPath());    
     JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L2Relative_AK4PFchs.txt").fullPath());
     JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
-   //giulia--- corrector for type I is the same now 
+    //giulia--- corrector for type I is the same now 
     JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
 
-   
+
     //JetCorrectorParameters *ResJetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt").fullPath());
     //JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L3Absolute_AK5PFchs.txt").fullPath());
     //JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L2Relative_AK5PFchs.txt").fullPath());
-//  //  JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_DATA_L1FastJet_AK5PFchs.txt").fullPath());
+    //  //  JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_DATA_L1FastJet_AK5PFchs.txt").fullPath());
     //JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V6_DATA_L1FastJet_AK5PFchs.txt").fullPath());
-//Wi//nter14_V1_DATA_L1FastJet_AK5PFchs.txt
+    //Wi//nter14_V1_DATA_L1FastJet_AK5PFchs.txt
     ////txt file to use for L1 only for typeI
     //JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V0_DATA_L1FastJetPU_AK5PFchs_pt.txt").fullPath()); 
-/*
-//NO CHS
+    /*
+    //NO CHS
     JetCorrectorParameters *ResJetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_DATA_L2L3Residual_AK5PF.txt").fullPath());
     JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L3Absolute_AK5PF.txt").fullPath());
     JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L2Relative_AK5PF.txt").fullPath());
     JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_DATA_L1FastJet_AK5PF.txt").fullPath());
     //txt file to use for L1 only for typeI
     JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V0_DATA_L1FastJetPU_AK5PF_pt.txt").fullPath());
-*/
+    */
     //
     //
     // Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!!
@@ -353,18 +359,18 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     // Create the JetCorrectorParameter objects, the order does not matter.
     // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
 
-//CHS
+    //CHS
     JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L3Absolute_AK4PFchs.txt").fullPath());    
     JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L2Relative_AK4PFchs.txt").fullPath());
     JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
-   //giulia--- corrector for type I is the same now 
+    //giulia--- corrector for type I is the same now 
     JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
 
-   
+
     //
     // Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!!
-//When i thought it was L1(V0)L2L3 - L1(V0)
-//    vParTypeI.push_back(*L1JetParForTypeI);
+    //When i thought it was L1(V0)L2L3 - L1(V0)
+    //    vParTypeI.push_back(*L1JetParForTypeI);
     vParTypeI.push_back(*L1JetPar);
     vParTypeI.push_back(*L2JetPar);
     vParTypeI.push_back(*L3JetPar);
@@ -376,7 +382,7 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     delete L3JetPar;
     delete L2JetPar;
     delete L1JetParForTypeI;
-}
+  }
 
   mPhotonsIT = iConfig.getUntrackedParameter<edm::InputTag>("photons", edm::InputTag("slimmedPhotons"));
   mCorrPhotonWRegression = iConfig.getUntrackedParameter<bool>("doPhotonRegression", false);
@@ -403,8 +409,8 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   bool runOnPFAK8    = iConfig.getUntrackedParameter<bool>("runOnPFAK8", false);
   bool runOnCaloAK4  = iConfig.getUntrackedParameter<bool>("runOnCaloAK4", false);
   bool runOnCaloAK8  = iConfig.getUntrackedParameter<bool>("runOnCaloAK8", false);
-//giulia --- default is chs, so the inputtag is the same
-//run module to do chs ab initio!
+  //giulia --- default is chs, so the inputtag is the same
+  //run module to do chs ab initio!
   edm::InputTag jetsAK4PFlowITchs = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK4PFlowchs", edm::InputTag("slimmedJets"));
   edm::InputTag jetsAK8PFlowITchs = iConfig.getUntrackedParameter<edm::InputTag>("jetsAK8PFlowchs", edm::InputTag("slimmedJetsAK8"));
 
@@ -416,12 +422,12 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
 
   edm::Service<TFileService> fs;
   mPhotonTree = fs->make<TTree>("photon", "photon tree");
-  
-  if (mIsMC)
-    mPhotonGenTree = fs->make<TTree>("photon_gen", "photon gen tree");
-  else
-    mPhotonGenTree = nullptr;
 
+  if (mIsMC){
+    mPhotonGenTree = fs->make<TTree>("photon_gen", "photon gen tree");
+  }  else{
+    mPhotonGenTree = nullptr;
+  }
   mAnalysisTree = fs->make<TTree>("analysis", "analysis tree");
   mMuonsTree = fs->make<TTree>("muons", "muons tree");
   mElectronsTree = fs->make<TTree>("electrons", "electrons tree");
@@ -492,6 +498,13 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     mFirstJetThresholdParameter = fs->make<TParameter<double> >("cut_on_first_jet_treshold", mFirstJetThreshold);
   }
 
+  if (mIsMC){
+    // to store the sum of weights
+    h_sumW = fs->make<TH1F>("h_sumW", "h_sumW", 1, -0.5, 5.5);
+    h_sumW->Sumw2();
+  }  else{
+    h_sumW = nullptr;
+  }
   mFirstJetPhotonDeltaPhi = fs->make<TH1F>("firstJetPhotonDeltaPhi", "firstJetPhotonDeltaPhi", 50, 0., M_PI);
   mFirstJetPhotonDeltaR = fs->make<TH1F>("firstJetPhotonDeltaR", "firstJetPhotonDeltaR", 80, 0, 10);
   mFirstJetPhotonDeltaPt = fs->make<TH1F>("firstJetPhotonDeltaPt", "firstJetPhotonDeltaPt", 100, 0, 50);
@@ -603,6 +616,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   mProcessedEvents->SetVal(mProcessedEvents->GetVal() + 1);
 
+
   if (! mIsMC && mFilterData && ! mIsValidLumiBlock) {
     return false;
   }
@@ -623,7 +637,6 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if (mIsMC) {
     edm::Handle<GenEventInfoProduct> eventInfos;
     iEvent.getByLabel("generator", eventInfos);
-
     if (eventInfos.isValid() && eventInfos->hasBinningValues()) {
       double genPt = eventInfos->binningValues()[0];
 
@@ -635,9 +648,11 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
 
     generatorWeight = eventInfos->weight();
+    h_sumW->Fill(0.,generatorWeight);
     if (generatorWeight == 0.) {
       generatorWeight = 1.;
     }
+    //sum_GenWeights += generatorWeight;
   }
 
   edm::Handle<double> pFlowRho;
@@ -820,6 +835,7 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     updateBranch(mAnalysisTree, &nPUVertex, "pu_nvertex", "I");
     updateBranch(mAnalysisTree, &mEventsWeight, "event_weight"); // Only valid for binned samples
     updateBranch(mAnalysisTree, &generatorWeight, "generator_weight", "D"); // Only valid for flat samples
+    //updateBranch(mAnalysisTree, &sum_GenWeights, "sum_GenWeights", "D"); // Only valid for flat samples
 
     // Triggers
     edm::Handle<edm::TriggerResults> triggerResults;
