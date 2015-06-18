@@ -7,11 +7,23 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = cms.untracked.string('INFO')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
-process.load("Configuration/StandardSequences/GeometryDB_cff")
-process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
+#--- import of standard configurations
+#process.load("Configuration/StandardSequences/GeometryDB_cff")
+#process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_cff')
+process.load('Configuration.StandardSequences.Services_cff')
+process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
+process.load('FWCore.MessageService.MessageLogger_cfi')
+process.load('Configuration.EventContent.EventContent_cff')
+process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff')
+process.load('Configuration.StandardSequences.EndOfProcess_cff')
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
+
 
 #process.GlobalTag.globaltag = cms.string("START53_V23::All")
-process.GlobalTag.globaltag = cms.string("PHYS14_25_V2::All")
+#process.GlobalTag.globaltag = cms.string("PHYS14_25_V2::All")
+#process.GlobalTag.globaltag = cms.string("MCRUN2_74_V8")
+process.GlobalTag.globaltag = cms.string(THISGLOBALTAG)
 
 process.load("JetMETCorrections.Configuration.JetCorrectionProducers_cff")
 
@@ -28,7 +40,7 @@ process.ak4PFchsL1FastL2L3 = cms.ESProducer(
     correctors = cms.vstring('ak4PFchsL1Fastjet', 'ak4PFchsL2Relative','ak4PFchsL3Absolute')
     )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 #readFiles = cms.untracked.vstring(
@@ -40,7 +52,10 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 
 process.source = cms.Source (
     "PoolSource", 
-    fileNames = cms.untracked.vstring('file:/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_7_3_2/test/test_file_MINIAOD_for_JEC2015.root')
+    fileNames = cms.untracked.vstring(
+      #'file:/cmshome/gdimperi/GammaJet/JetCorrections/CMSSW_7_3_2/test/test_file_MINIAOD_for_JEC2015.root'
+      'root://xrootd.unl.edu//store/mc/RunIISpring15DR74/GJet_Pt-15To6000_TuneCUETP8M1-Flat_13TeV_pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v3/00000/00BB8CCC-9208-E511-8A90-0025905B857C.root'
+      )
     )
 
 from FWCore.ParameterSet.VarParsing import VarParsing
@@ -143,7 +158,8 @@ process.out.outputCommands = cms.untracked.vstring('keep *',
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("output_mc.root")
+    #fileName = cms.string("output_mc.root")
+    fileName = cms.string(THISROOTFILE)
     )
 
 #process.out.fileName = 'patTuple_cleaned.root'

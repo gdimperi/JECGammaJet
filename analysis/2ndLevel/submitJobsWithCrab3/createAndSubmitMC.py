@@ -81,7 +81,7 @@ for line in ins:
 
   print "line : "+line
   print "dataset : "+dataset
-  print "processedevents : "+processedevents
+  print "processedevents : "+processedevents +  "\n ******* \nNOTE that for flat samples the correct thing to put in processedEvents is 1!!\n*************"
   print "filesperjob : "+filesperjob
   print "globaltag : "+globaltag
 
@@ -96,7 +96,8 @@ for line in ins:
       "WORKINGDIR":sample+"__"+dataset.split("/")[2]+"__"+dataset.split("/")[3], 
       "CMSSWCFG":storagedir+"/"+namedir+"/cfg/"+sample+"_cmssw.py",
       "OUTFILENAME":sample+"__"+dataset.split("/")[2]+"__"+dataset.split("/")[3]+".root",
-      "INPUTDATASET":dataset
+      "INPUTDATASET":dataset,
+      "FILESPERJOB":filesperjob
       }
 ##create cmssw configuration file
   cmssw_cfgfile = storagedir+"/"+namedir+"/cfg/"+sample+"_cmssw.py"
