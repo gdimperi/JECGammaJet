@@ -36,6 +36,9 @@ Since for the moment data were not released in MimiAOD format there is a flag in
 
 === General notes (work in progress)
 
+- *IMPORTANT* MET at the moment is  corrected twice because we load the pat::MET stored in the MiniAOD as Raw met and correct it using JECs from txt files. To be understood:
+  ** pat::MET is already corrected?
+  ** hot to go back to raw MET and apply JEC in the right way to recalculate corrected MET
 - At the moment the FootPrint removal of the photon for the MET calculation is *NOT* implemented. 
   The following package have to be downloaded and adapted:  https://github.com/peruzzim/SCFootprintRemoval.git V01-07
 - Energy regression for the photon is now directly implemented in the `photon->energy()`(to be understood if this is propagated to PAT MET)
@@ -60,10 +63,13 @@ Create a list of the files to be merged (the output files of Step 1) and then ru
 passing the list, the corresponding total cross section in pb and the total luminosity in /pb.
 
 Example command:
+
 [source,bash]
 -----
+
 python scripts/mergeAndAddWeights.py --inputList lists/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8__RunIISpring15DR74-Asympt50nsRaw_MCRUN2_74_V9A-v3__MINIAODSIM.txt -o analysis/tuples/toFinalize --xsec 2022100000 --lumi_tot 0.150
-----
+
+-----
 
 This will update the tree "analysis" with a new branch called "evtWeightTot" and the TParameter "total_luminosity". Those number are used in the following steps to fill histograms and to draw plots. 
 
