@@ -23,15 +23,16 @@ This is a documentation for the gamma + jets framework.
 ----
 
 export SCRAM_ARCH=slc6_amd64_gcc491
-cmsrel CMSSW_7_3_2
-cd CMSSW_7_3_2/src
+cmsrel CMSSW_7_4_3
+cd CMSSW_7_4_3/src
 git clone https://github.com/gdimperi/JECGammaJet.git JetMETCorrections/GammaJetFilter/
 cd ..
 scram b -j 9
 
 ----
 
-The new analysis code starts from MINIAOD format instad of AOD. MINIAOD contains PAT objets: this allow to use basically the old structure skipping Step 1.
+The new analysis code starts from MINIAOD format instead of AOD. MINIAOD contains PAT objets: this allow to use basically the old structure skipping Step 1.
+Since for the moment data were not released in MimiAOD format there is a flag in the code for data that allows to run on AOD and produce MiniAODs on-the-fly
 
 === General notes (work in progress)
 
@@ -39,18 +40,31 @@ The new analysis code starts from MINIAOD format instad of AOD. MINIAOD contains
   The following package have to be downloaded and adapted:  https://github.com/peruzzim/SCFootprintRemoval.git V01-07
 - Energy regression for the photon is now directly implemented in the `photon->energy()`(to be understood if this is propagated to PAT MET)
 - For flavor studies, QG-tagging, b-tagging,  reclustering is needed and have to be implemented. Now ak4 PAT jets stored in the MINIAOD are used directly, changing on-the-fly the JEC for jets and MET.
-- At the moment we have only MC and no data, therefore:
-  ** pileup reweighting for MC is not necessary 
-  ** lumicalc part to compute the luminosity collected by the triggers in data is not necessary
+- Since data are coming we need to redo
+  ** pileup reweighting for MC  
+  ** adapt lumicalc part to compute the luminosity collected by the triggers in data (with new luminosity tools)
+  
 - When following the old instructions replace `AK5`, `ak5` with `AK4`, `ak4` and `AK7`, `ak7` with `AK8`, `ak8`, since ak4 and ak8 are the new supported jet alogs.
 
 === Step 1
 
 Follow Step 2 of old instructions.
 
+==== Merge and add weight for total normalization (only MC)
+
+If you're using "flat" MC samples you need to add a branch with the total event weight
+evtWeightTot = total_xsec / sum_of_generatorWeights
+This has to be done  in a separate step because it's necessary to run once over the full dataset in order to calculate the sum of generator weights.
+
+Create a list of the files to be merged (the output files of Step 1) and then run
+[source,bash]
+-----
+
+----
 === Step 2
 
 Follow Step 3 of old instructions. 
+
 
 In order to keep the structure of the macros used in the following step, you have to run over a "fake" data sample. 
 In any case, for the moment, data are not drawn in the final plots, so you can run the finalizer over whatever rootfile without the option `--mc`.
