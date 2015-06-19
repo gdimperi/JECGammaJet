@@ -54,13 +54,19 @@ Follow Step 2 of old instructions.
 
 If you're using "flat" MC samples you need to add a branch with the total event weight
 evtWeightTot = total_xsec / sum_of_generatorWeights
-This has to be done  in a separate step because it's necessary to run once over the full dataset in order to calculate the sum of generator weights.
+This has to be done  in a separate step because it's necessary to run once over the full dataset in order to calculate the sum of generator weights. In the output of Step 1 we store an histogram filled using generator weights, in order to extract the sum of weights at the end with Integral().
 
-Create a list of the files to be merged (the output files of Step 1) and then run
+Create a list of the files to be merged (the output files of Step 1) and then run the script mergeAndAddWeights.py 
+passing the list, the corresponding total cross section in pb and the total luminosity in /pb.
+
+Example command:
 [source,bash]
 -----
-
+python scripts/mergeAndAddWeights.py --inputList lists/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8__RunIISpring15DR74-Asympt50nsRaw_MCRUN2_74_V9A-v3__MINIAODSIM.txt -o analysis/tuples/toFinalize --xsec 2022100000 --lumi_tot 0.150
 ----
+
+This will update the tree "analysis" with a new branch called "evtWeightTot" and the TParameter "total_luminosity". Those number are used in the following steps to fill histograms and to draw plots. 
+
 === Step 2
 
 Follow Step 3 of old instructions. 
