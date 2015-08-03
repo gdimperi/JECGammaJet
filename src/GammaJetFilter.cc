@@ -54,6 +54,7 @@ Implementation:
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Common/interface/Ref.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
@@ -81,7 +82,7 @@ Implementation:
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 
-#include "JetMETCorrections/GammaJetFilter/interface/EnergyScaleCorrection_class.h"
+//#include "JetMETCorrections/GammaJetFilter/interface/EnergyScaleCorrection_class.h"
 
 #include <TParameter.h>
 #include <TTree.h>
@@ -129,16 +130,15 @@ class GammaJetFilter : public edm::EDFilter {
     //giulia --- comment qg tagging stuff
     void processJets(pat::Photon* photon, pat::JetCollection& jets, const JetAlgorithm algo, /* edm::Handle<edm::ValueMap<float>>& qgTagMLP, edm::Handle<edm::ValueMap<float>>& qgTagLikelihood,*/ const edm::Handle<pat::JetCollection>& handleForRef, std::vector<TTree*>& trees);
 
-    void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event);
-   void correctMETWithRegressionAndTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets,  edm::Event& event, pat::Photon& photon, const pat::PhotonRef& photonRef);
-   //giulia --- comment footprint stuff
+  //  void correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event);
+  void correctMETWithTypeI(pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event);
+  void correctMETWithRegressionAndTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets,  edm::Event& event, pat::Photon& photon, const pat::PhotonRef& photonRef);
+    //giulia --- comment footprint stuff
    //void correctMETWithFootprintAndTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets,  edm::Event& event, pat::Photon& photon, const pat::PhotonRef& photonRef);
 //(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event,const pat::PhotonRef& photonRef, float regressionCorr);
 
-    bool isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology);
-    bool isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::Event& event);
-    bool isValidPhotonEB_PHYS14(const pat::PhotonRef& photonRef, edm::Event& event);
-    bool isValidJet(const pat::Jet& jet);
+  bool isValidPhotonEB_SPRING15(const pat::PhotonRef& photonRef, edm::Event& event, double generatorWeight);
+  bool isValidJet(const pat::Jet& jet);
 
     void readJSONFile();
     void readCSVFile();
@@ -157,36 +157,77 @@ class GammaJetFilter : public edm::EDFilter {
     double mCurrentTruePU;
 
     // Photon ID
-    PFIsolationEstimator mPFIsolator;
-    bool mCorrPhotonWRegression;
+  PFIsolationEstimator mPFIsolator;
+  bool mCorrPhotonWRegression; // regression in implemented from 73, not done (false)
 
-    bool mRedoTypeI;
-    bool mDoFootprint;
-    bool mDoJEC;
-    bool mJECFromRaw;
-    std::string mCorrectorLabel;
-    GreaterByPt<pat::Jet> mSorter;
+  bool mRedoTypeI; 
+  bool mDoFootprint;
+  bool mDoJEC;  
+  bool mJECFromRaw;
+  std::string mCorrectorLabel;
+  GreaterByPt<pat::Jet> mSorter;
+  
+  bool mFirstJetPtCut;
+  double mFirstJetThreshold;
 
-    bool mFirstJetPtCut;
-    double mFirstJetThreshold;
+  std::vector<std::string> mJetCollections;
+  std::map<std::string, JetInfos> mJetCollectionsData;
 
-    std::vector<std::string> mJetCollections;
-    std::map<std::string, JetInfos> mJetCollectionsData;
+  // Input Tags
+  edm::InputTag mPhotonsIT;
+  edm::InputTag mJetsAK4PFlowIT;
+  edm::InputTag mJetsAK8PFlowIT;
+  edm::InputTag mJetsAK4CaloIT;
+  edm::InputTag mJetsAK8CaloIT;
+  
+  // federico -- Photon variables computed upstream in a special producer
+  //    edm::EDGetTokenT<edm::ValueMap<float> > full5x5SigmaIEtaIEtaMapToken_; // from rel73 ok in photon class
+  edm::EDGetTokenT<edm::ValueMap<float> > phoChargedIsolationToken_; 
+  edm::EDGetTokenT<edm::ValueMap<float> > phoNeutralHadronIsolationToken_; 
+  edm::EDGetTokenT<edm::ValueMap<float> > phoPhotonIsolationToken_;
 
-    // Input Tags
-    edm::InputTag mPhotonsIT;
-    edm::InputTag mJetsAK4PFlowIT;
-    edm::InputTag mJetsAK8PFlowIT;
-    edm::InputTag mJetsAK4CaloIT;
-    edm::InputTag mJetsAK8CaloIT;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_;
 
-    boost::shared_ptr<JetIDSelectionFunctor> mCaloJetID;
-    pat::strbitset mCaloJetIDRet;
+  // f. // Events Counter
+  int Event_Initial =0 ;
+  int Event_VtxCut =0 ;
+  int Event_MCGen =0 ;
+  int Event_NPhotons=0 ;
+  int Event_AfterJets =0;
+  int Event_Final =0;
+  
+  int N_Photons_Total = 0;
+  int N_Photons_Eta13 = 0;
+  int N_Photons_PtRange = 0;
 
-    double mPtHatMin;
-    double mPtHatMax;
-    //double sum_GenWeights;
+  int NoGoodPhotons = 0;
+  int OnlyOneGoodPhotons = 0;
+  int MoreGoodPhotons =0;
+  // Counter inside the photon method
+  int N_pho_Initial =0 ;
+  int N_pho_genPhoton =0 ;
+  int N_pho_HE =0 ;
+  int N_pho_R9 =0 ;
+  int N_pho_Sigma =0 ;
+  int N_pho_ElecVeto =0 ;
+  int N_pho_ChargedIsolation =0 ;
+  int N_pho_NeutralIsolation =0 ;
+  int N_pho_PhotonIsolation =0 ;
+  int N_pho_Isolation =0 ;
 
+  double  chargedHadronIsolation_Old ;
+  double  neutralHadronIsolation_Old ;
+  double  photonIsolation_Old ;
+  double  chargedHadronIsolation_New ;
+  double  neutralHadronIsolation_New ;
+  double  photonIsolation_New ;
+
+  boost::shared_ptr<JetIDSelectionFunctor> mCaloJetID;
+  pat::strbitset mCaloJetIDRet;
+
+  double mPtHatMin;
+  double mPtHatMax;
+  
     // Trees
     void createTrees(const std::string& rootName, TFileService& fs);
     TTree* mGenParticlesTree;
@@ -211,11 +252,19 @@ class GammaJetFilter : public edm::EDFilter {
     TNamed*                       mJECCorrectorLabel;
     TParameter<bool>*             mFirstJetPtCutParameter;
     TParameter<double>*           mFirstJetThresholdParameter;
-
+ 
     // to store sum of event weights
     TH1F* h_sumW;
-    
+  
     // DEBUG
+    TH1F* EventCounter;
+    TH1F* EventCounter_Raw;
+    TH1F* EventCounterPhoton;
+    TH1F* EventCounterPhoton_Raw;
+
+    TH1F* h_N_photons;
+    TH1F* h_N_photons_Raw;
+  
     TH1F* mFirstJetPhotonDeltaPhi;
     TH1F* mFirstJetPhotonDeltaR;
     TH1F* mFirstJetPhotonDeltaPt;
@@ -233,6 +282,10 @@ class GammaJetFilter : public edm::EDFilter {
 
     TH1F* mSelectedSecondJetPhotonDeltaPhi;
     TH1F* mSelectedSecondJetPhotonDeltaR;
+
+    TH1F* PhotonIsolation;
+
+    TH1F* PtPhotons;
 
     // For B / C jets neutrinos
     TClonesArray* mNeutrinos;
@@ -262,11 +315,13 @@ class GammaJetFilter : public edm::EDFilter {
     void genParticlesToTree(const edm::Handle<reco::GenParticleCollection>& genParticles);
   //FactorizedJetCorrector
   FactorizedJetCorrector *jetCorrector;
+  FactorizedJetCorrector *jetCorrector_MC;
   FactorizedJetCorrector *jetCorrectorForTypeI;
   FactorizedJetCorrector *jetCorrectorForTypeIL1;
   std::vector<JetCorrectorParameters> vPar;
   std::vector<JetCorrectorParameters> vParTypeI;
   std::vector<JetCorrectorParameters> vParTypeIL1;
+
 //giulia ---- regression no more necessary in 73X
   //define (once for all) corrector for regression
   //EnergyScaleCorrection_class *RegressionCorrector;
@@ -284,12 +339,18 @@ class GammaJetFilter : public edm::EDFilter {
 // constructors and destructor
 //
 GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
-  mIsMC(false), mIsValidLumiBlock(false)
+  mIsMC(false), mIsValidLumiBlock(false),
+  // Isolations
+  phoChargedIsolationToken_(consumes <edm::ValueMap<float> >
+			    (iConfig.getParameter<edm::InputTag>("phoChargedIsolation"))),
+  phoNeutralHadronIsolationToken_(consumes <edm::ValueMap<float> >
+				  (iConfig.getParameter<edm::InputTag>("phoNeutralHadronIsolation"))),
+  phoPhotonIsolationToken_(consumes <edm::ValueMap<float> >
+			   (iConfig.getParameter<edm::InputTag>("phoPhotonIsolation"))),
+  triggerPrescales_(consumes<pat::PackedTriggerPrescales>(iConfig.getParameter<edm::InputTag>("prescales")))
 {
 
   mIsMC = iConfig.getUntrackedParameter<bool>("isMC", "false");
-
-  //sum_GenWeights = 0;
 
   //giulia --- no more necessary, regression integrated in release 73X
   //Photon energy regression corrector (need to define it once for data once for mc)
@@ -300,7 +361,7 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
 //  }
 //
 
-  if (! mIsMC) {
+  if (! mIsMC) { // data --- actually JEC_data = JEC_MC
     mJSONFile = iConfig.getParameter<std::string>("json");
     mCSVFile = iConfig.getParameter<std::string>("csv");
     mFilterData = iConfig.getUntrackedParameter<bool>("filterData", true);
@@ -308,32 +369,12 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
     //CHS
    
-    JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L3Absolute_AK4PFchs.txt").fullPath());    
-    JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L2Relative_AK4PFchs.txt").fullPath());
-    JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
-    //giulia--- corrector for type I is the same now 
-    JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
-
-
-    //JetCorrectorParameters *ResJetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V6_DATA_L2L3Residual_AK5PFchs.txt").fullPath());
-    //JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L3Absolute_AK5PFchs.txt").fullPath());
-    //JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L2Relative_AK5PFchs.txt").fullPath());
-    //  //  JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_DATA_L1FastJet_AK5PFchs.txt").fullPath());
-    //JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V6_DATA_L1FastJet_AK5PFchs.txt").fullPath());
-    //Wi//nter14_V1_DATA_L1FastJet_AK5PFchs.txt
-    ////txt file to use for L1 only for typeI
-    //JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V0_DATA_L1FastJetPU_AK5PFchs_pt.txt").fullPath()); 
-    /*
-    //NO CHS
-    JetCorrectorParameters *ResJetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_DATA_L2L3Residual_AK5PF.txt").fullPath());
-    JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L3Absolute_AK5PF.txt").fullPath());
-    JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_MC_L2Relative_AK5PF.txt").fullPath());
-    JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V5_DATA_L1FastJet_AK5PF.txt").fullPath());
-    //txt file to use for L1 only for typeI
-    JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Winter14_V0_DATA_L1FastJetPU_AK5PF_pt.txt").fullPath());
-    */
-    //
-    //
+    JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt").fullPath());    
+    JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt").fullPath());
+    JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt").fullPath());
+       //giulia--- corrector for type I is the same now 
+    JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt").fullPath());
+   
     // Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!!
     vPar.push_back(*L1JetPar);
     vPar.push_back(*L2JetPar);
@@ -355,20 +396,22 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
     delete L2JetPar;
     delete L1JetPar;
     delete L1JetParForTypeI;
-  } else {
+  } else {  // JEC for MC
     // Create the JetCorrectorParameter objects, the order does not matter.
     // YYYY is the first part of the txt files: usually the global tag from which they are retrieved
 
     //CHS
-    JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L3Absolute_AK4PFchs.txt").fullPath());    
-    JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L2Relative_AK4PFchs.txt").fullPath());
-    JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
+    JetCorrectorParameters *L3JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L3Absolute_AK4PFchs.txt").fullPath());    
+    JetCorrectorParameters *L2JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L2Relative_AK4PFchs.txt").fullPath());
+    JetCorrectorParameters *L1JetPar = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt").fullPath());
     //giulia--- corrector for type I is the same now 
-    JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/PHYS14_25_V2_L1FastJet_AK4PFchs.txt").fullPath());
-
-
-    //
+    JetCorrectorParameters *L1JetParForTypeI = new JetCorrectorParameters(edm::FileInPath("JetMETCorrections/GammaJetFilter/data/Summer15_50nsV2_MC_L1FastJet_AK4PFchs.txt").fullPath());
     // Load the JetCorrectorParameter objects into a vector, IMPORTANT: THE ORDER MATTERS HERE !!!!
+    vPar.push_back(*L1JetPar);
+    vPar.push_back(*L2JetPar);
+    vPar.push_back(*L3JetPar);
+    //vPar.push_back(*ResJetPar); //comment if you dont want residuals
+    jetCorrector_MC = new FactorizedJetCorrector(vPar);
     //When i thought it was L1(V0)L2L3 - L1(V0)
     //    vParTypeI.push_back(*L1JetParForTypeI);
     vParTypeI.push_back(*L1JetPar);
@@ -394,16 +437,16 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   mRedoTypeI     = iConfig.getUntrackedParameter<bool>("redoTypeIMETCorrection", false);
   mDoFootprint     = iConfig.getUntrackedParameter<bool>("doFootprintMETCorrection", false);
 
-  if (mDoJEC) {
+  if (mDoJEC){ 
     mJECFromRaw = iConfig.getUntrackedParameter<bool>("correctJecFromRaw", false);
-    mCorrectorLabel = iConfig.getUntrackedParameter<std::string>("correctorLabel", "ak5PFResidual");
+    mCorrectorLabel = iConfig.getUntrackedParameter<std::string>("correctorLabel", "ak4PFResidual");
   }
 
   mFirstJetPtCut = iConfig.getUntrackedParameter<bool>("firstJetPtCut", true);
   mFirstJetThreshold = iConfig.getUntrackedParameter<double>("firstJetThreshold", 0.3);
 
   bool runOnCHS    = iConfig.getUntrackedParameter<bool>("runOnCHS", true);
-  bool runOnNonCHS = iConfig.getUntrackedParameter<bool>("runOnNonCHS", true);
+  bool runOnNonCHS = iConfig.getUntrackedParameter<bool>("runOnNonCHS", false);
 
   bool runOnPFAK4    = iConfig.getUntrackedParameter<bool>("runOnPFAK4", true);
   bool runOnPFAK8    = iConfig.getUntrackedParameter<bool>("runOnPFAK8", false);
@@ -505,6 +548,14 @@ GammaJetFilter::GammaJetFilter(const edm::ParameterSet& iConfig):
   }  else{
     h_sumW = nullptr;
   }
+ 
+  EventCounter = fs->make<TH1F>("EventCounter", "EventCounter", 7, -0.5, 6.5);
+  EventCounter_Raw = fs->make<TH1F>("EventCounter_Raw", "EventCounter_Raw", 7, -0.5, 6.5);
+  EventCounterPhoton = fs->make<TH1F>("EventCounterPhoton", "EventCounterPhoton", 11, -0.5, 10.5);
+  EventCounterPhoton_Raw = fs->make<TH1F>("EventCounterPhoton_Raw", "EventCounterPhoton_Raw", 11, -0.5, 10.5);
+
+  PtPhotons = fs->make<TH1F>("PtPhotons", "PtPhotons", 100, 0, 500); //all photons ->no selection
+
   mFirstJetPhotonDeltaPhi = fs->make<TH1F>("firstJetPhotonDeltaPhi", "firstJetPhotonDeltaPhi", 50, 0., M_PI);
   mFirstJetPhotonDeltaR = fs->make<TH1F>("firstJetPhotonDeltaR", "firstJetPhotonDeltaR", 80, 0, 10);
   mFirstJetPhotonDeltaPt = fs->make<TH1F>("firstJetPhotonDeltaPt", "firstJetPhotonDeltaPt", 100, 0, 50);
@@ -609,176 +660,214 @@ void GammaJetFilter::updateBranchArray(TTree* tree, void* address, const std::st
 // member functions
 //
 
+
+
+
 // ------------ method called on each new Event  ------------
 bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   using namespace edm;
 
   mProcessedEvents->SetVal(mProcessedEvents->GetVal() + 1);
-
-
+  
   if (! mIsMC && mFilterData && ! mIsValidLumiBlock) {
     return false;
   }
-
-  // Vertex
-  edm::Handle<reco::VertexCollection> vertices;
-  iEvent.getByLabel("offlineSlimmedPrimaryVertices", vertices);
-
-
-  // Keep events with at least one vertex
-  if (!vertices.isValid() || vertices->size() == 0 || vertices->front().isFake())
-    return false;
-
-  const reco::Vertex& primaryVertex = vertices->at(0);
-
+ 
   double generatorWeight = 1.;
-
+  
   if (mIsMC) {
     edm::Handle<GenEventInfoProduct> eventInfos;
     iEvent.getByLabel("generator", eventInfos);
     if (eventInfos.isValid() && eventInfos->hasBinningValues()) {
       double genPt = eventInfos->binningValues()[0];
-
+      
       if (mPtHatMin >= 0. && genPt < mPtHatMin)
-      	return false;
-
-      if (mPtHatMax >= 0. && genPt > mPtHatMax)
 	return false;
+      
+      if (mPtHatMax >= 0. && genPt > mPtHatMax)
+	 return false;
     }
-
+ 
     generatorWeight = eventInfos->weight();
     h_sumW->Fill(0.,generatorWeight);
     if (generatorWeight == 0.) {
       generatorWeight = 1.;
     }
-    //sum_GenWeights += generatorWeight;
-  }
+  }// end IsMC
 
+  //federico --> Added an event counter
+  Event_Initial++;
+  EventCounter -> AddBinContent(1, generatorWeight );
+  
+  Event_MCGen++;
+  EventCounter -> AddBinContent(2, generatorWeight );
+  
+  // Vertex
+  edm::Handle<reco::VertexCollection> vertices;
+  iEvent.getByLabel("offlineSlimmedPrimaryVertices", vertices);
+  
+  // Keep events with at least one vertex
+  if (!vertices.isValid() || vertices->size() == 0 || vertices->front().isFake())
+    return false;
+  
+  const reco::Vertex& primaryVertex = vertices->at(0);
+  
+  EventCounter -> AddBinContent(3, generatorWeight );
+  Event_VtxCut++;
+  
   edm::Handle<double> pFlowRho;
   iEvent.getByLabel(edm::InputTag("offlineSlimmedPrimaryVertices"), pFlowRho); // For photon ID
-
+  
   // Necesseray collection for calculate sigmaIPhiIPhi
   // 2011 Photon ID
   edm::ESHandle<CaloTopology> topology;
   iSetup.get<CaloTopologyRecord>().get(topology);
-
+   
   edm::Handle<pat::PhotonCollection> photons; //handle for pat::photonref
   iEvent.getByLabel(mPhotonsIT, photons);
   pat::PhotonCollection photons_nonconst = *photons; //handle for pat::photon
   pat::PhotonCollection::iterator it = photons_nonconst.begin();
   std::vector<pat::Photon> photonsVec;
   pat::Photon pho_tmp;
+  
+   uint32_t index = 0;
+   uint32_t goodPhoIndex = -1;
+   for (; it != photons_nonconst.end(); ++it, index++) { 
+     pho_tmp=*it;
+ 
+     N_Photons_Total++ ;
+     EventCounterPhoton -> AddBinContent(1, generatorWeight );
+     
+     if (fabs(it->eta()) <= 1.3) { // cut eta photons
+       
+       N_Photons_Eta13++;          
+       EventCounterPhoton -> AddBinContent(2, generatorWeight );
 
-  uint32_t index = 0;
-  uint32_t goodPhoIndex = -1;
-  for (; it != photons_nonconst.end(); ++it, index++) { 
-    pho_tmp=*it;
-    if (fabs(it->eta()) <= 1.3) {
-      pat::PhotonRef PhotonReftmp(photons, index);
-      if (isValidPhotonEB_PHYS14(PhotonReftmp, iEvent)) {
-      	photonsVec.push_back(*it);
-	goodPhoIndex=index;
+       // pT distrubution for all photon      
+       PtPhotons -> Fill(it->pt() );
+       
+       N_Photons_PtRange++;      
+       EventCounterPhoton -> AddBinContent(3, generatorWeight );
+
+       pat::PhotonRef PhotonReftmp(photons, index);
+       
+       if (isValidPhotonEB_SPRING15(PhotonReftmp, iEvent, generatorWeight)) {
+	 photonsVec.push_back(*it);
+	 goodPhoIndex=index;
       }
     }
   }
-
+  
+   //  std::cout <<"Number of good photons per event = " << photonsVec.size() << std::endl;
+   
+   if(photonsVec.size() == 0)    NoGoodPhotons++;
+   if(photonsVec.size() == 1)    OnlyOneGoodPhotons++;
+   if(photonsVec.size()    > 1)    MoreGoodPhotons++;
+   
   // Only one good photon per event
-  if (photonsVec.size() != 1)    return false;
-  pat::Photon photon = photonsVec[0];
-  pat::PhotonRef GoodphotonRef(photons, goodPhoIndex);
+   if (photonsVec.size() != 1)    return false;
 
-  //for technical reasons i need a photonref and a photon. 
-  //Since there is only one photon in these events, we are sur that the 
-  //goodPhoIndex is referring to the same photon as photonsVec[0];
-  //
-  //float regressionCorr=1.;
+   Event_NPhotons++;   
+   EventCounterPhoton -> AddBinContent(10, generatorWeight );
+   EventCounter -> AddBinContent(4, generatorWeight );
+   
+   pat::Photon photon = photonsVec[0];
+   pat::PhotonRef GoodphotonRef(photons, goodPhoIndex);
+   
+   //for technical reasons i need a photonref and a photon. 
+   //Since there is only one photon in these events, we are sure that the 
+   //goodPhoIndex is referring to the same photon as photonsVec[0];
+   //
+   //float regressionCorr=1.;
+   
 
+   //giulia --- regression integrated in 73X , putting FALSE by hand!
+   mCorrPhotonWRegression = false;
+   if (mCorrPhotonWRegression) {
+     
+     //calculate the regression energy using photonRef and getting the reco object
+     edm::Handle<edm::ValueMap<float>> regressionEnergyHandle;
+     iEvent.getByLabel(edm::InputTag("eleNewEnergiesProducer", "energySCEleJoshPhoSemiParamV5ecorr", "PAT"),regressionEnergyHandle);
+     edm::Ptr<reco::Candidate> GoodrecoObject = GoodphotonRef->originalObjectRef();
+     //float GoodregressionEnergy = (*regressionEnergyHandle)[GoodrecoObject] ;
+     //correct this january 15
+     //  regressionCorr = GoodregressionEnergy/(GoodphotonRef->energy());
+     //rescale the photon to the regression energy (rescale the whole p4 by the ratio of regression energy over uncorrected energy)
+     //correct this january 15
+     //  photon.setP4(photon.p4()*regressionCorr);
+     //now apply the additional correction (data) or smearing (mc)
+     //
+     int processingdata=1;
+     if(mIsMC) processingdata=0;
+     correctPhoton(photon,iEvent, processingdata, int(vertices->size()));
+   } // end regression
+   
+   // Process jets
+   edm::Handle<pat::JetCollection> jetsHandle;
+   
+   FOREACH(mJetCollections) {
+     
+     JetInfos infos = mJetCollectionsData[*it];
+     
+     iEvent.getByLabel(infos.inputTag, jetsHandle);
+     pat::JetCollection jets = *jetsHandle;
+     if (mDoJEC) {
+       correctJets(jets, iEvent, iSetup);
+     } else {
+       extractRawJets(jets);
+     }
+     
+     //giulia --- comment QG tagging stuff
+     //edm::Handle<edm::ValueMap<float>>  qgTagHandleMLP;
+     //edm::Handle<edm::ValueMap<float>>  qgTagHandleLikelihood;
+     //iEvent.getByLabel("QGTagger" + *it,"qgMLP", qgTagHandleMLP);
+     //iEvent.getByLabel("QGTagger" + *it,"qgLikelihood", qgTagHandleLikelihood);
+     
+     processJets(&photon, jets, infos.algo, /*qgTagHandleMLP, qgTagHandleLikelihood, */jetsHandle, mJetTrees[*it]);
 
-  //giulia --- regression integrated in 73X , putting FALSE by hand!
-  mCorrPhotonWRegression = false;
-  if (mCorrPhotonWRegression) {
-    
-    //calculate the regression energy using photonRef and getting the reco object
-    edm::Handle<edm::ValueMap<float>> regressionEnergyHandle;
-    iEvent.getByLabel(edm::InputTag("eleNewEnergiesProducer", "energySCEleJoshPhoSemiParamV5ecorr", "PAT"),regressionEnergyHandle);
-    edm::Ptr<reco::Candidate> GoodrecoObject = GoodphotonRef->originalObjectRef();
-    //float GoodregressionEnergy = (*regressionEnergyHandle)[GoodrecoObject] ;
-    //correct this january 15
-    //  regressionCorr = GoodregressionEnergy/(GoodphotonRef->energy());
-    //rescale the photon to the regression energy (rescale the whole p4 by the ratio of regression energy over uncorrected energy)
-    //correct this january 15
-    //  photon.setP4(photon.p4()*regressionCorr);
-    //now apply the additional correction (data) or smearing (mc)
-    //
-    int processingdata=1;
-    if(mIsMC) processingdata=0;
-      correctPhoton(photon,iEvent, processingdata, int(vertices->size()));
-  }
-
-
-
-    // Process jets
-    edm::Handle<pat::JetCollection> jetsHandle;
-
-    FOREACH(mJetCollections) {
-
-      JetInfos infos = mJetCollectionsData[*it];
-
-      iEvent.getByLabel(infos.inputTag, jetsHandle);
-      pat::JetCollection jets = *jetsHandle;
-      if (mDoJEC) {
-	correctJets(jets, iEvent, iSetup);
-      } else {
-	extractRawJets(jets);
-      }
-      //giulia --- comment QG taggiung stuff
-      //edm::Handle<edm::ValueMap<float>>  qgTagHandleMLP;
-      //edm::Handle<edm::ValueMap<float>>  qgTagHandleLikelihood;
-      //iEvent.getByLabel("QGTagger" + *it,"qgMLP", qgTagHandleMLP);
-      //iEvent.getByLabel("QGTagger" + *it,"qgLikelihood", qgTagHandleLikelihood);
-      processJets(&photon, jets, infos.algo, /*qgTagHandleMLP, qgTagHandleLikelihood, */jetsHandle, mJetTrees[*it]);
+     Event_AfterJets++;     
+     EventCounter -> AddBinContent(5, generatorWeight );
 
       // MET
-      // giulia --- taking MT from miniAOD --- assuming is it corrected -- ??
-      // which algo is used to compute MET? -- AK4?
-      edm::Handle<pat::METCollection> metsHandle;
-      //iEvent.getByLabel(std::string("patMETs" + ((*it == "AK4Calo") ? "" : *it)), metsHandle);
-      iEvent.getByLabel(edm::InputTag("slimmedMETs"), metsHandle);
 
-      //giulia - raw MET TO BE CHANGED		
-      edm::Handle<pat::METCollection> rawMets;
-      //iEvent.getByLabel(std::string("patPFMet" + ((*it == "AK4Calo") ? "" : *it)), rawMets);
-      iEvent.getByLabel(edm::InputTag("slimmedMETs"),  rawMets);
-
-      pat::METCollection mets = *metsHandle;
-      pat::MET& met = mets[0];
-      const pat::MET& rawMet = rawMets->at(0);
-
-      if (mDoJEC || mRedoTypeI) {
-      	//cout << "WARNING: keeping MET from miniAOD... not clear wether/how it is corrected..." << endl;
-
-        if (mDoFootprint) {
-	  //giulia --- comment footprint stuff
+     edm::Handle<pat::METCollection> metsHandle;
+     iEvent.getByLabel(edm::InputTag("slimmedMETs"), metsHandle);
+     //iEvent.getByLabel(std::string("patMETs" + ((*it == "AK4Calo") ? "" : *it)), metsHandle);
+    
+     edm::Handle<pat::METCollection> rawMetsHandle;
+     iEvent.getByLabel(edm::InputTag("slimmedMETs"),  rawMetsHandle);
+     //      iEvent.getByLabel(std::string("patPFMet" + ((*it == "AK4Calo") ? "" : *it)), rawMets);
+     
+     pat::METCollection mets = *metsHandle;
+     pat::MET& met = mets[0];
+     
+     pat::METCollection rawMets = *rawMetsHandle;
+     pat::MET& rawMet = rawMets[0];
+     //      const pat::MET& rawMet = rawMets->at(0);
+     
+     if (mDoJEC || mRedoTypeI) { // authomatic done is mDoJEC is done
+       if (mDoFootprint) { // federico --- working on
+	 //giulia --- comment footprint stuff
 	  //correctMETWithFootprintAndTypeI(rawMet, met, jets, iEvent, photon, GoodphotonRef);
-	  cout << "WARNING: Removed footprint stuff for debugging..." << endl;
-	} else {
-	  if (mCorrPhotonWRegression) {
-	    correctMETWithRegressionAndTypeI(rawMet, met, jets, iEvent, photon, GoodphotonRef);
-	  } else {
-	    correctMETWithTypeI(rawMet, met, jets, iEvent);
-	  }
-	}
-      }
-
-      if (rawMets.isValid())
-	metsToTree(met, rawMet, mMETTrees[*it]);
-      else {
-	pat::MET emptyRawMet = pat::MET();
-	metsToTree(met, emptyRawMet, mMETTrees[*it]);
-      }
-      //
-
+	 cout << "WARNING: Removed footprint stuff for debugging..." << endl;
+       } else {
+	 if (mCorrPhotonWRegression) { // regression not done
+	   correctMETWithRegressionAndTypeI(rawMet, met, jets, iEvent, photon, GoodphotonRef);
+	 } else { // yes
+	   correctMETWithTypeI(rawMet, met, jets, iEvent);
+	 }
+       }
+     }
+      
+     if (rawMetsHandle.isValid())
+       metsToTree(met, rawMet, mMETTrees[*it]);
+     else {
+       pat::MET emptyRawMet = pat::MET();
+       metsToTree(met, emptyRawMet, mMETTrees[*it]);
+     }
+     //
+      
       // Rho
       edm::Handle<double> rhos;
       if (it->find("Calo") != std::string::npos)
@@ -794,230 +883,275 @@ bool GammaJetFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       mMiscTrees[*it]->Fill();
     }
+   
+   // Number of vertices for pu reweighting
+   edm::Handle<std::vector<PileupSummaryInfo> > puInfos;
+   iEvent.getByLabel(edm::InputTag("addPileupInfo"), puInfos);
+   
+   float nTrueInteractions = -1;
+   int nPUVertex = -1;
+   unsigned int nVertex = vertices->size();
+   
+   edm::EventID eventId = iEvent.id();
+   EventNumber_t event = eventId.event();
+   RunNumber_t run = eventId.run();
+   LuminosityBlockNumber_t lumiBlock = eventId.luminosityBlock();
+   
+   if (mIsMC) {
+     for (std::vector<PileupSummaryInfo>::const_iterator it = puInfos->begin(); it != puInfos->end();
+	  ++it) {
+       
+       int BX = it->getBunchCrossing();
+       if (BX == 0) {
+	 nPUVertex = it->getPU_NumInteractions();
+	 nTrueInteractions = it->getTrueNumInteractions();
+	 break;
+       }
+     }
+     
+     if (nPUVertex < 0) {
+       throw cms::Exception("PUReweighting") << "No in-time beam crossing found!" << std::endl;
+     }
+   } else {
+     nTrueInteractions = mCurrentTruePU;
+   }
+   
+   updateBranch(mAnalysisTree, &run, "run", "i");
+   updateBranch(mAnalysisTree, &lumiBlock, "lumi_block", "i");
+   updateBranch(mAnalysisTree, &event, "event", "i");
+   updateBranch(mAnalysisTree, &nVertex, "nvertex", "i");
+   updateBranch(mAnalysisTree, &nTrueInteractions, "ntrue_interactions");
+   updateBranch(mAnalysisTree, &nPUVertex, "pu_nvertex", "I");
+   updateBranch(mAnalysisTree, &mEventsWeight, "event_weight"); // Only valid for binned samples
+   updateBranch(mAnalysisTree, &generatorWeight, "generator_weight", "D"); // Only valid for flat samples
+   
+   
+   // Triggers
+   edm::Handle<edm::TriggerResults> triggerResults;
+   iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
 
-    // Number of vertices for pu reweighting
-    edm::Handle<std::vector<PileupSummaryInfo> > puInfos;
-    iEvent.getByLabel(edm::InputTag("addPileupInfo"), puInfos);
+  //federico -- added prescale
+   edm::Handle<pat::PackedTriggerPrescales> triggerPrescales;
+   iEvent.getByToken(triggerPrescales_, triggerPrescales);
 
-    float nTrueInteractions = -1;
-    int nPUVertex = -1;
-    unsigned int nVertex = vertices->size();
-
-    edm::EventID eventId = iEvent.id();
-    EventNumber_t event = eventId.event();
-    RunNumber_t run = eventId.run();
-    LuminosityBlockNumber_t lumiBlock = eventId.luminosityBlock();
-
-    if (mIsMC) {
-      for (std::vector<PileupSummaryInfo>::const_iterator it = puInfos->begin(); it != puInfos->end();
-	   ++it) {
-
-  	int BX = it->getBunchCrossing();
-	if (BX == 0) {
-	  nPUVertex = it->getPU_NumInteractions();
-	  nTrueInteractions = it->getTrueNumInteractions();
-	  break;
-	}
-      }
-
-      if (nPUVertex < 0) {
-	throw cms::Exception("PUReweighting") << "No in-time beam crossing found!" << std::endl;
-      }
-    } else {
-      nTrueInteractions = mCurrentTruePU;
-    }
-
-    updateBranch(mAnalysisTree, &run, "run", "i");
-    updateBranch(mAnalysisTree, &lumiBlock, "lumi_block", "i");
-    updateBranch(mAnalysisTree, &event, "event", "i");
-    updateBranch(mAnalysisTree, &nVertex, "nvertex", "i");
-    updateBranch(mAnalysisTree, &nTrueInteractions, "ntrue_interactions");
-    updateBranch(mAnalysisTree, &nPUVertex, "pu_nvertex", "I");
-    updateBranch(mAnalysisTree, &mEventsWeight, "event_weight"); // Only valid for binned samples
-    updateBranch(mAnalysisTree, &generatorWeight, "generator_weight", "D"); // Only valid for flat samples
-    //updateBranch(mAnalysisTree, &sum_GenWeights, "sum_GenWeights", "D"); // Only valid for flat samples
-
-    // Triggers
-    edm::Handle<edm::TriggerResults> triggerResults;
-    iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
-
-    std::vector<std::string>* trigNames = new std::vector<std::string>();
-    std::vector<bool>* trigResults = new std::vector<bool>();
-
-    if (triggerResults.isValid()) {
-      static std::vector<boost::regex> validTriggers = { boost::regex("HLT_.*Photon.*", boost::regex_constants::icase) };
+   std::vector<std::string>* trigNames = new std::vector<std::string>();
+   std::vector<bool>* trigResults = new std::vector<bool>();
+   std::vector<double>* trigPrescale = new std::vector<double>();
+   
+   if (triggerResults.isValid()) {
+      static std::vector<boost::regex> validTriggers = { boost::regex("HLT_Photon.*_v.*", boost::regex_constants::icase) };
       const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResults);
-
+      
       size_t size = triggerResults->size();
-
+      
       for (size_t i = 0; i < size; i++) {
 	std::string triggerName = triggerNames.triggerName(i);
+
+	//	std::cout << "trigger Name   "<<triggerName <<std::endl ;
+	
 	bool isValid = false;
+
 	for (boost::regex& validTrigger: validTriggers) {
+
+	  //	  std::cout << "validTrigger   "<<validTrigger <<std::endl ;
+
 	  if (boost::regex_match(triggerName, validTrigger)) {
 	    isValid = true;
 	    break;
 	  }
 	}
+	
+	//	std::cout<<" isValid ?  "<<isValid<<std::endl;
 
   	if (!isValid)
 	  continue;
-
+	
   	unsigned int index = triggerNames.triggerIndex(triggerName);
 	bool passed = triggerResults->accept(index);
+	double prescale = triggerPrescales->getPrescaleForIndex(index);
 
+	//	std::cout << "trigger Name   "<<triggerName <<std::endl ;
+	//	std::cout << "passed  "<< passed <<std::endl ;
+
+	trigPrescale -> push_back(prescale);	
   	trigResults->push_back(passed);
 	trigNames->push_back(triggerName);
       }
-    }
-
+   }
+   
     // Create branches, even if they're empty
-    updateBranch(mAnalysisTree, trigNames, "trigger_names");
-    updateBranch(mAnalysisTree, trigResults, "trigger_results");
-
-    mAnalysisTree->Fill();
-
-    delete trigNames;
-    delete trigResults;
-
-    photonToTree(GoodphotonRef, photon, iEvent);
-
-    // Electrons
-    edm::Handle<pat::ElectronCollection> electrons;
-    iEvent.getByLabel("slimmedElectrons", electrons);
-    electronsToTree(electrons, primaryVertex);
-
-    // Muons
-    edm::Handle<pat::MuonCollection> muons;
-    iEvent.getByLabel("slimmedMuons", muons);
-    muonsToTree(muons, primaryVertex);
-
-    mSelectedEvents->SetVal(mSelectedEvents->GetVal() + 1);
-    return true;
+   updateBranch(mAnalysisTree, trigNames, "trigger_names");
+   updateBranch(mAnalysisTree, trigResults, "trigger_results");
+   updateBranch(mAnalysisTree, trigPrescale, "trigger_prescale");
+   
+   mAnalysisTree->Fill();
+   
+   delete trigNames;
+   delete trigResults;
+   delete trigPrescale;
+   
+   photonToTree(GoodphotonRef, photon, iEvent);
+   
+   // Electrons
+   edm::Handle<pat::ElectronCollection> electrons;
+   iEvent.getByLabel("slimmedElectrons", electrons);
+   electronsToTree(electrons, primaryVertex);
+   
+   // Muons
+   edm::Handle<pat::MuonCollection> muons;
+   iEvent.getByLabel("slimmedMuons", muons);
+   muonsToTree(muons, primaryVertex);
+   
+   mSelectedEvents->SetVal(mSelectedEvents->GetVal() + 1);
+   
+   EventCounter -> AddBinContent(6, generatorWeight );
+   Event_Final ++ ;
+   
+   return true;
 }
-
 
 
 // giulia -- correct energy of the photon already implemented in 73X
 // smearing - scale factors not necessary until we have new data @13 TeV
 //DO NOTHING!
 void GammaJetFilter::correctPhoton(pat::Photon& photon, edm::Event& iEvent, int isData, int nPV) {
-//  edm::EventID eventId = iEvent.id();
-
-//  if(isData==1) {
-//    
-//    float scalecorr = RegressionCorrector->ScaleCorrection(eventId.run(),true,photon.r9(),photon.eta(),photon.pt(),nPV,15.); //nPVmean is not actually used in the function, so it is set to a dummy value
-//    
-//    
-//    //ScaleCorrection(int runNumber, bool isEBEle, double R9Ele, double etaSCEle, double EtEle, int nPV, float nPVmean=0);
-//    photon.setP4(photon.p4()*scalecorr);
-//  } else {
-//    reco::SuperClusterRef superCluster = photon.superCluster();
-//    float smearcorr = RegressionCorrector->getSmearing(eventId.run(),photon.energy(),true,photon.r9(),superCluster->eta());
-//    //getSmearing(int runNumber, float energy, bool isEBEle, float R9Ele, float etaSCEle);
-//    photon.setP4(photon.p4()*smearcorr);
-//  }
+  //  edm::EventID eventId = iEvent.id();
+  
+  //  if(isData==1) {
+  //    
+  //    float scalecorr = RegressionCorrector->ScaleCorrection(eventId.run(),true,photon.r9(),photon.eta(),photon.pt(),nPV,15.); //nPVmean is not actually used in the function, so it is set to a dummy value
+  //    
+  //    
+  //    //ScaleCorrection(int runNumber, bool isEBEle, double R9Ele, double etaSCEle, double EtEle, int nPV, float nPVmean=0);
+  //    photon.setP4(photon.p4()*scalecorr);
+  //  } else {
+  //    reco::SuperClusterRef superCluster = photon.superCluster();
+  //    float smearcorr = RegressionCorrector->getSmearing(eventId.run(),photon.energy(),true,photon.r9(),superCluster->eta());
+  //    //getSmearing(int runNumber, float energy, bool isEBEle, float R9Ele, float etaSCEle);
+  //    photon.setP4(photon.p4()*smearcorr);
+  //  }
 }
 
 
 void GammaJetFilter::correctJets(pat::JetCollection& jets, edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Get Jet corrector
-  const JetCorrector* corrector = JetCorrector::getJetCorrector(mCorrectorLabel, iSetup);
-
+  //  const JetCorrector* corrector = JetCorrector::getJetCorrector(mCorrectorLabel, iSetup);
+  
   // Correct jets
   for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it)  {
     pat::Jet& jet = *it;
-
+    
     // Store raw jet, it's not possible to get it after corrections
     pat::Jet rawJet = jet.correctedJet("Uncorrected");
     jet.addUserData("rawJet", rawJet, true); // Store raw jet inside our jet. This allow us to correctly sort the resulting collection
     pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
     jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
-
+    
     if (mJECFromRaw) {
       double toRaw = jet.jecFactor("Uncorrected");
       jet.setP4(jet.p4() * toRaw); // It's now a raw jet
     }
-
+    
+    //federico
     double corrections =1.;
-    if(mIsMC)    {
-      corrections = corrector->correction(jet, iEvent, iSetup);
-    } else {
-      edm::Handle<double> rho_;
-      iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
-      jetCorrector->setJetEta(jet.eta());
-      jetCorrector->setJetPt(jet.pt());
-      jetCorrector->setJetA(jet.jetArea());
-      jetCorrector->setRho(*rho_);
-      corrections = jetCorrector->getCorrection();
-    }
+        if(mIsMC){
+	  // prima faceva cosi --- correzioni dal GB forse
+	  //      corrections = corrector->correction(jet, iEvent, iSetup);
+
+	  edm::Handle<double> rho_;
+	  //      iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
+	  iEvent.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rho_);
+	  jetCorrector_MC->setJetEta(jet.eta());
+	  jetCorrector_MC->setJetPt(jet.pt());
+	  jetCorrector_MC->setJetA(jet.jetArea());
+	  jetCorrector_MC->setRho(*rho_);
+	  corrections = jetCorrector_MC->getCorrection();     
+	  //      std::cout<<"corrections   "<< corrections <<std::endl;
+	} else {
+	  edm::Handle<double> rho_;
+	  //      iEvent.getByLabel(edm::InputTag("kt6PFJets", "rho"), rho_);
+	  iEvent.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rho_);
+	  jetCorrector->setJetEta(jet.eta());
+	  jetCorrector->setJetPt(jet.pt());
+	  jetCorrector->setJetA(jet.jetArea());
+	  jetCorrector->setRho(*rho_);
+	  corrections = jetCorrector->getCorrection();
+	  //     std::cout<<"corrections   "<< corrections <<std::endl;
+	}
     jet.scaleEnergy(corrections);
   }
-
+  
   // Sort collection by pt
   std::sort(jets.begin(), jets.end(), mSorter);
 }
 
 
-void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event) {
+//void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event) {
+void GammaJetFilter::correctMETWithTypeI(pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets, edm::Event& event) {
+
+  rawMet.setP4(reco::Candidate::PolarLorentzVector(met.uncorrectedPt(), met.eta(), met.uncorrectedPhi(), met.uncorrectedSumEt() ) );
+  //  rawMet.setP4(reco::Candidate::PolarLorentzVector(met.uncorrectedPt(), 0., met.uncorrectedPhi(), met.uncorrectedSumEt() ) );
+  
   double deltaPx = 0., deltaPy = 0.;
   // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
   // and http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Type1MET/interface/PFJetMETcorrInputProducerT.h?revision=1.8&view=markup
+  
   for (pat::JetCollection::const_iterator it = jets.begin(); it != jets.end(); ++it) {
     const pat::Jet& jet = *it;
-
+    
     if (jet.pt() > 10) {
-
+      
       const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
-/*//without typei fix
-      const pat::Jet* L1Jet  = jet.userData<pat::Jet>("L1Jet");
-      reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
-*/
-
-//with typeI fix
-    double corrsForTypeI =1.;
-    double corrsForTypeIL1=1.;
-    edm::Handle<double> rho_;
-    event.getByLabel(edm::InputTag("fixedGridRhoFastjetAllCalo"), rho_);
-
-    jetCorrectorForTypeIL1->setJetEta(rawJet->eta());
-    jetCorrectorForTypeIL1->setJetPt(rawJet->pt());
-    jetCorrectorForTypeIL1->setJetA(rawJet->jetArea());
-    jetCorrectorForTypeIL1->setRho(*rho_);
-    corrsForTypeIL1 = jetCorrectorForTypeIL1->getCorrection();
-
-    pat::Jet jetL1 = *rawJet;
-    jetL1.scaleEnergy(corrsForTypeIL1);
-
-    jetCorrectorForTypeI->setJetEta(rawJet->eta());
-    jetCorrectorForTypeI->setJetPt(rawJet->pt());
-    jetCorrectorForTypeI->setJetA(rawJet->jetArea());
-    jetCorrectorForTypeI->setRho(*rho_);
-    corrsForTypeI = jetCorrectorForTypeI->getCorrection();
-
-    pat::Jet jet = *rawJet;
-    jet.scaleEnergy(corrsForTypeI);
-
-//typeI fix
+      /*//without typei fix
+	const pat::Jet* L1Jet  = jet.userData<pat::Jet>("L1Jet");
+	reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
+      */
+      
+      //with typeI fix
+      double corrsForTypeI =1.;
+      double corrsForTypeIL1=1.;
+      edm::Handle<double> rho_;
+    //    event.getByLabel(edm::InputTag("fixedGridRhoFastjetAllCalo"), rho_);
+      event.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rho_);
+      
+      jetCorrectorForTypeIL1->setJetEta(rawJet->eta());
+      jetCorrectorForTypeIL1->setJetPt(rawJet->pt());
+      jetCorrectorForTypeIL1->setJetA(rawJet->jetArea());
+      jetCorrectorForTypeIL1->setRho(*rho_);
+      corrsForTypeIL1 = jetCorrectorForTypeIL1->getCorrection();
+      
+      pat::Jet jetL1 = *rawJet;
+      jetL1.scaleEnergy(corrsForTypeIL1);
+      
+      jetCorrectorForTypeI->setJetEta(rawJet->eta());
+      jetCorrectorForTypeI->setJetPt(rawJet->pt());
+      jetCorrectorForTypeI->setJetA(rawJet->jetArea());
+      jetCorrectorForTypeI->setRho(*rho_);
+      corrsForTypeI = jetCorrectorForTypeI->getCorrection();
+      
+      pat::Jet jet = *rawJet;
+      jet.scaleEnergy(corrsForTypeI);
+      
+      //typeI fix
       reco::Candidate::LorentzVector L1JetP4  = jetL1.p4();
-
+      
       double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
       if (emEnergyFraction > 0.90)
         continue;
-
-////without typei fix
-//     //reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
-//      reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
-
+      
+      ////without typei fix
+      //     //reco::Candidate::LorentzVector rawJetP4 = rawJet->p4();
+      //      reco::Candidate::LorentzVector L1JetP4  = L1Jet->p4();
+      
       deltaPx += (jet.px() - L1JetP4.px());
       deltaPy += (jet.py() - L1JetP4.py());
-    }
-  }
-
+    } // jet.pt() > 10
+  }//loop over jets
+  
   double correctedMetPx = rawMet.px() - deltaPx;
   double correctedMetPy = rawMet.py() - deltaPy;
   double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
-
+  
   met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
 }
 
@@ -1035,6 +1169,9 @@ void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, 
 //edm::Handle<double> footprintMEyrawHandle;
 //event.getByLabel(edm::InputTag("photonPFIsolation", "footprintMEyraw", "PAT"), footprintMEyrawHandle);
 //
+
+///////////////////////////////   federico  -- usa solo questi
+
 //edm::Handle<edm::ValueMap<double>> footprintMExCorrHandle;
 //event.getByLabel(edm::InputTag("photonPFIsolation", "footprintMExCorr", "PAT"), footprintMExCorrHandle);
 //edm::Handle<edm::ValueMap<double>> footprintMEyCorrHandle;
@@ -1043,6 +1180,8 @@ void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, 
 //double footprintMExCorr = (*footprintMExCorrHandle)[photonRef];
 //double footprintMEyCorr = (*footprintMEyCorrHandle)[photonRef];
 //
+
+//////////////////////////////////////////////////// lavora con i jet per trovare deltaPx e deltaPy
 //  double deltaPx = 0., deltaPy = 0.;
 //
 //  // See https://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=174324 slide 4
@@ -1087,9 +1226,11 @@ void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, 
 //
 //      deltaPx += (jet.px() - L1JetP4.px());
 //      deltaPy += (jet.py() - L1JetP4.py());
-//    }
-//  }
-////used for footprint correction
+//    }// pt >10
+//  } // end loop on jet
+
+
+////           used for footprint correction
 //  double correctedMetPx = footprintMExCorr + photonRef->px() - photon.px() - deltaPx;
 //  double correctedMetPy = footprintMEyCorr  + photonRef->py() - photon.py() - deltaPy;
 //  double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
@@ -1107,171 +1248,168 @@ void GammaJetFilter::correctMETWithTypeI(const pat::MET& rawMet, pat::MET& met, 
 //}
 //
 
-
+// not used -- regression is already implemented in 73X 
 void GammaJetFilter::correctMETWithRegressionAndTypeI(const pat::MET& rawMet, pat::MET& met, const pat::JetCollection& jets,  edm::Event& event, pat::Photon& photon, const pat::PhotonRef& photonRef) {
   //photonRef is the one before regression
   //photon is the one after
-
-
- double deltaPx = 0., deltaPy = 0.;
+  
+  double deltaPx = 0., deltaPy = 0.;
   for (pat::JetCollection::const_iterator it = jets.begin(); it != jets.end(); ++it) {
     const pat::Jet& jet = *it;
-
+    
     if (jet.pt() > 10) {
-
+      
       const pat::Jet* rawJet = jet.userData<pat::Jet>("rawJet");
-    double corrsForTypeI =1.;
-    double corrsForTypeIL1=1.;
-    edm::Handle<double> rho_;
-    event.getByLabel(edm::InputTag("fixedGridRhoFastjetAllCalo"), rho_);
-
-    jetCorrectorForTypeIL1->setJetEta(rawJet->eta());
-    jetCorrectorForTypeIL1->setJetPt(rawJet->pt());
-    jetCorrectorForTypeIL1->setJetA(rawJet->jetArea());
-    jetCorrectorForTypeIL1->setRho(*rho_);
-    corrsForTypeIL1 = jetCorrectorForTypeIL1->getCorrection();
-
-    pat::Jet jetL1 = *rawJet;
-    jetL1.scaleEnergy(corrsForTypeIL1);
-
-    jetCorrectorForTypeI->setJetEta(rawJet->eta());
-    jetCorrectorForTypeI->setJetPt(rawJet->pt());
-    jetCorrectorForTypeI->setJetA(rawJet->jetArea());
-    jetCorrectorForTypeI->setRho(*rho_);
-    corrsForTypeI = jetCorrectorForTypeI->getCorrection();
-
-    pat::Jet jet = *rawJet;
-    jet.scaleEnergy(corrsForTypeI);
-
-    reco::Candidate::LorentzVector L1JetP4  = jetL1.p4();
-
-    double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
-    if (emEnergyFraction > 0.90)
-
-      deltaPx += (jet.px() - L1JetP4.px());
-    deltaPy += (jet.py() - L1JetP4.py());
+      double corrsForTypeI =1.;
+      double corrsForTypeIL1=1.;
+      edm::Handle<double> rho_;
+      event.getByLabel(edm::InputTag("fixedGridRhoFastjetAllCalo"), rho_);
+      
+      jetCorrectorForTypeIL1->setJetEta(rawJet->eta());
+      jetCorrectorForTypeIL1->setJetPt(rawJet->pt());
+      jetCorrectorForTypeIL1->setJetA(rawJet->jetArea());
+      jetCorrectorForTypeIL1->setRho(*rho_);
+      corrsForTypeIL1 = jetCorrectorForTypeIL1->getCorrection();
+      
+      pat::Jet jetL1 = *rawJet;
+      jetL1.scaleEnergy(corrsForTypeIL1);
+      
+      jetCorrectorForTypeI->setJetEta(rawJet->eta());
+      jetCorrectorForTypeI->setJetPt(rawJet->pt());
+      jetCorrectorForTypeI->setJetA(rawJet->jetArea());
+      jetCorrectorForTypeI->setRho(*rho_);
+      corrsForTypeI = jetCorrectorForTypeI->getCorrection();
+      
+      pat::Jet jet = *rawJet;
+      jet.scaleEnergy(corrsForTypeI);
+      
+      reco::Candidate::LorentzVector L1JetP4  = jetL1.p4();
+      
+      double emEnergyFraction = rawJet->chargedEmEnergyFraction() + rawJet->neutralEmEnergyFraction();
+      if (emEnergyFraction > 0.90)
+	
+	deltaPx += (jet.px() - L1JetP4.px());
+      deltaPy += (jet.py() - L1JetP4.py());
     }
   }
-
+  
   double correctedMetPx = rawMet.px() + photonRef->px() - photon.px() - deltaPx;
   double correctedMetPy = rawMet.py() + photonRef->py() - photon.py() - deltaPy;
   double correctedMetPt = sqrt(correctedMetPx * correctedMetPx + correctedMetPy * correctedMetPy);
-
-  met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));
-
+  
+  met.setP4(reco::Candidate::LorentzVector(correctedMetPx, correctedMetPy, 0., correctedMetPt));  
 }
 
 
 void GammaJetFilter::extractRawJets(pat::JetCollection& jets) {
-
+  
   for (pat::JetCollection::iterator it = jets.begin(); it != jets.end(); ++it) {
     pat::Jet& jet = *it;
-
+    
     const pat::Jet rawJet = jet.correctedJet("Uncorrected");
     jet.addUserData("rawJet", rawJet, true);
     const pat::Jet L1Jet  = jet.correctedJet("L1FastJet");
     jet.addUserData("L1Jet", L1Jet, true); // Embed L1 corrected jet for TypeI correction
   }
-
+  
 }
 
 void GammaJetFilter::processJets(pat::Photon* photon, pat::JetCollection& jets, const JetAlgorithm algo,/* edm::Handle<edm::ValueMap<float>>& qgTagMLP, edm::Handle<edm::ValueMap<float>>& qgTagLikelihood,*/ const edm::Handle<pat::JetCollection>& handleForRef, std::vector<TTree*>& trees) {
-
+  
   pat::JetCollection selectedJets;
-
+  
   pat::JetCollection::iterator it = jets.begin();
+  
   uint32_t index = 0;
   uint32_t goodJetIndex = -1;
   for (; it != jets.end(); ++it, index++) {
-
-    if (! isValidJet(*it))
+    
+    if (! isValidJet(*it)) 
       continue;
-
+    
     goodJetIndex++;
-
+    
     if (goodJetIndex == 0) {
       mFirstJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(*photon, *it)));
       mFirstJetPhotonDeltaR->Fill(reco::deltaR(*photon, *it));
       mFirstJetPhotonDeltaPt->Fill(fabs(photon->pt() - it->pt()));
-
+      
       mFirstJetPhotonDeltaPhiDeltaR->Fill(fabs(reco::deltaPhi(*photon, *it)), reco::deltaR(*photon, *it));
     } else if (goodJetIndex == 1) {
       mSecondJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(*photon, *it)));
       mSecondJetPhotonDeltaR->Fill(reco::deltaR(*photon, *it));
       mSecondJetPhotonDeltaPt->Fill(fabs(photon->pt() - it->pt()));
     }
-
+    
     //giulia --- comment QG tagging stuff
     // Extract Quark Gluon tagger value
     pat::JetRef jetRef(handleForRef, index);
     //it->addUserFloat("qgTagMLP", (*qgTagMLP)[jetRef]);
     //it->addUserFloat("qgTagLikelihood", (*qgTagLikelihood)[jetRef]);
-
+    
     const double deltaR_threshold = (algo == AK4) ? 0.4 : 0.8;
-
+    
     if (selectedJets.size() == 0) {
       // First jet selection
-
+      
       if (index > 1) {
-      	// It's the third jet of the event. We only want to consider the first two jets for our leadind jet,
+      	// It's the third jet of the event. We only want to consider the first two jets for our leading jet,
 	// so, throw this event
 	break;
       }
-
+      
       const double deltaPhi = reco::deltaPhi(*photon, *it);
       if (fabs(deltaPhi) < M_PI / 2.)
 	continue; // Only back 2 back event are interesting
-
+      
       const double deltaR = reco::deltaR(*photon, *it);
       if (deltaR < deltaR_threshold) // This jet is inside the photon. This is probably the photon mis-reconstructed as a jet
       	continue;
-
+      
       // Jet are ordered by pt value.
       // Events are supposed to be balanced between Jet and Gamma
       // If the leading jet has less than 30% of the Photon pt,
       // dump the event as it's not interesting
       if (mFirstJetPtCut && (it->pt() < photon->pt() * mFirstJetThreshold))
       	break;
-
+      
       mSelectedFirstJetIndex->Fill(goodJetIndex);
       selectedJets.push_back(*it);
-
+      
     } else {
-
       // Second jet selection
+      
       const double deltaR = reco::deltaR(*photon, *it);
-
+      
       if (deltaR > deltaR_threshold) {
 	mSelectedSecondJetIndex->Fill(goodJetIndex);
 	selectedJets.push_back(*it);
       } else {
       	continue;
-      }
-
+      }     
       break;
     }
-
-  }
-
+    
+  }// end loop over jets
+  
   const pat::Jet* firstJet = NULL;
   const pat::Jet* secondJet = NULL;
-
+  
   if (selectedJets.size() > 0) {
-
+    
     firstJet = &selectedJets[0];
     mSelectedFirstJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(*photon, *firstJet)));
     mSelectedFirstJetPhotonDeltaR->Fill(reco::deltaR(*photon, *firstJet));
-
+    
     if (selectedJets.size() > 1) {
       secondJet = &selectedJets[1];
-
       mSelectedSecondJetPhotonDeltaPhi->Fill(fabs(reco::deltaPhi(*photon, *secondJet)));
       mSelectedSecondJetPhotonDeltaR->Fill(reco::deltaR(*photon, *secondJet));
     }
   }
-
+  
   jetsToTree(firstJet, secondJet, trees);
-
+  
   return;
 }
 
@@ -1282,6 +1420,88 @@ void GammaJetFilter::beginJob()
 
 // ------------ method called once each job just after ending the event loop  ------------
 void GammaJetFilter::endJob() {
+
+  // EventCounter -> GetXaxis()->SetBinLabel(1,"all events");
+  // EventCounter -> SetBinContent(1,nEntTot);
+  
+  EventCounter -> GetXaxis()->SetBinLabel(1,"All events");
+  EventCounter -> GetXaxis()->SetBinLabel(2,"Range PtHat Cut");
+  EventCounter -> GetXaxis()->SetBinLabel(3,"Vertex Cut");
+  EventCounter -> GetXaxis()->SetBinLabel(4,"N photons Cut");
+  EventCounter -> GetXaxis()->SetBinLabel(5,"After process Jets");
+  EventCounter -> GetXaxis()->SetBinLabel(6,"Final events");
+
+  EventCounter_Raw -> GetXaxis()->SetBinLabel(1,"All events");
+  EventCounter_Raw -> GetXaxis()->SetBinLabel(2,"Range PtHat Cut");
+  EventCounter_Raw -> GetXaxis()->SetBinLabel(3,"Vertex Cut");
+  EventCounter_Raw -> GetXaxis()->SetBinLabel(4,"N photons Cut");
+  EventCounter_Raw -> GetXaxis()->SetBinLabel(5,"After process Jets");
+  EventCounter_Raw -> GetXaxis()->SetBinLabel(6,"Final events");
+  
+  EventCounter_Raw -> SetBinContent(1,Event_Initial);
+  EventCounter_Raw -> SetBinContent(2,Event_MCGen);
+  EventCounter_Raw -> SetBinContent(3,Event_VtxCut);
+  EventCounter_Raw -> SetBinContent(4,Event_NPhotons);
+  EventCounter_Raw -> SetBinContent(5,Event_AfterJets);
+  EventCounter_Raw -> SetBinContent(6,Event_Final);
+  
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(1,"All photons");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(2,"Photons Eta Cut");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(3,"Photons Pt Range");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(4,"! Photon Gen");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(5,"HE  cut");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(6,"R9  cut");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(7,"Sigma cut");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(8,"Electron Veto");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(9,"Isolation Cuts");
+  EventCounterPhoton -> GetXaxis()->SetBinLabel(10,"Only One Good Photon");
+  
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(1,"All photons");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(2,"Photons Eta Cut");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(3,"Photons Pt Range");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(4,"! Photon Gen");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(5,"HE  cut");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(6,"R9  cut");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(7,"Sigma cut");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(8,"Electron Veto");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(9,"Isolation Cuts");
+  EventCounterPhoton_Raw -> GetXaxis()->SetBinLabel(10,"Only One Good Photon");
+
+  EventCounterPhoton_Raw -> SetBinContent(1,N_Photons_Total);
+  EventCounterPhoton_Raw -> SetBinContent(2,N_Photons_Eta13);
+  EventCounterPhoton_Raw -> SetBinContent(3,N_Photons_PtRange);
+  EventCounterPhoton_Raw -> SetBinContent(4,N_pho_genPhoton);
+  EventCounterPhoton_Raw -> SetBinContent(5,N_pho_HE);
+  EventCounterPhoton_Raw -> SetBinContent(6,N_pho_R9);
+  EventCounterPhoton_Raw -> SetBinContent(7,N_pho_Sigma);
+  EventCounterPhoton_Raw -> SetBinContent(8,N_pho_ElecVeto);
+  EventCounterPhoton_Raw -> SetBinContent(9,N_pho_Isolation);
+  EventCounterPhoton_Raw -> SetBinContent(10,OnlyOneGoodPhotons);
+  
+  
+  std::cout << " " << std::endl;
+  std::cout<< "Event_Initial =  " << Event_Initial << std::endl ;
+  std::cout<< "Event_MCGen = " << Event_MCGen << std::endl ;
+  std::cout<< "Event_VtxCut = " <<  Event_VtxCut << std::endl ;
+  std::cout<< "Event_NPhotons = " << Event_NPhotons << std::endl ;
+  std::cout<< "Event_AfterJets = " << Event_AfterJets << std::endl ;
+  std::cout<< "Event_Final = " << Event_Final << std::endl ;
+  
+  std::cout<< "N_Photons_Total = " << N_Photons_Total << std::endl ;
+  std::cout<< "N_Photons_Eta13 = " << N_Photons_Eta13 << std::endl ;
+  std::cout<< "N_Photons_PtRange = " << N_Photons_PtRange << std::endl ;
+  std::cout<< "N_pho_genPhoton =  " << N_pho_genPhoton << std::endl ;
+  std::cout<< "N_pho_HE =  " << N_pho_HE << std::endl ;
+  std::cout<< "N_pho_R9 =  " << N_pho_R9 << std::endl ;
+  std::cout<< "N_pho_Sigma =  " << N_pho_Sigma << std::endl ;
+  std::cout<< "N_pho_ElecVeto =  " << N_pho_ElecVeto << std::endl ;
+  std::cout<< "N_pho_Isolation =  " << N_pho_Isolation << std::endl ;  
+
+  // std::cout<< "NoGoodPhotons = " << NoGoodPhotons << std::endl ;
+  std::cout<< "OnlyOneGoodPhotons = " << OnlyOneGoodPhotons << std::endl ;
+  // std::cout<< "MoreGoodPhotons = " << MoreGoodPhotons << std::endl ;
+  
+
 }
 
 // ------------ method called when starting to processes a run  ------------
@@ -1304,6 +1524,7 @@ bool GammaJetFilter::beginRun(edm::Run& run, edm::EventSetup const&)
 // ------------ method called when ending the processing of a run  ------------
 bool GammaJetFilter::endRun(edm::Run& run, edm::EventSetup const&)
 {
+
   return true;
 }
 
@@ -1362,12 +1583,12 @@ bool GammaJetFilter::isValidJet(const pat::Jet& jet) {
   if (mIsMC && !jet.genJet()) {
     return false;
   }
-
-  if (jet.isPFJet()) {
-
+  
+  if (jet.isPFJet()) { // we use only this now
+    
     // Jet ID
     // From https://twiki.cern.ch/twiki/bin/view/CMS/JetID
-
+    
     // Jet ID works on uncorrected jets. *EnergyFraction take that into account when calculating the fraction,
     // so there's *NO* need to use an uncorrected jet
     bool isValid = jet.neutralHadronEnergyFraction() < 0.99;
@@ -1378,272 +1599,209 @@ bool GammaJetFilter::isValidJet(const pat::Jet& jet) {
       isValid &= jet.chargedMultiplicity() > 0;
       isValid &= jet.chargedEmEnergyFraction() < 0.99;
     }
-
+    
     return isValid;
-
-  } else if (jet.isCaloJet() || jet.isJPTJet()) {
-
+    
+  } else if (jet.isCaloJet() || jet.isJPTJet()) { // federico --> these types of jet aren't used
+    
     if (! mCaloJetID.get()) {
       mCaloJetID.reset(new JetIDSelectionFunctor(JetIDSelectionFunctor::PURE09, JetIDSelectionFunctor::LOOSE));
       mCaloJetIDRet = mCaloJetID->getBitTemplate();
     }
-
+    
     mCaloJetIDRet.set(false);
     return (*mCaloJetID)(jet, mCaloJetIDRet);
-
+    
   } else {
     throw cms::Exception("UnsupportedJetType")
       << "Only PF and Calo jets are supported at this time" << std::endl;
   }
-
+  
   return false;
 }
 
 enum class IsolationType {
   CHARGED_HADRONS,
-  NEUTRAL_HADRONS,
-  PHOTONS
-};
+    NEUTRAL_HADRONS,
+    PHOTONS
+    };
 
 
-//updated effective areas for PHYS14 -> https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonIdentificationRun2
+//updated effective areas for SPRING15 50ns -- August 3th
 float getEffectiveArea(float eta, IsolationType type) {
   eta = fabs(eta);
   switch (type) {
-    case IsolationType::CHARGED_HADRONS:
-      if (eta < 1.0)
-        return 0.0130;
-      else if (eta < 1.479)
-      	return 0.0096;
-      else if (eta < 2.0)
-        return 0.0107;
-      else if (eta < 2.2)
-      	return 0.0077;
-      else if (eta < 2.3)
-      	return 0.0088;
-      else if (eta < 2.4)
-        return 0.0065;
-      else
-        return 0.0030;
-      break;
-
-    case IsolationType::NEUTRAL_HADRONS:
-      if (eta < 1.0)
-        return 0.0056;
-      else if (eta < 1.479)
-        return 0.0107;
-      else if (eta < 2.0)
-        return 0.0019;
-      else if (eta < 2.2)
-      	return 0.0011;
-      else if (eta < 2.3)
-      	return 0.0077;
-      else if (eta < 2.4)
-	return 0.0178;
-      else
-      	return 0.1675;
-      break;
-
-    case IsolationType::PHOTONS:
-      if (eta < 1.0)
-        return 0.0896;
-      else if (eta < 1.479)
-      	return 0.0762;
-      else if (eta < 2.0)
-      	return 0.0383;
-      else if (eta < 2.2)
-	return 0.0534;
-      else if (eta < 2.3)
-      	return 0.0846;
-      else if (eta < 2.4)
-        return 0.1032;
-      else
-        return 0.1598;
-      break;
+  case IsolationType::CHARGED_HADRONS:
+    if (eta < 1.0)
+      return 0.0157;
+    else if (eta < 1.479)
+      return 0.0143;
+    else if (eta < 2.0)
+      return 0.0115;
+    else if (eta < 2.2)
+      return 0.0094;
+    else if (eta < 2.3)
+      return 0.0095;
+    else if (eta < 2.4)
+      return 0.0068;
+    else
+      return 0.0053;
+    break;
+    
+  case IsolationType::NEUTRAL_HADRONS:
+    if (eta < 1.0)
+      return 0.0143;
+    else if (eta < 1.479)
+      return 0.0210;
+    else if (eta < 2.0)
+      return 0.0148;
+    else if (eta < 2.2)
+      return 0.0082;
+    else if (eta < 2.3)
+      return 0.0124;
+    else if (eta < 2.4)
+      return 0.0186;
+    else
+      return 0.0320;
+    break;
+    
+    
+  case IsolationType::PHOTONS:
+    if (eta < 1.0)
+      return 0.0725;
+    else if (eta < 1.479)
+      return 0.0604;
+    else if (eta < 2.0)
+      return 0.0320;
+    else if (eta < 2.2)
+      return 0.0512;
+    else if (eta < 2.3)
+      return 0.0766;
+    else if (eta < 2.4)
+      return 0.0949;
+    else
+      return 0.1160;
+    break;
   }
-
+  
   return -1;
 }
 
 double getCorrectedPFIsolation(double isolation, double rho, float eta, IsolationType type) {
   float effectiveArea = getEffectiveArea(eta, type);
-
+  
   return std::max(isolation - rho * effectiveArea, 0.);
 }
 
 //-----------------
-// See https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonIdentificationRun2 -- tight WP 76% 
-bool GammaJetFilter::isValidPhotonEB_PHYS14(const pat::PhotonRef& photonRef, edm::Event& event) {
-  if (mIsMC && !photonRef->genPhoton())
+// See https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonIdentificationRun2 -- tight WP 77% 
+bool GammaJetFilter::isValidPhotonEB_SPRING15(const pat::PhotonRef& photonRef, edm::Event& event, double generatorWeight) {
+  
+  //  federico --- real photon which matches a gen level photon 
+  if (mIsMC && !photonRef->genPhoton())   
     return false;
-
+  
+  EventCounterPhoton -> AddBinContent(4, generatorWeight );
+  N_pho_genPhoton++;
+  
   bool isValid = true;
+  
+  // Photon variables computed upstream in a special producer
+  //  edm::EDGetTokenT<edm::ValueMap<float> > full5x5SigmaIEtaIEtaMapToken_; 
+  //   Note: starting from CMSSW 7.2.1 or so one can get any full5x5 quantity
+  //   directly from the photon object, there is no need for value maps anymore.
+  //   However 7.2.0 and prior (this includes PHYS14 MC samples) requires ValueMaps.
+  
+  isValid &= photonRef->hadTowOverEm() < 0.05;
+  
+  if (! isValid)
+    return false;
+  
+  EventCounterPhoton -> AddBinContent(5, generatorWeight );
+  N_pho_HE++;
 
-  isValid &= photonRef->hadTowOverEm() < 0.011;
-  isValid &= photonRef->sigmaIetaIeta() < 0.0099;
-
+  // added to emule trigger
+  isValid &= photonRef->r9() >0.9;
+  
   if (! isValid)
     return false;
 
-  edm::Handle<double> rhos;
-  event.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rhos);
-  double rho = *rhos;
+  EventCounterPhoton -> AddBinContent(6, generatorWeight );
+  N_pho_R9++;
 
-
+  isValid &= photonRef->sigmaIetaIeta() < 0.0010;
+  
+  if (! isValid)
+    return false;
+  
+  EventCounterPhoton -> AddBinContent(7, generatorWeight );
+  N_pho_Sigma++;
+   
   //giulia --  use the method " passElectronVeto" for the PAT
   // Isolations are produced at PAT level by the PḧotonPFIsolation producer
   //edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
   //event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
-
+  
   //isValid &= ! (*hasMatchedPromptElectronHandle)[photonRef];
+  
   isValid &= photonRef->passElectronVeto();
-
-
+  
   if (! isValid)
     return false;
-  //giulia -- use isolation stored in the pat::photon
-
-
- // // Now, isolations
- // edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
- // event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
-
- // edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
- // event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
-
- // edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
- // event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
+  
+  EventCounterPhoton -> AddBinContent(8, generatorWeight );
+  N_pho_ElecVeto++;
+  
+  edm::Handle<double> rhos;
+  event.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rhos);
+  double rho = *rhos;
+  
+  // federico --  Get the isolation maps
+  edm::Handle<edm::ValueMap<float> > phoChargedIsolationMap;
+  event.getByToken(phoChargedIsolationToken_, phoChargedIsolationMap);
+  edm::Handle<edm::ValueMap<float> > phoNeutralHadronIsolationMap;
+  event.getByToken(phoNeutralHadronIsolationToken_, phoNeutralHadronIsolationMap);
+  edm::Handle<edm::ValueMap<float> > phoPhotonIsolationMap;
+  event.getByToken(phoPhotonIsolationToken_, phoPhotonIsolationMap);
+  
+  // // Now, isolations
+  // giulia -- use isolation stored in the pat::photon
+  //  isValid &= getCorrectedPFIsolation(photonRef->chargedHadronIso() ,rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) <  1.66;
+  //  isValid &= getCorrectedPFIsolation(photonRef->neutralHadronIso(), rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (0.14 + 0.0028*photonRef->pt());
+  //  isValid &= getCorrectedPFIsolation(photonRef->photonIso(), rho, photonRef->eta(), IsolationType::PHOTONS) < (1.40 + 0.0014 * photonRef->pt());
+  
   /*
-     edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
-     event.getByLabel(edm::InputTag("photonPFIsolation", "footchargediso", "PAT"), chargedHadronsIsolationHandle);
-
-     edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-     event.getByLabel(edm::InputTag("photonPFIsolation", "footneutraliso", "PAT"), neutralHadronsIsolationHandle);
-
-     edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-     event.getByLabel(edm::InputTag("photonPFIsolation", "footphotoniso", "PAT"), photonIsolationHandle);
-     */
-
-//  isValid &= getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 1.86;
-//  isValid &= getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (2.64 + 0.0025 * photonRef->pt());
-//  isValid &= getCorrectedPFIsolation((*photonIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS) < (1.2 + 0.001 * photonRef->pt());
-//
-  //giulia -- use isolation stored in the pat::photon
-
-  isValid &= getCorrectedPFIsolation(photonRef->chargedHadronIso() ,rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 1.86;
-  isValid &= getCorrectedPFIsolation(photonRef->neutralHadronIso(), rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (2.64 + 0.0025 * photonRef->pt());
-  isValid &= getCorrectedPFIsolation(photonRef->photonIso(), rho, photonRef->eta(), IsolationType::PHOTONS) < (1.2 + 0.001 * photonRef->pt());
-
-
+    chargedHadronIsolation_Old   = photonRef -> chargedHadronIso();
+    neutralHadronIsolation_Old    = photonRef -> neutralHadronIso();
+    photonIsolation_Old               = photonRef -> photonIso();
+    
+    chargedHadronIsolation_New = (*phoChargedIsolationMap)[photonRef];
+    neutralHadronIsolation_New  = (*phoNeutralHadronIsolationMap)[photonRef];
+    photonIsolation_New             = (*phoPhotonIsolationMap)[photonRef];
+    
+    std::cout<< " " << std::endl ;
+    std::cout<< "chargedHadronIsolation OLD = " << chargedHadronIsolation_Old << std::endl ;
+    std::cout<< "chargedHadronIsolation NEW = " << chargedHadronIsolation_New << std::endl ;
+    std::cout<< "neutralHadronIsolation OLD = " << neutralHadronIsolation_Old << std::endl ;
+    std::cout<< "neutralHadronIsolation NEW = " << neutralHadronIsolation_New << std::endl ;
+    std::cout<< "photonIsolation OLD = " << photonIsolation_Old << std::endl ;
+    std::cout<< "photonIsolation NEW = " << photonIsolation_New << std::endl ;
+  */
+  
+  // federico -- not use isolation stored in the photon class -- Recomputed
+  isValid &= getCorrectedPFIsolation((*phoChargedIsolationMap)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 0.91;
+  isValid &= getCorrectedPFIsolation((*phoNeutralHadronIsolationMap)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (0.33 + exp(0.0044*photonRef->pt()+0.5809) );
+  isValid &= getCorrectedPFIsolation((*phoPhotonIsolationMap)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS) < (0.61 + 0.0043 * photonRef->pt());
+  
+  if (! isValid)
+    return false;
+  
+  EventCounterPhoton -> AddBinContent(9, generatorWeight );
+  N_pho_Isolation++;
+  
   return isValid;
 }
 //---------------------
-
-
-// See https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonID2012
-bool GammaJetFilter::isValidPhotonEB2012(const pat::PhotonRef& photonRef, edm::Event& event) {
-  if (mIsMC && !photonRef->genPhoton())
-    return false;
-
-  bool isValid = true;
-
-  isValid &= photonRef->hadTowOverEm() < 0.05;
-  isValid &= photonRef->sigmaIetaIeta() < 0.011;
-
-  if (! isValid)
-    return false;
-
-  edm::Handle<double> rhos;
-  event.getByLabel(edm::InputTag("fixedGridRhoFastjetAll"), rhos);
-  double rho = *rhos;
-
-
-  //giulia --  use the method " passElectronVeto" for the PAT
-  // Isolations are produced at PAT level by the PḧotonPFIsolation producer
-  //edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
-  //event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
-
-  //isValid &= ! (*hasMatchedPromptElectronHandle)[photonRef];
-  isValid &= photonRef->passElectronVeto();
-
-
-  if (! isValid)
-    return false;
-  //giulia -- use isolation stored in the pat::photon
-
-
- // // Now, isolations
- // edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
- // event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
-
- // edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
- // event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
-
- // edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
- // event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
-  /*
-     edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
-     event.getByLabel(edm::InputTag("photonPFIsolation", "footchargediso", "PAT"), chargedHadronsIsolationHandle);
-
-     edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-     event.getByLabel(edm::InputTag("photonPFIsolation", "footneutraliso", "PAT"), neutralHadronsIsolationHandle);
-
-     edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-     event.getByLabel(edm::InputTag("photonPFIsolation", "footphotoniso", "PAT"), photonIsolationHandle);
-     */
-
-//  isValid &= getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 0.7;
-//  isValid &= getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (0.4 + 0.04 * photonRef->pt());
-//  isValid &= getCorrectedPFIsolation((*photonIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS) < (0.5 + 0.005 * photonRef->pt());
-//
-  //giulia -- use isolation stored in the pat::photon
-
-  isValid &= getCorrectedPFIsolation(photonRef->chargedHadronIso() ,rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) < 0.7;
-  isValid &= getCorrectedPFIsolation(photonRef->neutralHadronIso(), rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (0.4 + 0.04 * photonRef->pt());
-  isValid &= getCorrectedPFIsolation(photonRef->photonIso(), rho, photonRef->eta(), IsolationType::PHOTONS) < (0.5 + 0.005 * photonRef->pt());
-
-
-  return isValid;
-}
-bool GammaJetFilter::isValidPhotonEB(const pat::Photon& photon, const double rho, const EcalRecHitCollection* recHits, const CaloTopology& topology) {
-  if (mIsMC && !photon.genPhoton())
-    return false;
-
-  bool isValid = ! photon.hasPixelSeed();
-  isValid &= photon.hadronicOverEm() < 0.05;
-  isValid &= photon.sigmaIetaIeta() < 0.011;
-  isValid &= photon.trkSumPtHollowConeDR04() < (2.0 + 0.001 * photon.et() + 0.0167 * rho);
-  isValid &= photon.ecalRecHitSumEtConeDR04() < (4.2 + 0.006 * photon.et() + 0.183 * rho);
-  isValid &= photon.hcalTowerSumEtConeDR04() < (2.2 + 0.0025 * photon.et() + 0.062 * rho);
-
-  if (isValid) {
-    // Spike cleaning
-
-    isValid &= photon.sigmaIetaIeta() > 0.001;
-
-    do {
-      // Get sigmaIPhiIPhi for photon
-      const float w0 = 4.7; // See http://cmslxr.fnal.gov/lxr/source/RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h#087
-      if (! recHits)
-      	break;
-
-      reco::SuperClusterRef superCluster = photon.superCluster();
-      if (superCluster.isNull())
-      	break;
-
-      reco::CaloClusterPtr caloCluster = superCluster->seed();
-      if (caloCluster.isNull())
-      	break;
-
-      std::vector<float> covariances = EcalClusterTools::localCovariances(*caloCluster, recHits, &topology, w0);
-      float sigmaIPhiIPhi = sqrt(covariances[2]);
-
-      isValid &= sigmaIPhiIPhi > 0.001;
-    } while (false);
-  }
-
-  return isValid;
-}
 
 void GammaJetFilter::readJSONFile() {
   Json::Value root;
@@ -1653,44 +1811,44 @@ void GammaJetFilter::readJSONFile() {
     throw cms::Exception("ReadError")
       << "Failed to parse luminosity JSON file '" << mJSONFile << "'" << std::endl;
   }
-
+  
   mValidRuns.reset(new Json::Value(root));
 }
 
 void GammaJetFilter::readCSVFile() {
   FILE* iff = fopen(mCSVFile.c_str(), "r");
-
+  
   if(iff == 0) {
     throw cms::Exception("ReadError")
       << "Failed to parse luminosity CSV file '" << mCSVFile << "'" << std::endl;
   }
-
+  
   int run = 0, fill = 0;
   int lumiSection_left = 0, lumiSection_right = 0;
   double lumiRecorded = 0.;
   double true_pu = 0;
-
-
+  
+  
   /* lumiCalc2 format :
    * Run:Fill,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub),avgPU
    * use 'lumiCalc2.py -i lumiSummary.json -o output.csv -b stable lumibyls' to generate file
    */
-
+  
   // Skip header line
   char buffer[1024];
   fgets(buffer, 1024, iff);
-
+  
   while (fscanf(iff, "%d:%d,%d:%d,%*[^,],%*[^,],%*f,%*f,%lf,%lf", &run, &fill, &lumiSection_left, &lumiSection_right, &lumiRecorded, &true_pu) > 0 ) {
-
+    
     if (lumiSection_right == 0)
       continue;
-
+    
     mLumiByLS[std::pair<unsigned int, unsigned int>(run, lumiSection_right)] = lumiRecorded; //in mb^(-1)
     mTruePUByLS[std::pair<unsigned int, unsigned int>(run, lumiSection_right)] = true_pu; //in mb^(-1)
   }
-
+  
   fclose(iff);
-
+  
   assert(mLumiByLS.size() > 0);
 }
 
@@ -1702,7 +1860,7 @@ void GammaJetFilter::updateLuminosity(const edm::LuminosityBlock& lumiBlock) {
 
 void GammaJetFilter::particleToTree(const reco::Candidate* particle, TTree* t, std::vector<boost::shared_ptr<void> >& addresses) {
   addresses.clear();
-
+  
   addresses.push_back(boost::shared_ptr<void>(new int((particle) ? 1 : 0)));
   addresses.push_back(boost::shared_ptr<void>(new float((particle) ? particle->et() : 0)));
   addresses.push_back(boost::shared_ptr<void>(new float((particle) ? particle->pt() : 0)));
@@ -1727,7 +1885,7 @@ void GammaJetFilter::particleToTree(const reco::Candidate* particle, TTree* t, s
 
 void GammaJetFilter::photonToTree(const pat::PhotonRef& photonRef, pat::Photon& photon, const edm::Event& event) {
   std::vector<boost::shared_ptr<void> > addresses;
-//redefine the common variables instead of using particleTotree, because the photonhas been 
+//redefine the common variables instead of using particleTotree, because the photon has been 
 //corrected for regression etc.
  int pho_is_present =1;
  float pho_et = photon.et();
@@ -1767,7 +1925,7 @@ void GammaJetFilter::photonToTree(const pat::PhotonRef& photonRef, pat::Photon& 
   // Isolations are produced at PAT level by the PḧotonPFIsolation producer
   //edm::Handle<edm::ValueMap<bool>> hasMatchedPromptElectronHandle;
   //event.getByLabel(edm::InputTag("photonPFIsolation", "hasMatchedPromptElectron", "PAT"), hasMatchedPromptElectronHandle);
-
+  
   //bool hasMatchedPromptElectron = (*hasMatchedPromptElectronHandle)[photonRef];
   
   bool hasMatchedPromptElectron ; 
@@ -1775,63 +1933,73 @@ void GammaJetFilter::photonToTree(const pat::PhotonRef& photonRef, pat::Photon& 
     hasMatchedPromptElectron = false;
   else 
     hasMatchedPromptElectron = true;
-
+  
   updateBranch(mPhotonTree, &hasMatchedPromptElectron, "hasMatchedPromptElectron", "O");
-
+  
   // Now, isolations
-//  edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
-//  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
-//
-//  edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
-//  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
-//
-//  edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
-//  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
-//
-//giulia ---- regression integrated in 73X  
-////regression energy
-//  edm::Handle<edm::ValueMap<float>> regressionEnergyHandle;
-//  event.getByLabel(edm::InputTag("eleNewEnergiesProducer", "energySCEleJoshPhoSemiParamV5ecorr", "PAT"),regressionEnergyHandle);
-//  edm::Ptr<reco::Candidate> recoObject = photonRef->originalObjectRef();
-// float regressionEnergy = (*regressionEnergyHandle)[recoObject] ;
-// updateBranch(mPhotonTree, &regressionEnergy, "regressionEnergy");
-// float originalEnergy = photonRef->energy();
-// updateBranch(mPhotonTree, &originalEnergy, "originalEnergy");
-
-//giulia --- comment footprint stuff
-
-////retrieve px and py of pfcandidates to exclude from met calculation
-//edm::Handle<edm::ValueMap<double>> footprintMExCorrHandle;
-//event.getByLabel(edm::InputTag("photonPFIsolation", "footprintMExCorr", "PAT"), footprintMExCorrHandle);
-//edm::Handle<edm::ValueMap<double>> footprintMEyCorrHandle;
-//event.getByLabel(edm::InputTag("photonPFIsolation", "footprintMEyCorr", "PAT"), footprintMEyCorrHandle);
-////MEx/yCorr are the quantities to compare to rawMex/y
-//float footprintMExCorr = (*footprintMExCorrHandle)[photonRef]- photonRef->px();
-//float footprintMEyCorr = (*footprintMEyCorrHandle)[photonRef]- photonRef->py();
-//
-//  updateBranch(mPhotonTree, &footprintMExCorr, "footprintMExCorr");
-//  updateBranch(mPhotonTree, &footprintMEyCorr, "footprintMEyCorr");
-//
-//  float chargedHadronsIsolation = getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS);
-//  float neutralHadronsIsolation = getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS);
-//  float photonIsolation = getCorrectedPFIsolation((*photonIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS); 
-//
+  //  edm::Handle<edm::ValueMap<double>> chargedHadronsIsolationHandle;
+  //  event.getByLabel(edm::InputTag("photonPFIsolation", "chargedHadronsIsolation", "PAT"), chargedHadronsIsolationHandle);
+  //
+  //  edm::Handle<edm::ValueMap<double>> neutralHadronsIsolationHandle;
+  //  event.getByLabel(edm::InputTag("photonPFIsolation", "neutralHadronsIsolation", "PAT"), neutralHadronsIsolationHandle);
+  //
+  //  edm::Handle<edm::ValueMap<double>> photonIsolationHandle;
+  //  event.getByLabel(edm::InputTag("photonPFIsolation", "photonIsolation", "PAT"), photonIsolationHandle);
+  //
+  //giulia ---- regression integrated in 73X  
+  ////regression energy
+  //  edm::Handle<edm::ValueMap<float>> regressionEnergyHandle;
+  //  event.getByLabel(edm::InputTag("eleNewEnergiesProducer", "energySCEleJoshPhoSemiParamV5ecorr", "PAT"),regressionEnergyHandle);
+  //  edm::Ptr<reco::Candidate> recoObject = photonRef->originalObjectRef();
+  // float regressionEnergy = (*regressionEnergyHandle)[recoObject] ;
+  // updateBranch(mPhotonTree, &regressionEnergy, "regressionEnergy");
+  // float originalEnergy = photonRef->energy();
+  // updateBranch(mPhotonTree, &originalEnergy, "originalEnergy");
   
-   float chargedHadronsIsolation = getCorrectedPFIsolation(photonRef->chargedHadronIso(), rho, photonRef->eta(), IsolationType::CHARGED_HADRONS); 
-   float neutralHadronsIsolation = getCorrectedPFIsolation(photonRef->neutralHadronIso(), rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS); 
-   float photonIsolation = getCorrectedPFIsolation(photonRef->photonIso(), rho, photonRef->eta(), IsolationType::PHOTONS);                         
+  //giulia --- comment footprint stuff
   
+  ////retrieve px and py of pfcandidates to exclude from met calculation
+  //edm::Handle<edm::ValueMap<double>> footprintMExCorrHandle;
+  //event.getByLabel(edm::InputTag("photonPFIsolation", "footprintMExCorr", "PAT"), footprintMExCorrHandle);
+  //edm::Handle<edm::ValueMap<double>> footprintMEyCorrHandle;
+  //event.getByLabel(edm::InputTag("photonPFIsolation", "footprintMEyCorr", "PAT"), footprintMEyCorrHandle);
+  ////MEx/yCorr are the quantities to compare to rawMex/y
+  //float footprintMExCorr = (*footprintMExCorrHandle)[photonRef]- photonRef->px();
+  //float footprintMEyCorr = (*footprintMEyCorrHandle)[photonRef]- photonRef->py();
+  //
+  //  updateBranch(mPhotonTree, &footprintMExCorr, "footprintMExCorr");
+  //  updateBranch(mPhotonTree, &footprintMEyCorr, "footprintMEyCorr");
+  //
+  //  float chargedHadronsIsolation = getCorrectedPFIsolation((*chargedHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS);
+  //  float neutralHadronsIsolation = getCorrectedPFIsolation((*neutralHadronsIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS);
+  //  float photonIsolation = getCorrectedPFIsolation((*photonIsolationHandle)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS); 
+  //
+  //   float chargedHadronsIsolation = getCorrectedPFIsolation(photonRef->chargedHadronIso(), rho, photonRef->eta(), IsolationType::CHARGED_HADRONS); 
+  //   float neutralHadronsIsolation = getCorrectedPFIsolation(photonRef->neutralHadronIso(), rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS); 
+  //   float photonIsolation = getCorrectedPFIsolation(photonRef->photonIso(), rho, photonRef->eta(), IsolationType::PHOTONS);                         
   
+  // federico -- Get the isolation maps
+  edm::Handle<edm::ValueMap<float> > phoChargedIsolationMap;
+  event.getByToken(phoChargedIsolationToken_, phoChargedIsolationMap);
+  edm::Handle<edm::ValueMap<float> > phoNeutralHadronIsolationMap;
+  event.getByToken(phoNeutralHadronIsolationToken_, phoNeutralHadronIsolationMap);
+  edm::Handle<edm::ValueMap<float> > phoPhotonIsolationMap;
+  event.getByToken(phoPhotonIsolationToken_, phoPhotonIsolationMap);
   
+  float chargedHadronsIsolation = getCorrectedPFIsolation((*phoChargedIsolationMap)[photonRef], rho, photonRef->eta(), IsolationType::CHARGED_HADRONS);
+  float neutralHadronsIsolation  = getCorrectedPFIsolation((*phoNeutralHadronIsolationMap)[photonRef], rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS);
+  float photonIsolation               = getCorrectedPFIsolation((*phoPhotonIsolationMap)[photonRef], rho, photonRef->eta(), IsolationType::PHOTONS);     
   
+  // float chargedHadronsIsolation =  getCorrectedPFIsolation(photonRef->chargedHadronIso() ,rho, photonRef->eta(), IsolationType::CHARGED_HADRONS) <  1.66;
+  // float neutralHadronsIsolation =  getCorrectedPFIsolation(photonRef->neutralHadronIso(), rho, photonRef->eta(), IsolationType::NEUTRAL_HADRONS) < (0.14 + 0.0028*photonRef->pt());
+  // float photonIsolation   =  getCorrectedPFIsolation(photonRef->photonIso(), rho, photonRef->eta(), IsolationType::PHOTONS) < (1.40 + 0.0014 * photonRef->pt());
   
   updateBranch(mPhotonTree, &chargedHadronsIsolation, "chargedHadronsIsolation");
   updateBranch(mPhotonTree, &neutralHadronsIsolation, "neutralHadronsIsolation");
   updateBranch(mPhotonTree, &photonIsolation, "photonIsolation");
-
-
+  
   mPhotonTree->Fill();
-
+  
   if (mIsMC) {
     particleToTree(photonRef->genPhoton(), mPhotonGenTree, addresses);
     mPhotonGenTree->Fill();
@@ -1841,17 +2009,17 @@ void GammaJetFilter::photonToTree(const pat::PhotonRef& photonRef, pat::Photon& 
 void GammaJetFilter::jetsToTree(const pat::Jet* firstJet, const pat::Jet* secondJet, const std::vector<TTree*>& trees) {
   jetToTree(firstJet, mIsMC, trees[0], trees[4]);
   jetToTree(secondJet, false, trees[1], trees[5]);
-
+  
   // Raw jets
   const pat::Jet* rawJet = (firstJet) ? firstJet->userData<pat::Jet>("rawJet") : NULL;
   jetToTree(rawJet, false, trees[2], NULL);
-
+  
   rawJet = (secondJet) ? secondJet->userData<pat::Jet>("rawJet") : NULL;
   jetToTree(rawJet, false, trees[3], NULL);
 }
 
 void findNeutrinos(const reco::Candidate* parent, std::vector<const reco::Candidate*>& neutrinos) {
-
+  
   int pdg_id = abs(parent->pdgId());
   if (pdg_id == 12 || pdg_id == 14 || pdg_id == 16) {
     if (std::find_if(neutrinos.begin(), neutrinos.end(), [parent] (const reco::Candidate* candidate) -> bool {
@@ -1860,15 +2028,15 @@ void findNeutrinos(const reco::Candidate* parent, std::vector<const reco::Candid
           same &= (fabs(candidate->px() - candidate->px()) < EPSILON);
           same &= (fabs(candidate->py() - candidate->py()) < EPSILON);
           same &= (fabs(candidate->pz() - candidate->pz()) < EPSILON);
-
+	  
 	  return same;
-
-	  }) == neutrinos.end()) {
+	  
+	}) == neutrinos.end()) {
       neutrinos.push_back(parent);
     }
     return;
   }
-
+  
   for (unsigned int i = 0; i < parent->numberOfDaughters(); i++) {
     const reco::Candidate* d = parent->daughter(i);
     findNeutrinos(d, neutrinos);
@@ -1878,35 +2046,34 @@ void findNeutrinos(const reco::Candidate* parent, std::vector<const reco::Candid
 void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* tree, TTree* genTree) {
   std::vector<boost::shared_ptr<void> > addresses;
   particleToTree(jet, tree, addresses);
-
+  
   if (mIsMC) {
     mNeutrinos->Clear("C");
     mNeutrinosPDG->Clear("C");
   }
-
+  
   if (jet) {
     float area = jet->jetArea();
     updateBranch(tree, &area, "jet_area");
-
-
+    
     //giulia --- comment b-tagging  and qg tagging stuff
     // // B-Tagging
     // float tcHighEfficiency = jet->bDiscriminator("trackCountingHighEffBJetTags");
     // float tcHighPurity = jet->bDiscriminator("trackCountingHighPurBJetTags");
-
+    
     // float ssvHighEfficiency = jet->bDiscriminator("simpleSecondaryVertexHighEffBJetTags");
     // float ssvHighPurity = jet->bDiscriminator("simpleSecondaryVertexHighPurBJetTags");
 
     // float jetProbability = jet->bDiscriminator("jetProbabilityBJetTags");
     // float jetBProbability = jet->bDiscriminator("jetBProbabilityBJetTags");
-
+    
     // // New 2012
     // float csv = jet->bDiscriminator("combinedSecondaryVertexBJetTags");
-
+    
     // // Quark Gluon tagging
     // float qgTagMLP = jet->userFloat("qgTagMLP");
     // float qgTagLikelihood = jet->userFloat("qgTagLikelihood");
-
+    
     // updateBranch(tree, &tcHighEfficiency, "btag_tc_high_eff");
     // updateBranch(tree, &tcHighPurity, "btag_tc_high_pur");
     // updateBranch(tree, &ssvHighEfficiency, "btag_ssv_high_eff");
@@ -1916,7 +2083,7 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* 
     // updateBranch(tree, &csv, "btag_csv");
     // updateBranch(tree, &qgTagMLP, "qg_tag_mlp");
     // updateBranch(tree, &qgTagLikelihood, "qg_tag_likelihood");
-
+    
     //jet energy composition
     float jetCHEn = jet->chargedHadronEnergy();
     float jetNHEn = jet->neutralHadronEnergy();
@@ -1947,10 +2114,10 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* 
   } else {
     tree->Fill();
   }
-
+  
   if (genTree) {
     particleToTree((jet) ? jet->genJet() : NULL, genTree, addresses);
-
+    
     if (_findNeutrinos) {
       static bool init = false;
       if (! init) {
@@ -1959,13 +2126,13 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* 
         init = true;
       }
     }
-
+    
     if (jet && _findNeutrinos) {
       const reco::Candidate* parton = (jet) ? jet->genParton() : NULL;
-
+      
       if (parton) {
         if (abs(parton->pdgId()) == 5 || abs(parton->pdgId()) == 4) {
-
+	  
           std::vector<const reco::Candidate*> neutrinos;
           findNeutrinos(parton, neutrinos);
 
@@ -1975,13 +2142,12 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* 
             for (const reco::Candidate* neutrino: neutrinos) {
               TLorentzVector* p4 = (TLorentzVector*) mNeutrinos->ConstructedAt(index);
               p4->SetPxPyPzE(neutrino->px(), neutrino->py(), neutrino->pz(), neutrino->energy());
-
+	      
               TParameter<int>* pdg_id = (TParameter<int>*) mNeutrinosPDG->ConstructedAt(index++);
               pdg_id->SetVal(neutrino->pdgId());
             }
           }
         }
-
       }
     }
 
@@ -1989,23 +2155,23 @@ void GammaJetFilter::jetToTree(const pat::Jet* jet, bool _findNeutrinos, TTree* 
     const reco::Candidate* parton = (jet) ? jet->genParton() : NULL;
     int pdgId = (parton) ? parton->pdgId() : 0;
     updateBranch(genTree, &pdgId, "parton_pdg_id", "I");
-
+    
     TLorentzVector parton_p4;
     if (parton) {
       parton_p4.SetPxPyPzE(parton->px(), parton->py(), parton->pz(), parton->energy());
     }
     TLorentzVector* p_parton_p4 = &parton_p4;
-
+    
     TBranch* branch = genTree->GetBranch("parton_p4");
     if (branch == NULL) {
       branch = genTree->Branch("parton_p4", &p_parton_p4);
     } else {
       branch->SetAddress(&p_parton_p4);
     }
-
+    
     int flavour = (jet) ? jet->partonFlavour() : 0;
     updateBranch(genTree, &flavour, "parton_flavour", "I");
-
+    
     genTree->Fill();
   }
 }
@@ -2018,9 +2184,9 @@ void GammaJetFilter::metsToTree(const pat::MET& met, const pat::MET& rawMet, con
 void GammaJetFilter::metToTree(const pat::MET* met, TTree* tree, TTree* genTree) {
   std::vector<boost::shared_ptr<void> > addresses;
   particleToTree(met, tree, addresses);
-
+  
   tree->Fill();
-
+  
   if (genTree) {
     particleToTree((met) ? met->genMET() : NULL, genTree, addresses);
     genTree->Fill();
@@ -2028,7 +2194,7 @@ void GammaJetFilter::metToTree(const pat::MET* met, TTree* tree, TTree* genTree)
 }
 
 void GammaJetFilter::electronsToTree(const edm::Handle<pat::ElectronCollection>& electrons, const reco::Vertex& pv) {
-
+  
   int n = electrons->size();
   static int   id[30];
   static float isolation[30];
@@ -2043,10 +2209,10 @@ void GammaJetFilter::electronsToTree(const edm::Handle<pat::ElectronCollection>&
   int i = 0;
   for (pat::ElectronCollection::const_iterator it = electrons->begin(); it != electrons->end(); ++it, i++) {
     const pat::Electron& electron = *it;
-
+    
     if (i >= 30)
       break;
-
+    
     // See https://twiki.cern.ch/twiki/bin/view/CMS/TopLeptonPlusJetsRefSel_el
     bool elecID = fabs(pv.z() - it->vertex().z()) < 1.;
     elecID     &= it->et() > 30.;
@@ -2077,7 +2243,7 @@ void GammaJetFilter::electronsToTree(const edm::Handle<pat::ElectronCollection>&
   updateBranchArray(mElectronsTree, eta, "eta", "n");
   updateBranchArray(mElectronsTree, phi, "phi", "n");
   updateBranchArray(mElectronsTree, charge, "charge", "n", "I");
-
+  
   mElectronsTree->Fill();
 }
 
@@ -2087,6 +2253,9 @@ void GammaJetFilter::muonsToTree(const edm::Handle<pat::MuonCollection>& muons, 
   static int   id[30];
   static float isolation[30];
   static float delta_beta_isolation[30];
+  //Federico
+  static int isLooseMuon[30];
+  int nLooseMuon = 0;
   static float pt[30];
   static float px[30];
   static float py[30];
@@ -2095,13 +2264,15 @@ void GammaJetFilter::muonsToTree(const edm::Handle<pat::MuonCollection>& muons, 
   static float phi[30];
   static int   charge[30];
 
+  //  std::cout << " " << std::endl;
+  //  std::cout << "Number of muons " << n << std::endl;
   int i = 0;
   for (pat::MuonCollection::const_iterator it = muons->begin(); it != muons->end(); ++it, i++) {
     const pat::Muon& muon = *it;
-
+    
     if (i >= 30)
       break;
-
+    
     // See https://twiki.cern.ch/twiki/bin/view/CMS/TopLeptonPlusJetsRefSel_mu
     bool muonID = it->isGlobalMuon();
     //FIXME: reco::Tracks need to be keept in PF2PAT.
@@ -2117,13 +2288,14 @@ void GammaJetFilter::muonsToTree(const edm::Handle<pat::MuonCollection>& muons, 
       muonID     &= it->innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
       muonID     &= it->track()->hitPattern().trackerLayersWithMeasurement() > 5;
     }
-
+    
     float relIso = (it->chargedHadronIso() + it->neutralHadronIso() + it->photonIso()) / it->pt();
     float deltaBetaRelIso = (it->chargedHadronIso() + std::max((it->neutralHadronIso() + it->photonIso()) - 0.5 * it->puChargedHadronIso(), 0.0)) / it->pt();
-
+    
     id[i]          = muonID;
     isolation[i]   = relIso;
     delta_beta_isolation[i] = deltaBetaRelIso;
+    isLooseMuon[i]          = muon.isLooseMuon(); //Federico
     pt[i]          = muon.pt();
     px[i]          = muon.px();
     py[i]          = muon.py();
@@ -2131,12 +2303,16 @@ void GammaJetFilter::muonsToTree(const edm::Handle<pat::MuonCollection>& muons, 
     eta[i]         = muon.eta();
     phi[i]         = muon.phi();
     charge[i]      = muon.charge();
+    
+    if(pt[i] > 5 && isLooseMuon[i]) nLooseMuon++ ; //Federico
   }
-
+  
   updateBranch(mMuonsTree, &n, "n", "I");
   updateBranchArray(mMuonsTree, id, "id", "n", "I");
   updateBranchArray(mMuonsTree, isolation, "relative_isolation", "n");
   updateBranchArray(mMuonsTree, delta_beta_isolation, "delta_beta_relative_isolation", "n");
+  updateBranchArray(mMuonsTree, isLooseMuon, "isLooseMuon", "n", "I"); //Federico
+  updateBranch(mMuonsTree, &nLooseMuon, "nLooseMuon", "I"); //Federico
   updateBranchArray(mMuonsTree, pt, "pt", "n");
   updateBranchArray(mMuonsTree, px, "px", "n");
   updateBranchArray(mMuonsTree, py, "py", "n");
@@ -2144,7 +2320,7 @@ void GammaJetFilter::muonsToTree(const edm::Handle<pat::MuonCollection>& muons, 
   updateBranchArray(mMuonsTree, eta, "eta", "n");
   updateBranchArray(mMuonsTree, phi, "phi", "n");
   updateBranchArray(mMuonsTree, charge, "charge", "n", "I");
-
+  
   mMuonsTree->Fill();
 }
 
